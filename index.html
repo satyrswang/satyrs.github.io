@@ -172,8 +172,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>##redis</p>
-<p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+        <h2 id="redis"><a href="#redis" class="headerlink" title="redis"></a>redis</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
 <p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
 <p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
 <p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
