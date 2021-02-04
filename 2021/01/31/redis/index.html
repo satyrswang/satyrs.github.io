@@ -16,7 +16,7 @@
 <meta property="og:description" content="相关笔记1、从自己拉还是定期拉 还是master发第一次全量复制的时候，从发命令后主发rdb和写缓存续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量其他情况，master会异步发送 2、单机写 读的并发量、集群并发量几万、十万qps、几十万单个value 1g 3、哨兵没有检测到主failure， 主自动重启，导致数据清">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-01-31T04:51:48.000Z">
-<meta property="article:modified_time" content="2021-01-31T05:46:33.584Z">
+<meta property="article:modified_time" content="2021-02-04T03:29:46.843Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="redis">
 <meta name="twitter:card" content="summary">
@@ -61,6 +61,8 @@
 			<ul>
 			
 				<li><a href="/">home</a></li>
+	        
+				<li><a target="_blank" rel="noopener" href="https://leetcode-cn.com/u/satyrs/">leetcode</a></li>
 	        
 			</ul>
 		</nav>
@@ -114,6 +116,8 @@
 			
 				
 			
+				
+			
 			
 			
 			<nav class="header-nav">
@@ -130,7 +134,9 @@
 				<ul style="width: 50%">
 				
 				
-					<li style="width: 100%"><a href="/">home</a></li>
+					<li style="width: 50%"><a href="/">home</a></li>
+		        
+					<li style="width: 50%"><a target="_blank" rel="noopener" href="https://leetcode-cn.com/u/satyrs/">leetcode</a></li>
 		        
 				</ul>
 			</nav>
@@ -169,6 +175,7 @@
 <p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
 <p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
 <p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
+<a id="more"></a>
 <p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
 <p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
 <p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
@@ -503,10 +510,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
             </li>
           
             <li class="search-li">
-              <a href="https://leetcode-cn.com/u/satyrs/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>leetcode</a>
-            </li>
-          
-            <li class="search-li">
               <a href="https://www.cnblogs.com/yumanman/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>cnblogs</a>
             </li>
           
@@ -530,7 +533,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
     
     	<section class="tools-section tools-section-me" q-show="aboutme">
   	  	
-  	  		<div class="aboutme-wrap" id="js-aboutme">关心算法、cs、网络 , wechat satyrsh</div>
+  	  		<div class="aboutme-wrap" id="js-aboutme">关心算法、cs、网络、投资, 闲听历史、看史评   wechat satyrsh</div>
   	  	
     	</section>
     

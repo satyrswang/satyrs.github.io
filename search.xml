@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>LSTM</title>
+    <url>/2021/01/31/LSTM/</url>
+    <content><![CDATA[<ul>
+<li>篇幅稍长，分为四个部分</li>
+</ul>
+<ol>
+<li>background</li>
+<li>step-by-step</li>
+<li>show me the code</li>
+<li>deep thinking</li>
+</ol>
+<p>codes<br><a href="https://github.com/satyrswang/blog-jianshu/blob/master/LSTM.lua">https://github.com/satyrswang/blog-jianshu/blob/master/LSTM.lua</a></p>
+<h2 id="background"><a href="#background" class="headerlink" title="background"></a>background</h2><ul>
+<li><p>what?<br>rnn和feedforward network有嘛不同？</p>
+<blockquote>
+<p>It’s the easiest to implement an RNN just as a feedforward network with some parts of the input feeding into the middle of the stack, and a bunch of outputs coming out from there as well. There is no magic internal state kept in the network. It’s provided as a part of the input!</p>
+</blockquote>
+<a id="more"></a>
+<p>只是把隐层有拎出来作为下一个隐层的input。=_=<br>然而，理论支持吗？</p>
+</li>
+<li><p>Problem</p>
+<ul>
+<li>视频那么多帧，前一帧连着后一帧，间隔又短，那么是否可用前一帧来预测后一帧？<br>看情况。</li>
+<li>完形填空 the clouds are in the ___<br>I grew up in France… I speak fluent <em>French</em>.<br>当gap变大，France和<em>French</em>距离那么远，RNN没用了。</li>
+<li>为什么gap大了，就没用了？理论证明如下：<br><a href="http://www-dsi.ing.unifi.it/~paolo/ps/tnn-94-gradient.pdf">Bengio, et al. (1994)</a><br><a href="http://people.idsia.ch/~juergen/SeppHochreiter1991ThesisAdvisorSchmidhuber.pdf">Hochreiter (1991) German</a></li>
+</ul>
+</li>
+<li><p>然而，LSTMs 不会因为gap惹事儿。<br>Long Short Term Memory networks<br><img src="/2021/01/31/LSTM/chain.webp" alt="chain"></p>
+</li>
+</ul>
+<h2 id="step-by-step"><a href="#step-by-step" class="headerlink" title="step-by-step"></a>step-by-step</h2><ul>
+<li>图第二个干嘛了？你先别看图，听我讲：<br>注意这里横着看，看的是chain中第t个</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程1 --名字是 input transform</span><br><span class="line">输入 ：input中的x(t)，chain中前一个x输出的结果h(t-1)</span><br><span class="line">参数 ：x的权重w1，h的权重w2，加一个bias</span><br><span class="line">激活函数 ：tanh</span><br></pre></td></tr></table></figure>
+<p>以上得到一个结果记为c_in</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程2 --名字是 三个gates，每个gate如下</span><br><span class="line">输入 ：input中的x(t)，chain中前一个x输出的结果h(t-1)</span><br><span class="line">参数 ：x的权重w1，h的权重w2，加一个bias</span><br><span class="line">激活函数 ：g</span><br></pre></td></tr></table></figure>
+<p>得到三个结果记为i , f , o<br>先保留一个问题： 过程1、2的输入虽然都是x h变量，但是是一样的吗？还是x h这两个向量的部分值呢？<br>有了c_in,i , f , o 之后干嘛，我怎么得到这一层的h？</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程3 -- 名字是 state update </span><br><span class="line">输入 ：c_in,i , f , o ,c_out(t-1)</span><br><span class="line">输出 ：新的h(t)， c_out(t)</span><br></pre></td></tr></table></figure>
+<p>c_out(t-1) 是chain中前一个的输出呗。h、c_out怎么计算的？<br>c_out(t)  =  f * c_out(t-1) + i * c_in<br>h(t)  =  o * tanh(c_out(t))</p>
+<ul>
+<li>就这么简单？<br>是的。为什么能这样呢？<blockquote>
+<p>Because of the <strong>gating mechanism</strong> the cell can keep a piece of information for long periods of time during work and <strong>protect the gradient inside the cell from harmful changes during the training</strong>. Vanilla LSTMs don’t have <strong>a forget gate</strong> and add unchanged cell state during the update (it can be seen as a recurrent connection with a constant weight of 1), what is often referred to as a Constant Error Carousel (CEC). It’s called like that, because <strong>it solves a serious RNN training problem of vanishing and exploding gradients</strong>, which in turn makes it possible to learn long-term relationships.</p>
+</blockquote>
+</li>
+</ul>
+<p>原来，因为有个<strong>gating mechanism</strong> 就是 过程2 嘛，解决了RNN的gradient的问题。为什么能解决<strong>vanishing and exploding gradients</strong>的问题呢？理论支持去看论文。</p>
+<h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a>show me the code</h2><p>基于 Torch7</p>
+<ul>
+<li>snippet1: inputs<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local inputs &#x3D; &#123;&#125;</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- x(t)</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- c_out(t-1)</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- h(t-1)</span><br><span class="line">local input &#x3D; inputs[1]</span><br><span class="line">local prev_c &#x3D; inputs[2]</span><br><span class="line">local prev_h &#x3D; inputs[3]</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol>
+<li><p>  想想看我们要什么？你回答完了之后，听我讲：<br>三个变量 ：过程1、2要的x(t) h(t-1)和过程3还要的c_out(t-1)</p>
+</li>
+<li><p>  怎么得到？<br>这里用到了<code>nn.Identity()()</code> 和 <code>table.insert</code></p>
+<blockquote>
+<p>The array-like objects in lua are called tables.<br>nn.Identity() - passes on the input (used as a placeholder for input)</p>
+</blockquote>
+</li>
+</ol>
+<p>如果你用tf，那么nn.Identify就是placeholder</p>
+<ul>
+<li>snippet2: Computing gate values<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local i2h &#x3D; nn.Linear(input_size, 4 * rnn_size)(input) </span><br><span class="line">local h2h &#x3D; nn.Linear(rnn_size, 4 * rnn_size)(prev_h)   </span><br><span class="line">local preactivations &#x3D; nn.CAddTable()(&#123;i2h, h2h&#125;)    </span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol>
+<li> <code>4 * rnn_size</code>什么鬼？<br>过程1、2在激活前是不是都是x(t) h(t-1)的线性变换？即<code>nn.Linear</code>。<br><code>preactivations</code>将i2h, h2h作加法运算返回一个vector。<br>我们将线性变换的结果分成4份，每份<code>rnn_size</code>多个值。为什么分为4份？记得我们有三个gates吗 ，得到i,f,o？<blockquote>
+<p>The first will be used for <strong>i</strong>n gates, second for <strong>f</strong>orget gates, third for <strong>o</strong>ut gates and the last one <strong>as a cell input</strong> .</p>
+</blockquote>
+</li>
+</ol>
+<p>就跟玩儿似的。这里<strong>as a cell input</strong>就是直赋值给了h(t)，作为chain下一个的输入。也解释了之前的保留问题，即输入并不是一样的。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local pre_sigmoid_chunk &#x3D; nn.Narrow(2, 1, 3 * rnn_size)(preactivations)</span><br><span class="line">local all_gates &#x3D; nn.Sigmoid()(pre_sigmoid_chunk)</span><br><span class="line">local in_chunk &#x3D; nn.Narrow(2, 3 * rnn_size + 1, rnn_size)(preactivations)</span><br><span class="line">local in_transform &#x3D; nn.Tanh()(in_chunk)</span><br><span class="line">local in_gate &#x3D; nn.Narrow(2, 1, rnn_size)(all_gates)</span><br><span class="line">local forget_gate &#x3D; nn.Narrow(2, rnn_size + 1, rnn_size)(all_gates)</span><br><span class="line">local out_gate &#x3D; nn.Narrow(2, 2 * rnn_size + 1, rnn_size)(all_gates)</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li><p> <code>nn.Narrow</code>什么鬼？</p>
+<blockquote>
+<p>select appropriate parts of the preactivation vector.</p>
+</blockquote>
+</li>
+<li><p>  其他很简单啊，前3份传入gates要<code>nn.Sigmoid()</code>激活。3另一份只需要<code>nn.Tanh()</code>激活。</p>
+</li>
+</ol>
+<ul>
+<li><p>snippet3: Cell and hidden state<br>gates结果i f o也有了。进入过程3了。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local c_forget &#x3D; nn.CMulTable()(&#123;forget_gate, prev_c&#125;)</span><br><span class="line">local c_input &#x3D; nn.CMulTable()(&#123;in_gate, in_transform&#125;)</span><br><span class="line">local next_c &#x3D; nn.CAddTable()(&#123; c_forget, c_input&#125;)</span><br><span class="line">local c_transform &#x3D; nn.Tanh()(next_c)</span><br><span class="line">local next_h &#x3D; nn.CMulTable()(&#123;out_gate, c_transform&#125;)</span><br></pre></td></tr></table></figure>
+<p>按公式计算。没说的。得到<code>next_c</code>和<code>next_h</code></p>
+</li>
+<li><p>snippet4: define module</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">outputs &#x3D; &#123;&#125;</span><br><span class="line">table.insert(outputs, next_c)</span><br><span class="line">table.insert(outputs, next_h)</span><br><span class="line">return nn.gModule(inputs, outputs)</span><br></pre></td></tr></table></figure></li>
+<li><p>手残党的snippet5: 栗子</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">require &#39;nn&#39;</span><br><span class="line">require &#39;nngraph&#39;</span><br><span class="line">LSTM &#x3D; require &#39;LSTM.lua&#39;  --以上snippet</span><br><span class="line">--创建3层LSTM，输入3输出3</span><br><span class="line">network &#x3D; &#123;LSTM.create(3, 4), LSTM.create(4, 4), LSTM.create(4, 3)&#125;</span><br><span class="line">--准备</span><br><span class="line">local x &#x3D; torch.randn(1, 3)</span><br><span class="line">local previous_state &#x3D; &#123;</span><br><span class="line">  &#123;torch.zeros(1, 4), torch.zeros(1,4)&#125;,</span><br><span class="line">  &#123;torch.zeros(1, 4), torch.zeros(1,4)&#125;,</span><br><span class="line">  &#123;torch.zeros(1, 3), torch.zeros(1,3)&#125;</span><br><span class="line">&#125;</span><br><span class="line">output &#x3D; nil</span><br><span class="line">next_state &#x3D; &#123;&#125;</span><br><span class="line"></span><br><span class="line">--feed数据</span><br><span class="line">local layer_input &#x3D; &#123;x, table.unpack(previous_state[1])&#125;</span><br><span class="line">for l &#x3D; 1, #network do</span><br><span class="line">  local layer_output &#x3D; network[l]:forward(layer_input)</span><br><span class="line">  table.insert(next_state, layer_output)</span><br><span class="line">  local layer_h &#x3D; layer_output[2]</span><br><span class="line">  if l &lt; #network then</span><br><span class="line">    layer_input &#x3D; &#123;layer_h, table.unpack(previous_state[l + 1])&#125;</span><br><span class="line">  else</span><br><span class="line">    output &#x3D; layer_h</span><br><span class="line">  end</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">print(next_state)</span><br><span class="line">print(output)</span><br></pre></td></tr></table></figure>
+<h2 id="deep-thinking"><a href="#deep-thinking" class="headerlink" title="deep thinking"></a>deep thinking</h2><p>尽管已经很长了。还是要写理解。这时你可以看图了。</p>
+<blockquote>
+<p>what information we’re going to throw away from the cell state<br>what new information we’re going to store in the cell state</p>
+</blockquote>
+</li>
+</ul>
+<ol>
+<li><p>什么是forget gate？</p>
+<ul>
+<li>其实就是将x h线性变换后做一个sigmoid， 如果结果是0，代表forget  c_out(t-1)。</li>
+<li>这个例子非常好：<blockquote>
+<p>the cell state might include the gender of the present subject, so that the correct pronouns can be used. When we see a new subject, we want to forget the gender of the old subject.</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>i 和 c_in?</p>
+<ul>
+<li>两步，第一步i，i = 1相当于是确定哪些值我们需要update或者说需要更新输入的多大成分，想象为将c_in scale了i倍；而tanh相当于为需要更新的值确定了更新成什么c_in。</li>
+<li>相乘，则确定了新的候选值，再与f相加，我们便确定了新的状态。</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>we’d want to add the gender of the new subject to the cell state, to replace the old one we’re forgetting.</p>
+</blockquote>
+<ol start="3">
+<li><p>那么输出什么？</p>
+<ul>
+<li>首先我们需要确定哪些更新后的状态需要输出，用sigmoid，得到的o就是我们想要输出的部分。 </li>
+<li> 然后 基于更新好的状态c_out(t)，将其tanh控制在[-1,1]之间。乘以o，输出我们要输出的。<blockquote>
+<p>since it just saw a subject, it might want to output information relevant to a verb, in case that’s what is coming next. For example, it might output <strong>whether the subject is singular or plural</strong>, so that we know what form a verb should be conjugated into if that’s what follows next.</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>各类变种<br><a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a><br><a href="http://arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a><br><a href="http://arxiv.org/pdf/1508.03790v2.pdf">Yao, et al. (2015)</a><br><a href="http://arxiv.org/pdf/1402.3511v1.pdf">Koutnik, et al. (2014)</a></p>
+</li>
+<li><p> 比对各类变种的结论<br><a href="http://arxiv.org/pdf/1503.04069.pdf">Greff, et al. (2015)</a><br><a href="http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a></p>
+</li>
+</ol>
+<p>欢迎补充材料。<br>reference:<br><a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">http://colah.github.io/posts/2015-08-Understanding-LSTMs/</a></p>
+]]></content>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<a id="more"></a>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+]]></content>
+      <tags>
+        <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>redis</title>
+    <url>/2021/01/31/redis/</url>
+    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
+<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
+<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
+<a id="more"></a>
+<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
+<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
+<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
+<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
+<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
+<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
+<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
+<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
+<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
+<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
+<p>14、cluster<br>Cluster bus通信、gossip协议</p>
+<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
+<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
+<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
+<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
+<p>19、穿透<br>没查到则写一个空值到redis</p>
+<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
+<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
+<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
+<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
+]]></content>
+      <tags>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>分布式事务</title>
+    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/</url>
+    <content><![CDATA[<h2 id="事务、分布式事务及场景"><a href="#事务、分布式事务及场景" class="headerlink" title="事务、分布式事务及场景"></a>事务、分布式事务及场景</h2><ul>
+<li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
+</li>
+<li><p>事务则需要有ACID性质。</p>
+<ul>
+<li>原子性、一致性、隔离性(一个事务不能看到其他事务的中间状态)、持久性</li>
+</ul>
+</li>
+<li><p>而分布式事务则和分布式架构相关，当服务被拆分，并通过网络进行协作，则一个事务就涉及到多个服务以及远程调用。此时为分布式事务。</p>
+</li>
+<li><p>场景：</p>
+<ul>
+<li>微服务架构中，即需要跨JVM进程。无论是多个服务访问一个实例，还是多个服务多个实例，本地事务都无法解决。</li>
+<li>单个系统访问多个数据库实例，就需要进行不同的数据库连接</li>
+</ul>
+</li>
+</ul>
+<br>
+<a id="more"></a>
+## CAP
+
+<h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
+<p>一致性、可用性、分区容错性</p>
+<ul>
+<li><p>consistency：写操作后的读(任意节点读)可以读到最近状态。</p>
+<ul>
+<li>在从同步数据的过程中，将从锁住，同步完再允许查询。 需要1写响应有延迟；2资源锁定与释放；3同步失败则返回错误信息而不能返回旧数据</li>
+</ul>
+</li>
+<li><p>availability：任何事务操作都可以得到响应，且不会响应错误或超时。</p>
+<ul>
+<li>需要能够立即响应并非错误、非超时，可以允许旧数据。需要1同步时不能锁定；2返回旧数据或者默认值</li>
+</ul>
+</li>
+<li><p>partitio tolerance：分布式各个节点在不同的子网，就形成了网络分区，彼此需要通过网络进行交互，当网络通信失败时，仍能够提供服务。</p>
+<ul>
+<li>单个节点挂了不影响其他节点，同步时不影响读写操作。需要1添加主备从备节点、避免主或从挂了；2异步进行数据从主到从的同步</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>三个特性不能共存。一般选择AP，达到最终一致性即可。</p>
+</blockquote>
+<ul>
+<li>AP，通常实现AP都会保证最终一致性</li>
+<li>CP，zookeeper追求的就是强一致</li>
+<li>CA，不进行分区，本地事务隔离级别即可。</li>
+</ul>
+<br>
+
+<h2 id="BASE理论与柔性事务"><a href="#BASE理论与柔性事务" class="headerlink" title="BASE理论与柔性事务"></a>BASE理论与柔性事务</h2><p>在AP中，满足1 基本可用 2 软状态 3 最终一致。即满足base，为柔性事务。</p>
+<ul>
+<li>软状态: 中间状态– 当同步过程中来了查询，给出“支付中”状态，一致后再返回“成功”。</li>
+</ul>
+<br>
+
+<h2 id="2PC"><a href="#2PC" class="headerlink" title="2PC"></a>2PC</h2><h3 id="2PC概念"><a href="#2PC概念" class="headerlink" title="2PC概念"></a>2PC概念</h3><ul>
+<li><p>两阶段提交协议，prepare准备阶段和commit提交阶段。</p>
+</li>
+<li><p>包含 事务管理器和事务参与者(数据库实例)<br>。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
+</li>
+<li><p>过程：</p>
+</li>
+</ul>
+<pre><code>+ prepare： 管理器向每个实例发送prepare消息，每个实例写本地的undo(修改前的数据)和redo(修改后的数据)日志。此时没有提交。
+
+
+
++ commit： 管理器收到参与者的失败或超时，则向每个参与者发送rollback消息。否则向每个实例发送commit。每个参与者进行执行指令并释放锁。
+</code></pre>
+<br>
+
+<h3 id="2PC解决方案"><a href="#2PC解决方案" class="headerlink" title="2PC解决方案"></a>2PC解决方案</h3><h4 id="XA方案"><a href="#XA方案" class="headerlink" title="XA方案"></a>XA方案</h4><p>规范数据库实现2pc协议的分布式事务处理模型DTP。<br>定义了角色：AP RM TM,TM 和 RM 通讯接口为XA。即数据库提供的2pc接口协议，基于该协议的2pc实现为xa方案。</p>
+<p>缺点：<br>1、资源锁需要事务的两个阶段结束才能释放<br>2、本地数据库需要支持XA协议<br><br></p>
+<h4 id="Seata方案"><a href="#Seata方案" class="headerlink" title="Seata方案"></a>Seata方案</h4><p>Seata是提供AT和TCC模式的分布式事务解决方案。</p>
+<ul>
+<li><p>与XA区别：</p>
+<ul>
+<li>1、XA是两阶段后释放锁，而AT模式(2pc)第一阶段则提交释放锁</li>
+<li>2、AT是应用层的中间件，对业务0侵入。</li>
+</ul>
+</li>
+<li><p>实现：</p>
+<ul>
+<li>三个角色，TC TM RM。</li>
+<li>TC负责，接收TM的全局事务提交或回滚指令，和RM通信协调分支事务。</li>
+<li>TM，开启全局事务，向TC发出提交或回滚指令。</li>
+<li>RM，分支注册、状态汇报、接收TC指令、驱动本地事务提交或回滚的执行。</li>
+</ul>
+</li>
+</ul>
+]]></content>
+  </entry>
+</search>
