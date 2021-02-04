@@ -197,10 +197,10 @@
   </entry>
   <entry>
     <title>分布式事务</title>
-    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/</url>
-    <content><![CDATA[<br>
-
-<h2 id="事务、分布式事务及场景"><a href="#事务、分布式事务及场景" class="headerlink" title="事务、分布式事务及场景"></a>事务、分布式事务及场景</h2><ul>
+    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/</url>
+    <content><![CDATA[<p><strong>摘要</strong></p>
+<p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务<br>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
+<h2 id="1、事务、分布式事务及场景"><a href="#1、事务、分布式事务及场景" class="headerlink" title="1、事务、分布式事务及场景"></a>1、事务、分布式事务及场景</h2><ul>
 <li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
 </li>
 <li><p>事务则需要有ACID性质。</p>
@@ -218,9 +218,9 @@
 </li>
 </ul>
 <a id="more"></a>
+<br>
 
-
-<h2 id="CAP"><a href="#CAP" class="headerlink" title="CAP"></a>CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
+<h2 id="2、CAP"><a href="#2、CAP" class="headerlink" title="2、CAP"></a>2、CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
 <p>一致性、可用性、分区容错性</p>
 <ul>
 <li><p>consistency：写操作后的读(任意节点读)可以读到最近状态。</p>
@@ -255,7 +255,7 @@
 </ul>
 <br>
 
-<h2 id="2PC"><a href="#2PC" class="headerlink" title="2PC"></a>2PC</h2><h3 id="2PC概念"><a href="#2PC概念" class="headerlink" title="2PC概念"></a>2PC概念</h3><ul>
+<h2 id="3、2PC"><a href="#3、2PC" class="headerlink" title="3、2PC"></a>3、2PC</h2><h3 id="2PC概念"><a href="#2PC概念" class="headerlink" title="2PC概念"></a>2PC概念</h3><ul>
 <li><p>两阶段提交协议，prepare准备阶段和commit提交阶段。</p>
 </li>
 <li><p>包含 事务管理器和事务参与者(数据库实例)。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
@@ -324,7 +324,31 @@
 </ul>
 <br>
 
-<h3 id="TCC"><a href="#TCC" class="headerlink" title="TCC"></a>TCC</h3>]]></content>
+<h3 id="4、TCC"><a href="#4、TCC" class="headerlink" title="4、TCC"></a>4、TCC</h3><h4 id="TCC相关解决方案"><a href="#TCC相关解决方案" class="headerlink" title="TCC相关解决方案"></a>TCC相关解决方案</h4><p>tcc-transaction、<br>Hmily、<br>ByteTcc、<br>EasyTransaction</p>
+<br>
+
+<h4 id="TCC的三种异常处理"><a href="#TCC的三种异常处理" class="headerlink" title="TCC的三种异常处理"></a>TCC的三种异常处理</h4><ol>
+<li><strong>空回滚</strong><br> 没有执行try就执行了cancel</li>
+<li><strong>幂等</strong><br> cancel和commit会重试</li>
+<li><strong>悬挂</strong><br> RPC 调用分支事务try时，先注册分支事务，再执行RPC调用，如果此时 RPC 调用的网络发生拥堵， 通常 RPC 调用是有超时时间的，RPC 超时以后，TM就会通知RM回滚该分布式事务，可能回滚完成后，RPC 请求 才到达参与者真正执行，而一个 Try 方法预留的业务资源，只有该分布式事务才能使用，该分布式事务第一阶段预 留的业务资源就再也没有人能够处理了，对于这种情况，我们就称为悬挂，即业务资源预留后没法继续处理。</li>
+</ol>
+<p>转账最终方案：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;A</span><br><span class="line">try: </span><br><span class="line">	try幂等校验</span><br><span class="line">	try悬挂处理 </span><br><span class="line">	检查余额是否够30元 </span><br><span class="line">	扣减30元</span><br><span class="line">confirm: </span><br><span class="line">	空</span><br><span class="line">cancel: </span><br><span class="line">	cancel幂等校验</span><br><span class="line">	cancel空回滚处理 </span><br><span class="line">	增加可用余额30元</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;B</span><br><span class="line">try: </span><br><span class="line">	空</span><br><span class="line">confirm: </span><br><span class="line">	confirm幂等校验</span><br><span class="line">	正式增加30元 </span><br><span class="line">cancel:</span><br><span class="line">	空</span><br></pre></td></tr></table></figure>
+<h4 id="Hmily实现TCC事务"><a href="#Hmily实现TCC事务" class="headerlink" title="Hmily实现TCC事务"></a>Hmily实现TCC事务</h4><ul>
+<li><p>新增配置类接收application.yml中的Hmily配置信息，并创建HmilyTransactionBootstrap Bean</p>
+</li>
+<li><p>A账户</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;DAO 略</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;service </span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">    @Transactional</span><br><span class="line">    @Hmily(confirmMethod &#x3D; &quot;commit&quot;, cancelMethod &#x3D; &quot;rollback&quot;)</span><br><span class="line">	public  void updateAccountBalance(String accountNo, Double amount) &#123;</span><br><span class="line">		&#x2F;&#x2F;事务id</span><br><span class="line">		&#x2F;&#x2F;try幂等校验</span><br><span class="line">		&#x2F;&#x2F;try悬挂处理</span><br><span class="line">		&#x2F;&#x2F;从账户扣减及扣减失败</span><br><span class="line">		&#x2F;&#x2F;增加本地事务try成功记录，用于幂等性控制标识 accountInfoDao.addTry(transId);</span><br><span class="line">		&#x2F;&#x2F;远程调用bank2</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;feign</span><br><span class="line"></span><br><span class="line">	@FeignClient(value &#x3D; &quot;seata‐demo‐bank2&quot;, fallback &#x3D; Bank2Fallback.class)</span><br><span class="line">	public interface Bank2Client &#123;</span><br><span class="line">		@GetMapping(&quot;&#x2F;bank2&#x2F;transfer&quot;)</span><br><span class="line">		@Hmily</span><br><span class="line">		Boolean transfer(@RequestParam(&quot;amount&quot;) Double amount);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;controller 略</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>B账户 略</li>
+</ul>
+<h4 id="TCC与2PC对比"><a href="#TCC与2PC对比" class="headerlink" title="TCC与2PC对比"></a>TCC与2PC对比</h4><ol>
+<li>2PC通常在DB层面，TCC在应用层面</li>
+<li>2PC无侵入性，TCC自定义数据操作粒度，锁冲突降低，提高吞吐，但业务逻辑每个分支都需要实现TCC三个方法，且需要按照网络状态、系统故障等不同的失败原因实现不同的回滚策略。</li>
+</ol>
+]]></content>
       <tags>
         <tag>分布式</tag>
       </tags>
@@ -333,18 +357,24 @@
     <title>梯度</title>
     <url>/2021/02/04/%E6%A2%AF%E5%BA%A6/</url>
     <content><![CDATA[<h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
-<li>deep后带来的信息传递/梯度传递问题<ul>
-<li>层数过多导致？sigmoid和tanh为什么会导致梯度消失？<ol>
+<li><p>deep后带来的信息传递/梯度传递问题</p>
+<ul>
+<li><p>层数过多导致？sigmoid和tanh为什么会导致梯度消失？</p>
+<ol>
 <li>直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。</li>
 <li>反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。<br>    </li>
 </ol>
 </li>
-<li>梯度消失<ol>
+<li><p>梯度消失</p>
+<ol>
 <li>原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应</li>
-<li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br></li>
+<li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br>
+<a id="more"></a>
+</li>
 </ol>
 </li>
-<li>梯度爆炸<ol>
+<li><p>梯度爆炸</p>
+<ol>
 <li>原因：1）隐藏层的层数过多；2）权重的初始化值过大</li>
 <li>在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。</li>
 <li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
@@ -353,13 +383,14 @@
 </ul>
 </li>
 </ul>
-<a id="more"></a>
-
-
-
 ]]></content>
       <tags>
         <tag>dl</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>分布式事务-下</title>
+    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/</url>
+    <content><![CDATA[]]></content>
   </entry>
 </search>

@@ -6,14 +6,19 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>satyrswang</title>
+  <title>分布式事务 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="satyrswang">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="摘要 1、什么是事务、分布式事务，分布式事务的场景2、CAP理论，及BASE理论，柔性事务3、分布式事务解决模型:2PC TCC （概念、区别）4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）5、TCC解决方案：三种异常处理、Hmily实现 1、事务、分布式事务及场景 一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。  事务则需要有ACID性质。  原子">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式事务">
+<meta property="og:url" content="http://example.com/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/index.html">
 <meta property="og:site_name" content="satyrswang">
+<meta property="og:description" content="摘要 1、什么是事务、分布式事务，分布式事务的场景2、CAP理论，及BASE理论，柔性事务3、分布式事务解决模型:2PC TCC （概念、区别）4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）5、TCC解决方案：三种异常处理、Hmily实现 1、事务、分布式事务及场景 一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。  事务则需要有ACID性质。  原子">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-02-04T03:30:17.000Z">
+<meta property="article:modified_time" content="2021-02-04T10:45:53.784Z">
 <meta property="article:author" content="yuqing wang">
+<meta property="article:tag" content="分布式">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
@@ -146,166 +151,14 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-    <article id="post-分布式事务-下" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+            <article id="post-分布式事务-上" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/">分布式事务-下</a>
-    </h1>
-  
-
-        
-        <a href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/" class="archive-article-date">
-  	<time datetime="2021-02-04T10:48:56.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-梯度" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/02/04/%E6%A2%AF%E5%BA%A6/">梯度</a>
-    </h1>
-  
-
-        
-        <a href="/2021/02/04/%E6%A2%AF%E5%BA%A6/" class="archive-article-date">
-  	<time datetime="2021-02-04T03:48:05.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
-<li><p>deep后带来的信息传递/梯度传递问题</p>
-<ul>
-<li><p>层数过多导致？sigmoid和tanh为什么会导致梯度消失？</p>
-<ol>
-<li>直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。</li>
-<li>反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。<br>    </li>
-</ol>
-</li>
-<li><p>梯度消失</p>
-<ol>
-<li>原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应</li>
-<li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br></li></ol></li></ul></li></ul>
-        
-          <a class="article-more-a" href="/2021/02/04/%E6%A2%AF%E5%BA%A6/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">dl</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2021/02/04/%E6%A2%AF%E5%BA%A6/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-分布式事务-上" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/">分布式事务</a>
+    <h1 class="article-title" itemprop="name">
+      分布式事务
     </h1>
   
 
@@ -337,11 +190,171 @@
 </ul>
 </li>
 </ul>
-        
-          <a class="article-more-a" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/#more">more >></a>
-        
+<a id="more"></a>
+<br>
+
+<h2 id="2、CAP"><a href="#2、CAP" class="headerlink" title="2、CAP"></a>2、CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
+<p>一致性、可用性、分区容错性</p>
+<ul>
+<li><p>consistency：写操作后的读(任意节点读)可以读到最近状态。</p>
+<ul>
+<li>在从同步数据的过程中，将从锁住，同步完再允许查询。 需要1写响应有延迟；2资源锁定与释放；3同步失败则返回错误信息而不能返回旧数据</li>
+</ul>
+</li>
+<li><p>availability：任何事务操作都可以得到响应，且不会响应错误或超时。</p>
+<ul>
+<li>需要能够立即响应并非错误、非超时，可以允许旧数据。需要1同步时不能锁定；2返回旧数据或者默认值</li>
+</ul>
+</li>
+<li><p>partitio tolerance：分布式各个节点在不同的子网，就形成了网络分区，彼此需要通过网络进行交互，当网络通信失败时，仍能够提供服务。</p>
+<ul>
+<li>单个节点挂了不影响其他节点，同步时不影响读写操作。需要1添加主备从备节点、避免主或从挂了；2异步进行数据从主到从的同步</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>三个特性不能共存。一般选择AP，达到最终一致性即可。</p>
+</blockquote>
+<ul>
+<li>AP，通常实现AP都会保证最终一致性</li>
+<li>CP，zookeeper追求的就是强一致</li>
+<li>CA，不进行分区，本地事务隔离级别即可。</li>
+</ul>
+<br>
+
+<h2 id="BASE理论与柔性事务"><a href="#BASE理论与柔性事务" class="headerlink" title="BASE理论与柔性事务"></a>BASE理论与柔性事务</h2><p>在AP中，满足1 基本可用 2 软状态 3 最终一致。即满足base，为柔性事务。</p>
+<ul>
+<li>软状态: 中间状态– 当同步过程中来了查询，给出“支付中”状态，一致后再返回“成功”。</li>
+</ul>
+<br>
+
+<h2 id="3、2PC"><a href="#3、2PC" class="headerlink" title="3、2PC"></a>3、2PC</h2><h3 id="2PC概念"><a href="#2PC概念" class="headerlink" title="2PC概念"></a>2PC概念</h3><ul>
+<li><p>两阶段提交协议，prepare准备阶段和commit提交阶段。</p>
+</li>
+<li><p>包含 事务管理器和事务参与者(数据库实例)。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
+</li>
+<li><p>过程：</p>
+<ul>
+<li>prepare： 管理器向每个实例发送prepare消息，每个实例写本地的undo(修改前的数据)和redo(修改后的数据)日志。此时没有提交。</li>
+<li>commit： 管理器收到参与者的失败或超时，则向每个参与者发送rollback消息。否则向每个实例发送commit。每个参与者进行执行指令并释放锁。</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="2PC解决方案"><a href="#2PC解决方案" class="headerlink" title="2PC解决方案"></a>2PC解决方案</h3><h4 id="XA方案"><a href="#XA方案" class="headerlink" title="XA方案"></a>XA方案</h4><p>规范数据库实现2pc协议的分布式事务处理模型DTP。<br>定义了角色：AP RM TM,TM 和 RM 通讯接口为XA。即数据库提供的2pc接口协议，基于该协议的2pc实现为xa方案。</p>
+<p>缺点：<br>1、资源锁需要事务的两个阶段结束才能释放<br>2、本地数据库需要支持XA协议<br><br></p>
+<h4 id="Seata方案"><a href="#Seata方案" class="headerlink" title="Seata方案"></a>Seata方案</h4><p>Seata是提供AT和TCC模式的分布式事务解决方案。</p>
+<ul>
+<li><p>与XA区别：</p>
+<ul>
+<li>1、XA是两阶段后释放锁，而AT模式(2pc)第一阶段则提交释放锁</li>
+<li>2、AT是应用层的中间件，对业务0侵入。</li>
+</ul>
+</li>
+<li><p>实现：</p>
+<ul>
+<li>三个角色，TC TM RM。</li>
+<li>TC负责，接收TM的全局事务提交或回滚指令，和RM通信协调分支事务。</li>
+<li>TM，开启全局事务，向TC发出提交或回滚指令。</li>
+<li>RM，分支注册、状态汇报、接收TC指令、驱动本地事务提交或回滚的执行。</li>
+</ul>
+</li>
+<li><p>详解流程：</p>
+<ul>
+<li>每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</li>
+<li>在第一阶段undo_log中存放了数据修改前和修改后的值，为事务回滚作好准备，所以第一阶段完成就已经将分 支事务提交，也就释放了锁资源。</li>
+<li>TM开启全局事务开始，将XID全局事务id放在事务上下文中，通过feign调用也将XID传入下游分支事务，每个 分支事务将自己的Branch ID分支事务ID与XID关联。</li>
+<li>第二阶段全局事务提交，TC会通知各各分支参与者提交分支事务，在第一阶段就已经提交了分支事务，这里各各参与者只需要删除undo_log即可，并且可以异步执行，第二阶段很快可以完成。</li>
+<li>第二阶段全局事务回滚，TC会通知各各分支参与者回滚分支事务，通过 XID 和 Branch ID 找到相应的回滚日志，通过回滚日志生成反向的 SQL 并执行，以完成分支事务回滚到之前的状态，如果回滚失败则会重试回滚操作。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>实战step：</p>
+<ul>
+<li><p>下载，解压并启动seata服务器 /bin/seata-server.bat -p 8888 -m file 。端口和文件方式存储信息。(TC)</p>
+</li>
+<li><p>添加discover-server子模块，discover-server基于Eureka实现。</p>
+</li>
+<li><p>添加微服务子模块，子模块pom中引入spring-cloud-alibaba-seata（包含了RM TM），并配置TC的地址：registry.conf、file.conf中：</p>
+<blockquote>
+<p>在file.conf中更改service.vgroup_mapping.[springcloud服务名]-fescar-service-group = “default”，并修改 service.default.grouplist =[seata服务端地址]</p>
+</blockquote>
+</li>
+<li><p>创建代理数据源（配置mysql连接）</p>
+<blockquote>
+<p>Seata的RM通过DataSourceProxy才能在业务代码的事务提交时，通过这个切<br>入点，与TC进行通信交互、记录undo_log等。每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</p>
+</blockquote>
+</li>
+<li><p>代码部分细节：<code>FeignClient</code>、<code>@GlobalTransactional</code>、<code>@Transactional</code></p>
+<blockquote>
+<p>将@GlobalTransactional注解标注在全局事务发起的Service实现方法上，开启全局事务: GlobalTransactionalInterceptor会拦截@GlobalTransactional注解的方法，生成全局事务ID(XID)，XID会在整个分布式事务中传递。 在远程调用时，spring-cloud-alibaba-seata会拦截Feign调用将XID传递到下游服务。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="4、TCC"><a href="#4、TCC" class="headerlink" title="4、TCC"></a>4、TCC</h3><h4 id="TCC相关解决方案"><a href="#TCC相关解决方案" class="headerlink" title="TCC相关解决方案"></a>TCC相关解决方案</h4><p>tcc-transaction、<br>Hmily、<br>ByteTcc、<br>EasyTransaction</p>
+<br>
+
+<h4 id="TCC的三种异常处理"><a href="#TCC的三种异常处理" class="headerlink" title="TCC的三种异常处理"></a>TCC的三种异常处理</h4><ol>
+<li><strong>空回滚</strong><br> 没有执行try就执行了cancel</li>
+<li><strong>幂等</strong><br> cancel和commit会重试</li>
+<li><strong>悬挂</strong><br> RPC 调用分支事务try时，先注册分支事务，再执行RPC调用，如果此时 RPC 调用的网络发生拥堵， 通常 RPC 调用是有超时时间的，RPC 超时以后，TM就会通知RM回滚该分布式事务，可能回滚完成后，RPC 请求 才到达参与者真正执行，而一个 Try 方法预留的业务资源，只有该分布式事务才能使用，该分布式事务第一阶段预 留的业务资源就再也没有人能够处理了，对于这种情况，我们就称为悬挂，即业务资源预留后没法继续处理。</li>
+</ol>
+<p>转账最终方案：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;A</span><br><span class="line">try: </span><br><span class="line">	try幂等校验</span><br><span class="line">	try悬挂处理 </span><br><span class="line">	检查余额是否够30元 </span><br><span class="line">	扣减30元</span><br><span class="line">confirm: </span><br><span class="line">	空</span><br><span class="line">cancel: </span><br><span class="line">	cancel幂等校验</span><br><span class="line">	cancel空回滚处理 </span><br><span class="line">	增加可用余额30元</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;B</span><br><span class="line">try: </span><br><span class="line">	空</span><br><span class="line">confirm: </span><br><span class="line">	confirm幂等校验</span><br><span class="line">	正式增加30元 </span><br><span class="line">cancel:</span><br><span class="line">	空</span><br></pre></td></tr></table></figure>
+<h4 id="Hmily实现TCC事务"><a href="#Hmily实现TCC事务" class="headerlink" title="Hmily实现TCC事务"></a>Hmily实现TCC事务</h4><ul>
+<li><p>新增配置类接收application.yml中的Hmily配置信息，并创建HmilyTransactionBootstrap Bean</p>
+</li>
+<li><p>A账户</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;DAO 略</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;service </span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">    @Transactional</span><br><span class="line">    @Hmily(confirmMethod &#x3D; &quot;commit&quot;, cancelMethod &#x3D; &quot;rollback&quot;)</span><br><span class="line">	public  void updateAccountBalance(String accountNo, Double amount) &#123;</span><br><span class="line">		&#x2F;&#x2F;事务id</span><br><span class="line">		&#x2F;&#x2F;try幂等校验</span><br><span class="line">		&#x2F;&#x2F;try悬挂处理</span><br><span class="line">		&#x2F;&#x2F;从账户扣减及扣减失败</span><br><span class="line">		&#x2F;&#x2F;增加本地事务try成功记录，用于幂等性控制标识 accountInfoDao.addTry(transId);</span><br><span class="line">		&#x2F;&#x2F;远程调用bank2</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;feign</span><br><span class="line"></span><br><span class="line">	@FeignClient(value &#x3D; &quot;seata‐demo‐bank2&quot;, fallback &#x3D; Bank2Fallback.class)</span><br><span class="line">	public interface Bank2Client &#123;</span><br><span class="line">		@GetMapping(&quot;&#x2F;bank2&#x2F;transfer&quot;)</span><br><span class="line">		@Hmily</span><br><span class="line">		Boolean transfer(@RequestParam(&quot;amount&quot;) Double amount);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;controller 略</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>B账户 略</li>
+</ul>
+<h4 id="TCC与2PC对比"><a href="#TCC与2PC对比" class="headerlink" title="TCC与2PC对比"></a>TCC与2PC对比</h4><ol>
+<li>2PC通常在DB层面，TCC在应用层面</li>
+<li>2PC无侵入性，TCC自定义数据操作粒度，锁冲突降低，提高吞吐，但业务逻辑每个分支都需要实现TCC三个方法，且需要按照网络状态、系统故障等不同的失败原因实现不同的回滚策略。</li>
+</ol>
+
       
 
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>thanks for tips<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/img/alipay.jpg">
+                      <span class="reward-type">支付宝</span>
+                    </div>
+                    
+                    
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/img/wechatpay.jpg">
+                      <span class="reward-type">微信</span>
+                    </div>
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
+        </div>
       
     </div>
     <div class="article-info article-info-index">
@@ -361,16 +374,84 @@
       
 
       
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/">展开全文 >></a>
-        </p>
-      
 
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
+        </div>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
       
       <div class="clearfix"></div>
     </div>
   </div>
 </article>
+
+  
+<nav id="article-nav">
+  
+    <a href="/2021/02/04/%E6%A2%AF%E5%BA%A6/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          梯度
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/01/31/dubbo-spi/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">dubbo-spi</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
 
 <aside class="wrap-side-operation">
     <div class="mod-side-operation">
@@ -390,257 +471,14 @@
 
 
 
-
   
-    <article id="post-dubbo-spi" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/01/31/dubbo-spi/">dubbo-spi</a>
-    </h1>
   
 
-        
-        <a href="/2021/01/31/dubbo-spi/" class="archive-article-date">
-  	<time datetime="2021-01-31T14:11:31.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-01-31</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-        
-          <a class="article-more-a" href="/2021/01/31/dubbo-spi/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">dubbo</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2021/01/31/dubbo-spi/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-redis" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/01/31/redis/">redis</a>
-    </h1>
   
 
-        
-        <a href="/2021/01/31/redis/" class="archive-article-date">
-  	<time datetime="2021-01-31T04:51:48.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-01-31</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
-<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
-<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
-<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
-        
-          <a class="article-more-a" href="/2021/01/31/redis/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">redis</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2021/01/31/redis/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-LSTM" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/01/31/LSTM/">LSTM</a>
-    </h1>
   
 
-        
-        <a href="/2021/01/31/LSTM/" class="archive-article-date">
-  	<time datetime="2021-01-31T04:03:58.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-01-31</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <ul>
-<li>篇幅稍长，分为四个部分</li>
-</ul>
-<ol>
-<li>background</li>
-<li>step-by-step</li>
-<li>show me the code</li>
-<li>deep thinking</li>
-</ol>
-<p>codes<br><a target="_blank" rel="noopener" href="https://github.com/satyrswang/blog-jianshu/blob/master/LSTM.lua">https://github.com/satyrswang/blog-jianshu/blob/master/LSTM.lua</a></p>
-<h2 id="background"><a href="#background" class="headerlink" title="background"></a>background</h2><ul>
-<li><p>what?<br>rnn和feedforward network有嘛不同？</p>
-<blockquote>
-<p>It’s the easiest to implement an RNN just as a feedforward network with some parts of the input feeding into the middle of the stack, and a bunch of outputs coming out from there as well. There is no magic internal state kept in the network. It’s provided as a part of the input!</p>
-</blockquote></li></ul>
-        
-          <a class="article-more-a" href="/2021/01/31/LSTM/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">dl</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2021/01/31/LSTM/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
 
 
@@ -663,8 +501,8 @@
     <script>
 	var yiliaConfig = {
 		mathjax: false,
-		isHome: true,
-		isPost: false,
+		isHome: false,
+		isPost: true,
 		isArchive: false,
 		isTag: false,
 		isCategory: false,
