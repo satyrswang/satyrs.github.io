@@ -8,16 +8,17 @@
   <link rel="dns-prefetch" href="http://example.com">
   <title>分布式事务 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="事务、分布式事务及场景 一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。  事务则需要有ACID性质。  原子性、一致性、隔离性(一个事务不能看到其他事务的中间状态)、持久性   而分布式事务则和分布式架构相关，当服务被拆分，并通过网络进行协作，则一个事务就涉及到多个服务以及远程调用。此时为分布式事务。  场景：  微服务架构中，即需要跨JVM进程。无论是多个服务访问">
+  <meta name="description" content="事务、分布式事务及场景 一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。  事务则需要有ACID性质。  原子性、一致性、隔离性(一个事务不能看到其他事务的中间状态)、持久性   而分布式事务则和分布式架构相关，当服务被拆分，并通过网络进行协作，则一个事务就涉及到多个服务以及远程调用。此时为分布式事务。  场景：  微服务架构中，即需要跨JVM进程。无论是多个服务">
 <meta property="og:type" content="article">
 <meta property="og:title" content="分布式事务">
 <meta property="og:url" content="http://example.com/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="事务、分布式事务及场景 一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。  事务则需要有ACID性质。  原子性、一致性、隔离性(一个事务不能看到其他事务的中间状态)、持久性   而分布式事务则和分布式架构相关，当服务被拆分，并通过网络进行协作，则一个事务就涉及到多个服务以及远程调用。此时为分布式事务。  场景：  微服务架构中，即需要跨JVM进程。无论是多个服务访问">
+<meta property="og:description" content="事务、分布式事务及场景 一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。  事务则需要有ACID性质。  原子性、一致性、隔离性(一个事务不能看到其他事务的中间状态)、持久性   而分布式事务则和分布式架构相关，当服务被拆分，并通过网络进行协作，则一个事务就涉及到多个服务以及远程调用。此时为分布式事务。  场景：  微服务架构中，即需要跨JVM进程。无论是多个服务">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-02-04T03:30:17.000Z">
-<meta property="article:modified_time" content="2021-02-04T03:30:56.909Z">
+<meta property="article:modified_time" content="2021-02-04T05:38:20.958Z">
 <meta property="article:author" content="yuqing wang">
+<meta property="article:tag" content="分布式">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
@@ -170,7 +171,9 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="事务、分布式事务及场景"><a href="#事务、分布式事务及场景" class="headerlink" title="事务、分布式事务及场景"></a>事务、分布式事务及场景</h2><ul>
+        <br>
+
+<h2 id="事务、分布式事务及场景"><a href="#事务、分布式事务及场景" class="headerlink" title="事务、分布式事务及场景"></a>事务、分布式事务及场景</h2><ul>
 <li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
 </li>
 <li><p>事务则需要有ACID性质。</p>
@@ -187,11 +190,10 @@
 </ul>
 </li>
 </ul>
-<br>
 <a id="more"></a>
-## CAP
 
-<h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
+
+<h2 id="CAP"><a href="#CAP" class="headerlink" title="CAP"></a>CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
 <p>一致性、可用性、分区容错性</p>
 <ul>
 <li><p>consistency：写操作后的读(任意节点读)可以读到最近状态。</p>
@@ -229,17 +231,15 @@
 <h2 id="2PC"><a href="#2PC" class="headerlink" title="2PC"></a>2PC</h2><h3 id="2PC概念"><a href="#2PC概念" class="headerlink" title="2PC概念"></a>2PC概念</h3><ul>
 <li><p>两阶段提交协议，prepare准备阶段和commit提交阶段。</p>
 </li>
-<li><p>包含 事务管理器和事务参与者(数据库实例)<br>。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
+<li><p>包含 事务管理器和事务参与者(数据库实例)。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
 </li>
 <li><p>过程：</p>
+<ul>
+<li>prepare： 管理器向每个实例发送prepare消息，每个实例写本地的undo(修改前的数据)和redo(修改后的数据)日志。此时没有提交。</li>
+<li>commit： 管理器收到参与者的失败或超时，则向每个参与者发送rollback消息。否则向每个实例发送commit。每个参与者进行执行指令并释放锁。</li>
+</ul>
 </li>
 </ul>
-<pre><code>+ prepare： 管理器向每个实例发送prepare消息，每个实例写本地的undo(修改前的数据)和redo(修改后的数据)日志。此时没有提交。
-
-
-
-+ commit： 管理器收到参与者的失败或超时，则向每个参与者发送rollback消息。否则向每个实例发送commit。每个参与者进行执行指令并释放锁。
-</code></pre>
 <br>
 
 <h3 id="2PC解决方案"><a href="#2PC解决方案" class="headerlink" title="2PC解决方案"></a>2PC解决方案</h3><h4 id="XA方案"><a href="#XA方案" class="headerlink" title="XA方案"></a>XA方案</h4><p>规范数据库实现2pc协议的分布式事务处理模型DTP。<br>定义了角色：AP RM TM,TM 和 RM 通讯接口为XA。即数据库提供的2pc接口协议，基于该协议的2pc实现为xa方案。</p>
@@ -260,8 +260,44 @@
 <li>RM，分支注册、状态汇报、接收TC指令、驱动本地事务提交或回滚的执行。</li>
 </ul>
 </li>
+<li><p>详解流程：</p>
+<ul>
+<li>每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</li>
+<li>在第一阶段undo_log中存放了数据修改前和修改后的值，为事务回滚作好准备，所以第一阶段完成就已经将分 支事务提交，也就释放了锁资源。</li>
+<li>TM开启全局事务开始，将XID全局事务id放在事务上下文中，通过feign调用也将XID传入下游分支事务，每个 分支事务将自己的Branch ID分支事务ID与XID关联。</li>
+<li>第二阶段全局事务提交，TC会通知各各分支参与者提交分支事务，在第一阶段就已经提交了分支事务，这里各各参与者只需要删除undo_log即可，并且可以异步执行，第二阶段很快可以完成。</li>
+<li>第二阶段全局事务回滚，TC会通知各各分支参与者回滚分支事务，通过 XID 和 Branch ID 找到相应的回滚日志，通过回滚日志生成反向的 SQL 并执行，以完成分支事务回滚到之前的状态，如果回滚失败则会重试回滚操作。</li>
 </ul>
+</li>
+</ul>
+<ul>
+<li><p>实战step：</p>
+<ul>
+<li><p>下载，解压并启动seata服务器 /bin/seata-server.bat -p 8888 -m file 。端口和文件方式存储信息。(TC)</p>
+</li>
+<li><p>添加discover-server子模块，discover-server基于Eureka实现。</p>
+</li>
+<li><p>添加微服务子模块，子模块pom中引入spring-cloud-alibaba-seata（包含了RM TM），并配置TC的地址：registry.conf、file.conf中：</p>
+<blockquote>
+<p>在file.conf中更改service.vgroup_mapping.[springcloud服务名]-fescar-service-group = “default”，并修改 service.default.grouplist =[seata服务端地址]</p>
+</blockquote>
+</li>
+<li><p>创建代理数据源（配置mysql连接）</p>
+<blockquote>
+<p>Seata的RM通过DataSourceProxy才能在业务代码的事务提交时，通过这个切<br>入点，与TC进行通信交互、记录undo_log等。每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</p>
+</blockquote>
+</li>
+<li><p>代码部分细节：<code>FeignClient</code>、<code>@GlobalTransactional</code>、<code>@Transactional</code></p>
+<blockquote>
+<p>将@GlobalTransactional注解标注在全局事务发起的Service实现方法上，开启全局事务: GlobalTransactionalInterceptor会拦截@GlobalTransactional注解的方法，生成全局事务ID(XID)，XID会在整个分布式事务中传递。 在远程调用时，spring-cloud-alibaba-seata会拦截Feign调用将XID传递到下游服务。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<br>
 
+<h3 id="TCC"><a href="#TCC" class="headerlink" title="TCC"></a>TCC</h3>
       
 
       
@@ -283,6 +319,11 @@
                     </div>
                     
                     
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/img/wechatpay.jpg">
+                      <span class="reward-type">微信</span>
+                    </div>
+                    
                   </div>
                 </span>
               </span>
@@ -295,6 +336,17 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">分布式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -505,6 +557,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
               </li>
             
             <div class="clearfix"></div>

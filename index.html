@@ -169,20 +169,24 @@
     <div class="article-entry" itemprop="articleBody">
       
         <h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
-<li>deep后带来的信息传递/梯度传递问题<br>
-  + 层数过多导致？sigmoid和tanh为什么会导致梯度消失？
-      + 1. 直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。
-      + 2. 反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。
-  <br>    
-  + 梯度消失
-      + 1. 原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应
-      + 2. 在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。
-  <br>
-  + 梯度爆炸
-      + 1. 原因：1）隐藏层的层数过多；2）权重的初始化值过大
-      + 2. 在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。
-      + 3. 解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练
-
+<li>deep后带来的信息传递/梯度传递问题<ul>
+<li>层数过多导致？sigmoid和tanh为什么会导致梯度消失？<ol>
+<li>直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。</li>
+<li>反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。<br>    </li>
+</ol>
+</li>
+<li>梯度消失<ol>
+<li>原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应</li>
+<li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br></li>
+</ol>
+</li>
+<li>梯度爆炸<ol>
+<li>原因：1）隐藏层的层数过多；2）权重的初始化值过大</li>
+<li>在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。</li>
+<li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
+</ol>
+</li>
+</ul>
 </li>
 </ul>
         
@@ -260,7 +264,9 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="事务、分布式事务及场景"><a href="#事务、分布式事务及场景" class="headerlink" title="事务、分布式事务及场景"></a>事务、分布式事务及场景</h2><ul>
+        <br>
+
+<h2 id="事务、分布式事务及场景"><a href="#事务、分布式事务及场景" class="headerlink" title="事务、分布式事务及场景"></a>事务、分布式事务及场景</h2><ul>
 <li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
 </li>
 <li><p>事务则需要有ACID性质。</p>
@@ -277,7 +283,6 @@
 </ul>
 </li>
 </ul>
-<br>
         
           <a class="article-more-a" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/#more">more >></a>
         
@@ -288,6 +293,17 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">分布式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -673,6 +689,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
               </li>
             
             <div class="clearfix"></div>

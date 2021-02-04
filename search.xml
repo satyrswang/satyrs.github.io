@@ -198,7 +198,9 @@
   <entry>
     <title>分布式事务</title>
     <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/</url>
-    <content><![CDATA[<h2 id="事务、分布式事务及场景"><a href="#事务、分布式事务及场景" class="headerlink" title="事务、分布式事务及场景"></a>事务、分布式事务及场景</h2><ul>
+    <content><![CDATA[<br>
+
+<h2 id="事务、分布式事务及场景"><a href="#事务、分布式事务及场景" class="headerlink" title="事务、分布式事务及场景"></a>事务、分布式事务及场景</h2><ul>
 <li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
 </li>
 <li><p>事务则需要有ACID性质。</p>
@@ -215,11 +217,10 @@
 </ul>
 </li>
 </ul>
-<br>
 <a id="more"></a>
-## CAP
 
-<h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
+
+<h2 id="CAP"><a href="#CAP" class="headerlink" title="CAP"></a>CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
 <p>一致性、可用性、分区容错性</p>
 <ul>
 <li><p>consistency：写操作后的读(任意节点读)可以读到最近状态。</p>
@@ -257,17 +258,15 @@
 <h2 id="2PC"><a href="#2PC" class="headerlink" title="2PC"></a>2PC</h2><h3 id="2PC概念"><a href="#2PC概念" class="headerlink" title="2PC概念"></a>2PC概念</h3><ul>
 <li><p>两阶段提交协议，prepare准备阶段和commit提交阶段。</p>
 </li>
-<li><p>包含 事务管理器和事务参与者(数据库实例)<br>。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
+<li><p>包含 事务管理器和事务参与者(数据库实例)。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
 </li>
 <li><p>过程：</p>
+<ul>
+<li>prepare： 管理器向每个实例发送prepare消息，每个实例写本地的undo(修改前的数据)和redo(修改后的数据)日志。此时没有提交。</li>
+<li>commit： 管理器收到参与者的失败或超时，则向每个参与者发送rollback消息。否则向每个实例发送commit。每个参与者进行执行指令并释放锁。</li>
+</ul>
 </li>
 </ul>
-<pre><code>+ prepare： 管理器向每个实例发送prepare消息，每个实例写本地的undo(修改前的数据)和redo(修改后的数据)日志。此时没有提交。
-
-
-
-+ commit： 管理器收到参与者的失败或超时，则向每个参与者发送rollback消息。否则向每个实例发送commit。每个参与者进行执行指令并释放锁。
-</code></pre>
 <br>
 
 <h3 id="2PC解决方案"><a href="#2PC解决方案" class="headerlink" title="2PC解决方案"></a>2PC解决方案</h3><h4 id="XA方案"><a href="#XA方案" class="headerlink" title="XA方案"></a>XA方案</h4><p>规范数据库实现2pc协议的分布式事务处理模型DTP。<br>定义了角色：AP RM TM,TM 和 RM 通讯接口为XA。即数据库提供的2pc接口协议，基于该协议的2pc实现为xa方案。</p>
@@ -288,27 +287,70 @@
 <li>RM，分支注册、状态汇报、接收TC指令、驱动本地事务提交或回滚的执行。</li>
 </ul>
 </li>
+<li><p>详解流程：</p>
+<ul>
+<li>每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</li>
+<li>在第一阶段undo_log中存放了数据修改前和修改后的值，为事务回滚作好准备，所以第一阶段完成就已经将分 支事务提交，也就释放了锁资源。</li>
+<li>TM开启全局事务开始，将XID全局事务id放在事务上下文中，通过feign调用也将XID传入下游分支事务，每个 分支事务将自己的Branch ID分支事务ID与XID关联。</li>
+<li>第二阶段全局事务提交，TC会通知各各分支参与者提交分支事务，在第一阶段就已经提交了分支事务，这里各各参与者只需要删除undo_log即可，并且可以异步执行，第二阶段很快可以完成。</li>
+<li>第二阶段全局事务回滚，TC会通知各各分支参与者回滚分支事务，通过 XID 和 Branch ID 找到相应的回滚日志，通过回滚日志生成反向的 SQL 并执行，以完成分支事务回滚到之前的状态，如果回滚失败则会重试回滚操作。</li>
 </ul>
-]]></content>
+</li>
+</ul>
+<ul>
+<li><p>实战step：</p>
+<ul>
+<li><p>下载，解压并启动seata服务器 /bin/seata-server.bat -p 8888 -m file 。端口和文件方式存储信息。(TC)</p>
+</li>
+<li><p>添加discover-server子模块，discover-server基于Eureka实现。</p>
+</li>
+<li><p>添加微服务子模块，子模块pom中引入spring-cloud-alibaba-seata（包含了RM TM），并配置TC的地址：registry.conf、file.conf中：</p>
+<blockquote>
+<p>在file.conf中更改service.vgroup_mapping.[springcloud服务名]-fescar-service-group = “default”，并修改 service.default.grouplist =[seata服务端地址]</p>
+</blockquote>
+</li>
+<li><p>创建代理数据源（配置mysql连接）</p>
+<blockquote>
+<p>Seata的RM通过DataSourceProxy才能在业务代码的事务提交时，通过这个切<br>入点，与TC进行通信交互、记录undo_log等。每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</p>
+</blockquote>
+</li>
+<li><p>代码部分细节：<code>FeignClient</code>、<code>@GlobalTransactional</code>、<code>@Transactional</code></p>
+<blockquote>
+<p>将@GlobalTransactional注解标注在全局事务发起的Service实现方法上，开启全局事务: GlobalTransactionalInterceptor会拦截@GlobalTransactional注解的方法，生成全局事务ID(XID)，XID会在整个分布式事务中传递。 在远程调用时，spring-cloud-alibaba-seata会拦截Feign调用将XID传递到下游服务。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="TCC"><a href="#TCC" class="headerlink" title="TCC"></a>TCC</h3>]]></content>
+      <tags>
+        <tag>分布式</tag>
+      </tags>
   </entry>
   <entry>
     <title>梯度</title>
     <url>/2021/02/04/%E6%A2%AF%E5%BA%A6/</url>
     <content><![CDATA[<h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
-<li>deep后带来的信息传递/梯度传递问题<br>
-  + 层数过多导致？sigmoid和tanh为什么会导致梯度消失？
-      + 1. 直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。
-      + 2. 反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。
-  <br>    
-  + 梯度消失
-      + 1. 原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应
-      + 2. 在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。
-  <br>
-  + 梯度爆炸
-      + 1. 原因：1）隐藏层的层数过多；2）权重的初始化值过大
-      + 2. 在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。
-      + 3. 解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练
-
+<li>deep后带来的信息传递/梯度传递问题<ul>
+<li>层数过多导致？sigmoid和tanh为什么会导致梯度消失？<ol>
+<li>直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。</li>
+<li>反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。<br>    </li>
+</ol>
+</li>
+<li>梯度消失<ol>
+<li>原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应</li>
+<li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br></li>
+</ol>
+</li>
+<li>梯度爆炸<ol>
+<li>原因：1）隐藏层的层数过多；2）权重的初始化值过大</li>
+<li>在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。</li>
+<li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
+</ol>
+</li>
+</ul>
 </li>
 </ul>
 <a id="more"></a>
