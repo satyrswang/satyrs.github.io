@@ -138,6 +138,238 @@
       </tags>
   </entry>
   <entry>
+    <title>redis</title>
+    <url>/2021/01/31/redis/</url>
+    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
+<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
+<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
+<a id="more"></a>
+<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
+<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
+<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
+<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
+<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
+<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
+<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
+<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
+<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
+<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
+<p>14、cluster<br>Cluster bus通信、gossip协议</p>
+<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
+<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
+<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
+<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
+<p>19、穿透<br>没查到则写一个空值到redis</p>
+<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
+<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
+<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
+<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
+]]></content>
+      <tags>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<a id="more"></a>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+]]></content>
+      <tags>
+        <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>分布式事务</title>
+    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/</url>
+    <content><![CDATA[<p><strong>摘要</strong></p>
+<p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务<br>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
+<h2 id="1、事务、分布式事务及场景"><a href="#1、事务、分布式事务及场景" class="headerlink" title="1、事务、分布式事务及场景"></a>1、事务、分布式事务及场景</h2><ul>
+<li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
+</li>
+<li><p>事务则需要有ACID性质。</p>
+<ul>
+<li>原子性、一致性、隔离性(一个事务不能看到其他事务的中间状态)、持久性</li>
+</ul>
+</li>
+<li><p>而分布式事务则和分布式架构相关，当服务被拆分，并通过网络进行协作，则一个事务就涉及到多个服务以及远程调用。此时为分布式事务。</p>
+</li>
+<li><p>场景：</p>
+<ul>
+<li>微服务架构中，即需要跨JVM进程。无论是多个服务访问一个实例，还是多个服务多个实例，本地事务都无法解决。</li>
+<li>单个系统访问多个数据库实例，就需要进行不同的数据库连接</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+<br>
+
+<h2 id="2、CAP"><a href="#2、CAP" class="headerlink" title="2、CAP"></a>2、CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
+<p>一致性、可用性、分区容错性</p>
+<ul>
+<li><p>consistency：写操作后的读(任意节点读)可以读到最近状态。</p>
+<ul>
+<li>在从同步数据的过程中，将从锁住，同步完再允许查询。 需要1写响应有延迟；2资源锁定与释放；3同步失败则返回错误信息而不能返回旧数据</li>
+</ul>
+</li>
+<li><p>availability：任何事务操作都可以得到响应，且不会响应错误或超时。</p>
+<ul>
+<li>需要能够立即响应并非错误、非超时，可以允许旧数据。需要1同步时不能锁定；2返回旧数据或者默认值</li>
+</ul>
+</li>
+<li><p>partitio tolerance：分布式各个节点在不同的子网，就形成了网络分区，彼此需要通过网络进行交互，当网络通信失败时，仍能够提供服务。</p>
+<ul>
+<li>单个节点挂了不影响其他节点，同步时不影响读写操作。需要1添加主备从备节点、避免主或从挂了；2异步进行数据从主到从的同步</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>三个特性不能共存。一般选择AP，达到最终一致性即可。</p>
+</blockquote>
+<ul>
+<li>AP，通常实现AP都会保证最终一致性</li>
+<li>CP，zookeeper追求的就是强一致</li>
+<li>CA，不进行分区，本地事务隔离级别即可。</li>
+</ul>
+<br>
+
+<h2 id="BASE理论与柔性事务"><a href="#BASE理论与柔性事务" class="headerlink" title="BASE理论与柔性事务"></a>BASE理论与柔性事务</h2><p>在AP中，满足1 基本可用 2 软状态 3 最终一致。即满足base，为柔性事务。</p>
+<ul>
+<li>软状态: 中间状态– 当同步过程中来了查询，给出“支付中”状态，一致后再返回“成功”。</li>
+</ul>
+<br>
+
+<h2 id="3、2PC"><a href="#3、2PC" class="headerlink" title="3、2PC"></a>3、2PC</h2><h3 id="3-1-2PC概念"><a href="#3-1-2PC概念" class="headerlink" title="3.1 2PC概念"></a>3.1 2PC概念</h3><ul>
+<li><p>两阶段提交协议，prepare准备阶段和commit提交阶段。</p>
+</li>
+<li><p>包含 事务管理器和事务参与者(数据库实例)。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
+</li>
+<li><p>过程：</p>
+<ul>
+<li>prepare： 管理器向每个实例发送prepare消息，每个实例写本地的undo(修改前的数据)和redo(修改后的数据)日志。此时没有提交。</li>
+<li>commit： 管理器收到参与者的失败或超时，则向每个参与者发送rollback消息。否则向每个实例发送commit。每个参与者进行执行指令并释放锁。</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="3-2-2PC解决方案"><a href="#3-2-2PC解决方案" class="headerlink" title="3.2 2PC解决方案"></a>3.2 2PC解决方案</h3><h4 id="3-2-1-XA方案"><a href="#3-2-1-XA方案" class="headerlink" title="3.2.1 XA方案"></a>3.2.1 XA方案</h4><p>规范数据库实现2pc协议的分布式事务处理模型DTP。<br>定义了角色：AP RM TM,TM 和 RM 通讯接口为XA。即数据库提供的2pc接口协议，基于该协议的2pc实现为xa方案。</p>
+<p>缺点：<br>1、资源锁需要事务的两个阶段结束才能释放<br>2、本地数据库需要支持XA协议<br><br></p>
+<h4 id="3-2-2-Seata方案"><a href="#3-2-2-Seata方案" class="headerlink" title="3.2.2 Seata方案"></a>3.2.2 Seata方案</h4><p>Seata是提供AT和TCC模式的分布式事务解决方案。</p>
+<ul>
+<li><p>与XA区别：</p>
+<ul>
+<li>1、XA是两阶段后释放锁，而AT模式(2pc)第一阶段则提交释放锁</li>
+<li>2、AT是应用层的中间件，对业务0侵入。</li>
+</ul>
+</li>
+<li><p>实现：</p>
+<ul>
+<li>三个角色，TC TM RM。</li>
+<li>TC负责，接收TM的全局事务提交或回滚指令，和RM通信协调分支事务。</li>
+<li>TM，开启全局事务，向TC发出提交或回滚指令。</li>
+<li>RM，分支注册、状态汇报、接收TC指令、驱动本地事务提交或回滚的执行。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<ul>
+<li>具体的执行流程如下:</li>
+</ul>
+<ol>
+<li>用户服务的 TM 向 TC 申请开启一个全局事务，全局事务创建成功并生成一个全局唯一的XID。</li>
+<li>用户服务的 RM 向 TC 注册 分支事务，该分支事务在用户服务执行新增用户逻辑，并将其纳入 XID 对应全局<br>事务的管辖。</li>
+<li>用户服务执行分支事务，向用户表插入一条记录。</li>
+<li>逻辑执行到远程调用积分服务时(XID 在微服务调用链路的上下文中传播)。积分服务的RM 向 TC 注册分支事<br>务，该分支事务执行增加积分的逻辑，并将其纳入 XID 对应全局事务的管辖。</li>
+<li>积分服务执行分支事务，向积分记录表插入一条记录，执行完毕后，返回用户服务。</li>
+<li>用户服务分支事务执行完毕。</li>
+<li>TM 向 TC 发起针对 XID 的全局提交或回滚决议。</li>
+<li>TC 调度 XID 下管辖的全部分支事务完成提交或回滚请求。</li>
+</ol>
+<hr>
+<ul>
+<li>详解流程：<ul>
+<li>每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</li>
+<li>在第一阶段undo_log中存放了数据修改前和修改后的值，为事务回滚作好准备，所以第一阶段完成就已经将分 支事务提交，也就释放了锁资源。</li>
+<li>TM开启全局事务开始，将XID全局事务id放在事务上下文中，通过feign调用也将XID传入下游分支事务，每个 分支事务将自己的Branch ID分支事务ID与XID关联。</li>
+<li>第二阶段全局事务提交，TC会通知各各分支参与者提交分支事务，在第一阶段就已经提交了分支事务，这里各各参与者只需要删除undo_log即可，并且可以异步执行，第二阶段很快可以完成。</li>
+<li>第二阶段全局事务回滚，TC会通知各各分支参与者回滚分支事务，通过 XID 和 Branch ID 找到相应的回滚日志，通过回滚日志生成反向的 SQL 并执行，以完成分支事务回滚到之前的状态，如果回滚失败则会重试回滚操作。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>实战step：</p>
+<ul>
+<li><p>下载，解压并启动seata服务器 /bin/seata-server.bat -p 8888 -m file 。端口和文件方式存储信息。(TC)</p>
+</li>
+<li><p>添加discover-server子模块，discover-server基于Eureka实现。</p>
+</li>
+<li><p>添加微服务子模块，子模块pom中引入spring-cloud-alibaba-seata（包含了RM TM），并配置TC的地址：registry.conf、file.conf中：</p>
+<blockquote>
+<p>在file.conf中更改service.vgroup_mapping.[springcloud服务名]-fescar-service-group = “default”，并修改 service.default.grouplist =[seata服务端地址]</p>
+</blockquote>
+</li>
+<li><p>创建代理数据源（配置mysql连接）</p>
+<blockquote>
+<p>Seata的RM通过DataSourceProxy才能在业务代码的事务提交时，通过这个切<br>入点，与TC进行通信交互、记录undo_log等。每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</p>
+</blockquote>
+</li>
+<li><p>代码部分细节：<code>FeignClient</code>、<code>@GlobalTransactional</code>、<code>@Transactional</code></p>
+<blockquote>
+<p>将@GlobalTransactional注解标注在全局事务发起的Service实现方法上，开启全局事务: GlobalTransactionalInterceptor会拦截@GlobalTransactional注解的方法，生成全局事务ID(XID)，XID会在整个分布式事务中传递。 在远程调用时，spring-cloud-alibaba-seata会拦截Feign调用将XID传递到下游服务。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="4、TCC"><a href="#4、TCC" class="headerlink" title="4、TCC"></a>4、TCC</h3><h4 id="4-1-TCC相关解决方案"><a href="#4-1-TCC相关解决方案" class="headerlink" title="4.1 TCC相关解决方案"></a>4.1 TCC相关解决方案</h4><p>tcc-transaction、<br>Hmily、<br>ByteTcc、<br>EasyTransaction</p>
+<br>
+
+<h4 id="4-2-TCC的三种异常处理"><a href="#4-2-TCC的三种异常处理" class="headerlink" title="4.2 TCC的三种异常处理"></a>4.2 TCC的三种异常处理</h4><ol>
+<li><strong>空回滚</strong><br> 没有执行try就执行了cancel</li>
+<li><strong>幂等</strong><br> cancel和commit会重试</li>
+<li><strong>悬挂</strong><br> RPC 调用分支事务try时，先注册分支事务，再执行RPC调用，如果此时 RPC 调用的网络发生拥堵， 通常 RPC 调用是有超时时间的，RPC 超时以后，TM就会通知RM回滚该分布式事务，可能回滚完成后，RPC 请求 才到达参与者真正执行，而一个 Try 方法预留的业务资源，只有该分布式事务才能使用，该分布式事务第一阶段预 留的业务资源就再也没有人能够处理了，对于这种情况，我们就称为悬挂，即业务资源预留后没法继续处理。</li>
+</ol>
+<p>转账最终方案：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;A</span><br><span class="line">try: </span><br><span class="line">	try幂等校验</span><br><span class="line">	try悬挂处理 </span><br><span class="line">	检查余额是否够30元 </span><br><span class="line">	扣减30元</span><br><span class="line">confirm: </span><br><span class="line">	空</span><br><span class="line">cancel: </span><br><span class="line">	cancel幂等校验</span><br><span class="line">	cancel空回滚处理 </span><br><span class="line">	增加可用余额30元</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;B</span><br><span class="line">try: </span><br><span class="line">	空</span><br><span class="line">confirm: </span><br><span class="line">	confirm幂等校验</span><br><span class="line">	正式增加30元 </span><br><span class="line">cancel:</span><br><span class="line">	空</span><br></pre></td></tr></table></figure>
+<h4 id="4-3-Hmily实现TCC事务"><a href="#4-3-Hmily实现TCC事务" class="headerlink" title="4.3 Hmily实现TCC事务"></a>4.3 Hmily实现TCC事务</h4><ul>
+<li><p>新增配置类接收application.yml中的Hmily配置信息，并创建HmilyTransactionBootstrap Bean</p>
+</li>
+<li><p>A账户</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;DAO 略</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;service </span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">    @Transactional</span><br><span class="line">    @Hmily(confirmMethod &#x3D; &quot;commit&quot;, cancelMethod &#x3D; &quot;rollback&quot;)</span><br><span class="line">	public  void updateAccountBalance(String accountNo, Double amount) &#123;</span><br><span class="line">		&#x2F;&#x2F;事务id</span><br><span class="line">		&#x2F;&#x2F;try幂等校验</span><br><span class="line">		&#x2F;&#x2F;try悬挂处理</span><br><span class="line">		&#x2F;&#x2F;从账户扣减及扣减失败</span><br><span class="line">		&#x2F;&#x2F;增加本地事务try成功记录，用于幂等性控制标识 accountInfoDao.addTry(transId);</span><br><span class="line">		&#x2F;&#x2F;远程调用bank2</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;feign</span><br><span class="line"></span><br><span class="line">	@FeignClient(value &#x3D; &quot;seata‐demo‐bank2&quot;, fallback &#x3D; Bank2Fallback.class)</span><br><span class="line">	public interface Bank2Client &#123;</span><br><span class="line">		@GetMapping(&quot;&#x2F;bank2&#x2F;transfer&quot;)</span><br><span class="line">		@Hmily</span><br><span class="line">		Boolean transfer(@RequestParam(&quot;amount&quot;) Double amount);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;controller 略</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>B账户 略</li>
+</ul>
+<h4 id="4-4-TCC与2PC对比"><a href="#4-4-TCC与2PC对比" class="headerlink" title="4.4 TCC与2PC对比"></a>4.4 TCC与2PC对比</h4><ol>
+<li>2PC通常在DB层面，TCC在应用层面</li>
+<li>2PC无侵入性，TCC自定义数据操作粒度，锁冲突降低，提高吞吐，但业务逻辑每个分支都需要实现TCC三个方法，且需要按照网络状态、系统故障等不同的失败原因实现不同的回滚策略。</li>
+</ol>
+]]></content>
+      <tags>
+        <tag>分布式</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>SVM</title>
     <url>/2021/02/04/SVM/</url>
     <content><![CDATA[<ul>
@@ -299,225 +531,170 @@
       </tags>
   </entry>
   <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<a id="more"></a>
-
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+    <title>外汇储备</title>
+    <url>/2021/02/17/%E5%A4%96%E6%B1%87%E5%82%A8%E5%A4%87/</url>
+    <content><![CDATA[<p><br> <br></p>
+<h2 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h2><p>1、外汇储备越高的影响</p>
 ]]></content>
       <tags>
-        <tag>dubbo</tag>
+        <tag>国际金融</tag>
       </tags>
   </entry>
   <entry>
-    <title>redis</title>
-    <url>/2021/01/31/redis/</url>
-    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
-<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
-<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
-<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
+    <title>梯度</title>
+    <url>/2021/02/04/%E6%A2%AF%E5%BA%A6/</url>
+    <content><![CDATA[<h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
+<li><p>deep后带来的信息传递/梯度传递问题</p>
+<ul>
+<li><p>层数过多导致？sigmoid和tanh为什么会导致梯度消失？</p>
+<ol>
+<li>直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。</li>
+<li>反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。<br>    </li>
+</ol>
+</li>
+<li><p>梯度消失</p>
+<ol>
+<li>原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应</li>
+<li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br>
 <a id="more"></a>
-<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
-<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
-<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
-<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
-<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
-<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
-<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
-<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
-<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
-<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
-<p>14、cluster<br>Cluster bus通信、gossip协议</p>
-<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
-<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
-<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
-<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
-<p>19、穿透<br>没查到则写一个空值到redis</p>
-<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
-<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
-<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
-<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
+</li>
+</ol>
+</li>
+<li><p>梯度爆炸</p>
+<ol>
+<li>原因：1）隐藏层的层数过多；2）权重的初始化值过大</li>
+<li>在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。</li>
+<li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
 ]]></content>
       <tags>
-        <tag>redis</tag>
+        <tag>dl</tag>
       </tags>
   </entry>
   <entry>
-    <title>分布式事务</title>
-    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/</url>
-    <content><![CDATA[<p><strong>摘要</strong></p>
-<p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务<br>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
-<h2 id="1、事务、分布式事务及场景"><a href="#1、事务、分布式事务及场景" class="headerlink" title="1、事务、分布式事务及场景"></a>1、事务、分布式事务及场景</h2><ul>
-<li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
-</li>
-<li><p>事务则需要有ACID性质。</p>
-<ul>
-<li>原子性、一致性、隔离性(一个事务不能看到其他事务的中间状态)、持久性</li>
-</ul>
-</li>
-<li><p>而分布式事务则和分布式架构相关，当服务被拆分，并通过网络进行协作，则一个事务就涉及到多个服务以及远程调用。此时为分布式事务。</p>
-</li>
-<li><p>场景：</p>
-<ul>
-<li>微服务架构中，即需要跨JVM进程。无论是多个服务访问一个实例，还是多个服务多个实例，本地事务都无法解决。</li>
-<li>单个系统访问多个数据库实例，就需要进行不同的数据库连接</li>
-</ul>
-</li>
-</ul>
+    <title>通货膨胀</title>
+    <url>/2021/02/17/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80/</url>
+    <content><![CDATA[<p><br> <br></p>
+<p><strong>摘要</strong></p>
+<p>通胀的基础知识、历史及分析</p>
+<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><h4 id="古罗马的铸币成色下降"><a href="#古罗马的铸币成色下降" class="headerlink" title="古罗马的铸币成色下降"></a>古罗马的铸币成色下降</h4><p>当铸币被减少成色时，首先感知的是发行者，最终才是到物价上。最终感知的人的财富被转移到发行者手里。在刚减少、甚至未减少前感知到时，购入资产–窖藏黄金。此时流通的多为劣币。随着铸币数量增多，价值越跌。而执政者采取的冻结物价的措施，结果却是，规则越来越细、维护规则而设立的官员数量越来越多，触犯规则而死亡的人越来越多，市场越发萧条、充斥恐惧。</p>
 <a id="more"></a>
-<br>
-
-<h2 id="2、CAP"><a href="#2、CAP" class="headerlink" title="2、CAP"></a>2、CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
-<p>一致性、可用性、分区容错性</p>
-<ul>
-<li><p>consistency：写操作后的读(任意节点读)可以读到最近状态。</p>
-<ul>
-<li>在从同步数据的过程中，将从锁住，同步完再允许查询。 需要1写响应有延迟；2资源锁定与释放；3同步失败则返回错误信息而不能返回旧数据</li>
-</ul>
-</li>
-<li><p>availability：任何事务操作都可以得到响应，且不会响应错误或超时。</p>
-<ul>
-<li>需要能够立即响应并非错误、非超时，可以允许旧数据。需要1同步时不能锁定；2返回旧数据或者默认值</li>
-</ul>
-</li>
-<li><p>partitio tolerance：分布式各个节点在不同的子网，就形成了网络分区，彼此需要通过网络进行交互，当网络通信失败时，仍能够提供服务。</p>
-<ul>
-<li>单个节点挂了不影响其他节点，同步时不影响读写操作。需要1添加主备从备节点、避免主或从挂了；2异步进行数据从主到从的同步</li>
-</ul>
-</li>
-</ul>
+<p>=&gt;<br>无法用立法(价格控制)取代经济规律。通胀是更深问题的表象。</p>
+<h4 id="西班牙的白银涌入"><a href="#西班牙的白银涌入" class="headerlink" title="西班牙的白银涌入"></a>西班牙的白银涌入</h4><p>特殊的是，大量涌入没有带来恶性通胀。</p>
+<p>1白银涌入<br>2西班牙物资缺乏，多进口<br>3白银官价低于真实价值<br>4人们没有认识到价格上涨的原因在于白银本身供给</p>
+<p>=&gt;<br>物价上涨，人们窖藏白银，市场中白银少，流通的为劣币。拥有白银的人以为富有、白银价值不变，不进行生产投资。在舶来品和军事冒险上消耗白银，却未能将白银投入促进生产。流通货币成色降低导致物价进一步上涨。但因为滞后的工资上涨、军事冒险、皇室奢靡、文艺的黄金时代，西班牙一度凭借美洲白银输入和通胀，而使得其王室贵族强极一时。富有者的财富得到巩固，农奴制进一步加强。北欧的革命、宗教革命都未能影响西班牙。</p>
+<p>而当美洲白银输入回落，西班牙落后。</p>
+<p>=&gt;<br>货币更多不等于财富更多；西班牙最终并未能将货币转为资产、留住涌入的白银的价值；白银收入减缓了制度变革的压力，但并非一件好事；通胀具有传导性，通过贸易传导到其他国家；温和的通胀有助于短期繁荣；虽然金属货币铸造需要成本和受采矿影响，但同样会产生通胀，而纸币受发行者–中央政府官员的良心影响，与通胀的结合就更为天然。</p>
+<p>=&gt;<br>工资上浮，并不意味这购买力增加，需要警惕货币幻觉；<br>财富如果不投资、自己不进行变革成长，则长期自然落后，受货币幻觉影响而躺在舒适里，并非好事。<br>大水漫灌的虚假繁荣。</p>
+<h4 id="约翰劳的纸币"><a href="#约翰劳的纸币" class="headerlink" title="约翰劳的纸币"></a>约翰劳的纸币</h4><p>法国政府财政赤字重,政府用纸币支付、削减债务<br>1716/05，通用银行成立<br>10月，银行券可支付税收</p>
+<p>1717/8，西印度公司成立</p>
+<p>开始疯狂:</p>
 <blockquote>
-<p>三个特性不能共存。一般选择AP，达到最终一致性即可。</p>
+<p>1718/12，承诺12%-40%股息回报，垄断烟草业，获得铸币权，接手包税公司(交税给国家、从民众手里征税)，银行大量发行纸币，将国债成功转为股票。<br>出售更多的股票来支付股息。高于市场价33%购入自己公司股票期货。向原始股东限售股票。继续发行大量纸币。</p>
 </blockquote>
-<ul>
-<li>AP，通常实现AP都会保证最终一致性</li>
-<li>CP，zookeeper追求的就是强一致</li>
-<li>CA，不进行分区，本地事务隔离级别即可。</li>
-</ul>
-<br>
-
-<h2 id="BASE理论与柔性事务"><a href="#BASE理论与柔性事务" class="headerlink" title="BASE理论与柔性事务"></a>BASE理论与柔性事务</h2><p>在AP中，满足1 基本可用 2 软状态 3 最终一致。即满足base，为柔性事务。</p>
-<ul>
-<li>软状态: 中间状态– 当同步过程中来了查询，给出“支付中”状态，一致后再返回“成功”。</li>
-</ul>
-<br>
-
-<h2 id="3、2PC"><a href="#3、2PC" class="headerlink" title="3、2PC"></a>3、2PC</h2><h3 id="2PC概念"><a href="#2PC概念" class="headerlink" title="2PC概念"></a>2PC概念</h3><ul>
-<li><p>两阶段提交协议，prepare准备阶段和commit提交阶段。</p>
-</li>
-<li><p>包含 事务管理器和事务参与者(数据库实例)。管理器决定整个事务的提交和回滚，参与者负责本地事务的提交和回滚。</p>
-</li>
-<li><p>过程：</p>
-<ul>
-<li>prepare： 管理器向每个实例发送prepare消息，每个实例写本地的undo(修改前的数据)和redo(修改后的数据)日志。此时没有提交。</li>
-<li>commit： 管理器收到参与者的失败或超时，则向每个参与者发送rollback消息。否则向每个实例发送commit。每个参与者进行执行指令并释放锁。</li>
-</ul>
-</li>
-</ul>
-<br>
-
-<h3 id="2PC解决方案"><a href="#2PC解决方案" class="headerlink" title="2PC解决方案"></a>2PC解决方案</h3><h4 id="XA方案"><a href="#XA方案" class="headerlink" title="XA方案"></a>XA方案</h4><p>规范数据库实现2pc协议的分布式事务处理模型DTP。<br>定义了角色：AP RM TM,TM 和 RM 通讯接口为XA。即数据库提供的2pc接口协议，基于该协议的2pc实现为xa方案。</p>
-<p>缺点：<br>1、资源锁需要事务的两个阶段结束才能释放<br>2、本地数据库需要支持XA协议<br><br></p>
-<h4 id="Seata方案"><a href="#Seata方案" class="headerlink" title="Seata方案"></a>Seata方案</h4><p>Seata是提供AT和TCC模式的分布式事务解决方案。</p>
-<ul>
-<li><p>与XA区别：</p>
-<ul>
-<li>1、XA是两阶段后释放锁，而AT模式(2pc)第一阶段则提交释放锁</li>
-<li>2、AT是应用层的中间件，对业务0侵入。</li>
-</ul>
-</li>
-<li><p>实现：</p>
-<ul>
-<li>三个角色，TC TM RM。</li>
-<li>TC负责，接收TM的全局事务提交或回滚指令，和RM通信协调分支事务。</li>
-<li>TM，开启全局事务，向TC发出提交或回滚指令。</li>
-<li>RM，分支注册、状态汇报、接收TC指令、驱动本地事务提交或回滚的执行。</li>
-</ul>
-</li>
-<li><p>详解流程：</p>
-<ul>
-<li>每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</li>
-<li>在第一阶段undo_log中存放了数据修改前和修改后的值，为事务回滚作好准备，所以第一阶段完成就已经将分 支事务提交，也就释放了锁资源。</li>
-<li>TM开启全局事务开始，将XID全局事务id放在事务上下文中，通过feign调用也将XID传入下游分支事务，每个 分支事务将自己的Branch ID分支事务ID与XID关联。</li>
-<li>第二阶段全局事务提交，TC会通知各各分支参与者提交分支事务，在第一阶段就已经提交了分支事务，这里各各参与者只需要删除undo_log即可，并且可以异步执行，第二阶段很快可以完成。</li>
-<li>第二阶段全局事务回滚，TC会通知各各分支参与者回滚分支事务，通过 XID 和 Branch ID 找到相应的回滚日志，通过回滚日志生成反向的 SQL 并执行，以完成分支事务回滚到之前的状态，如果回滚失败则会重试回滚操作。</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li><p>实战step：</p>
-<ul>
-<li><p>下载，解压并启动seata服务器 /bin/seata-server.bat -p 8888 -m file 。端口和文件方式存储信息。(TC)</p>
-</li>
-<li><p>添加discover-server子模块，discover-server基于Eureka实现。</p>
-</li>
-<li><p>添加微服务子模块，子模块pom中引入spring-cloud-alibaba-seata（包含了RM TM），并配置TC的地址：registry.conf、file.conf中：</p>
 <blockquote>
-<p>在file.conf中更改service.vgroup_mapping.[springcloud服务名]-fescar-service-group = “default”，并修改 service.default.grouplist =[seata服务端地址]</p>
+<p>1720/1，投放一年前9倍的纸币，新股发行价为40倍，保证金交易出现。</p>
 </blockquote>
-</li>
-<li><p>创建代理数据源（配置mysql连接）</p>
+<p>开始破灭:</p>
 <blockquote>
-<p>Seata的RM通过DataSourceProxy才能在业务代码的事务提交时，通过这个切<br>入点，与TC进行通信交互、记录undo_log等。每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</p>
+<p>1720上半年，亲王要求兑成硬通货。和东印度合并、高股价回购都不能挽回局势。<br>1720/05，发布规定6个月内纸币贬值，股票降价各50%。</p>
 </blockquote>
-</li>
-<li><p>代码部分细节：<code>FeignClient</code>、<code>@GlobalTransactional</code>、<code>@Transactional</code></p>
+<p>工薪和小店主受打击小–物价和工资同步地涨跌、且幅度不算太高，投机者有的丧失了所有财富。<br>疯狂到破灭，也就一年时间。</p>
+<h4 id="大陆币"><a href="#大陆币" class="headerlink" title="大陆币"></a>大陆币</h4><p>1、战争时期，货币发行来获得物资，导致事后的物价抬升、货币贬值。通过通胀转移私人财富资源用以战备。多种手段，通胀是其一。<br>2、战后的纸币贬值，此时纸币退出流通，或者限制物价，导致通货紧缩。则债务人负担被动加重、物价骤降、经济萧条，价格秩序又被流动性减少而打破。因此，更好的策略是维持战时的物价水平，并保证流动性，促进经济复苏。<br>3、工薪阶层希望价格恢复到战前水平，但是价格本身就是相对的，之前价格的绝对值并不具有意义。战后的价格本应是绝对值高于战前的，而和货币发行相适应。</p>
+<p>=&gt;<br>如果流动性和通胀不断地上升或者继续，房价水涨船高，并不会跌回十年前。除非极大萧条，利率极高，央行官员不热爱财富、国家不追求GDP。价格的绝对值，无意义。</p>
+<h4 id="法国大革命和分配券"><a href="#法国大革命和分配券" class="headerlink" title="法国大革命和分配券"></a>法国大革命和分配券</h4><p>1788，旱灾导致物价上涨<br>1789，法国政府严重赤字<br>1789/07，攻占巴士底监狱<br>1790/04，革命者没收教会财产，发行分配券，首次利率3%<br>1792，反革命战争爆发<br>1793，路易十六上断头台，9月价格管制出台，开始了恐怖统治；没收有钱人的不动产<br>1794，罗伯斯庇尔遇害，开始了白色恐怖，直到1799拿破仑掌权<br>1795，限价法被废，通胀、经济复苏，粮食价格飞涨，开始了反革命行动 – 烧纸币，恢复铸币，经济秩序(价格)迅速恢复稳定<br>1796，距离首次发行分配券6年不到，分配券面值已经为最为保证的教会财产的20倍。</p>
+<p>1770-1787通缩；89-1796通胀；97-1870通缩。</p>
 <blockquote>
-<p>将@GlobalTransactional注解标注在全局事务发起的Service实现方法上，开启全局事务: GlobalTransactionalInterceptor会拦截@GlobalTransactional注解的方法，生成全局事务ID(XID)，XID会在整个分布式事务中传递。 在远程调用时，spring-cloud-alibaba-seata会拦截Feign调用将XID传递到下游服务。</p>
+<p>发行分配券后很快开始贬值，金银开始窖藏，劣币再次驱逐良币。<br>当政府宣布废弃分配券时，大量的分配券沉淀在普通公民手中，他们没有将财富及时转换为永久价值的物品。<br>而工资滞后于物价上涨，工薪和固定收入者丧失了购买力。<br>社会里都是暴发户、投机者、穷人。<br>民众抢掠商人。商业活动萧条，易货贸易、违法交易层出不穷。</p>
 </blockquote>
-</li>
-</ul>
-</li>
-</ul>
-<br>
+<blockquote>
+<p>起初，企业主和大众即布尔乔亚和工人，联合起来对付王室。王室倒台后，开始内斗。最高限价法标志这个马克思阶级斗争的开始。企业主获得了胜利，管制被解除。</p>
+</blockquote>
+<p>=&gt;<br>历史再度重演。和当初古罗马的通胀没什么区别，都是价格管制来控制，结果无效。和大陆币也区别不大，通胀都是在战争时的手段(通过抬升物价，降低人民生活水平而获得资源，人物力投入到战争)，并以管制解决，然后无效。战争和革命，虽然让社会进步，但不止以士兵生命为代价，还有穷人和富人们。投机者却大发横财。</p>
+<p>而人们却没有察觉。</p>
+<h4 id="美国内战时期北方"><a href="#美国内战时期北方" class="headerlink" title="美国内战时期北方"></a>美国内战时期北方</h4><p>1836，各州私立银行涌现<br>1861的联邦开支占GDP2%，1865则为26%。联邦政府债务高达28亿美元，33倍于战前，占GDP一半<br>1861年底，纸币不再兑付黄金，18年后才恢复兑换<br>1862，纽交所开设黄金交易</p>
+<p>1860-1864，<br>教师工资上涨20-30%，物价上涨到两倍多。则实际工资下降了40%。</p>
+<p>1864-1896，<br>由于铸币拥护者的政策导致的绿币升值(与黄金的比对由61%上升到战前的100%)+贸易里其他国家物价下跌，导致物价下跌。最大跌幅65%。30年物价回到世界平均水平。<br>其他国家物价下跌，由于黄金增长低于商品增长。</p>
+<blockquote>
+<p>白银黄金比价：1867，16：1；1896，31：1；1989，71：1。<br>如果在1867年实行白银本位，则劣币驱良。黄金被窖藏。而流通的白银(因其贬值)，反而可能会促使价格回升。</p>
+</blockquote>
+<p>=&gt;<br>温和通胀有效，而通缩不利于经济。<br>一国货币贬值，则物价相对于其他货币稳定的国家是上涨的。<br>硬通货的拥护者占了上风，要求按照战前水平兑付黄金，使得货币升值，通缩产生。</p>
+<h4 id="美国内战时期南方"><a href="#美国内战时期南方" class="headerlink" title="美国内战时期南方"></a>美国内战时期南方</h4><br>
 
-<h3 id="4、TCC"><a href="#4、TCC" class="headerlink" title="4、TCC"></a>4、TCC</h3><h4 id="TCC相关解决方案"><a href="#TCC相关解决方案" class="headerlink" title="TCC相关解决方案"></a>TCC相关解决方案</h4><p>tcc-transaction、<br>Hmily、<br>ByteTcc、<br>EasyTransaction</p>
-<br>
-
-<h4 id="TCC的三种异常处理"><a href="#TCC的三种异常处理" class="headerlink" title="TCC的三种异常处理"></a>TCC的三种异常处理</h4><ol>
-<li><strong>空回滚</strong><br> 没有执行try就执行了cancel</li>
-<li><strong>幂等</strong><br> cancel和commit会重试</li>
-<li><strong>悬挂</strong><br> RPC 调用分支事务try时，先注册分支事务，再执行RPC调用，如果此时 RPC 调用的网络发生拥堵， 通常 RPC 调用是有超时时间的，RPC 超时以后，TM就会通知RM回滚该分布式事务，可能回滚完成后，RPC 请求 才到达参与者真正执行，而一个 Try 方法预留的业务资源，只有该分布式事务才能使用，该分布式事务第一阶段预 留的业务资源就再也没有人能够处理了，对于这种情况，我们就称为悬挂，即业务资源预留后没法继续处理。</li>
-</ol>
-<p>转账最终方案：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;A</span><br><span class="line">try: </span><br><span class="line">	try幂等校验</span><br><span class="line">	try悬挂处理 </span><br><span class="line">	检查余额是否够30元 </span><br><span class="line">	扣减30元</span><br><span class="line">confirm: </span><br><span class="line">	空</span><br><span class="line">cancel: </span><br><span class="line">	cancel幂等校验</span><br><span class="line">	cancel空回滚处理 </span><br><span class="line">	增加可用余额30元</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;B</span><br><span class="line">try: </span><br><span class="line">	空</span><br><span class="line">confirm: </span><br><span class="line">	confirm幂等校验</span><br><span class="line">	正式增加30元 </span><br><span class="line">cancel:</span><br><span class="line">	空</span><br></pre></td></tr></table></figure>
-<h4 id="Hmily实现TCC事务"><a href="#Hmily实现TCC事务" class="headerlink" title="Hmily实现TCC事务"></a>Hmily实现TCC事务</h4><ul>
-<li><p>新增配置类接收application.yml中的Hmily配置信息，并创建HmilyTransactionBootstrap Bean</p>
+<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><ul>
+<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
 </li>
-<li><p>A账户</p>
+<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
+</li>
+<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
+</li>
+<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
 </li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;DAO 略</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;service </span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">    @Transactional</span><br><span class="line">    @Hmily(confirmMethod &#x3D; &quot;commit&quot;, cancelMethod &#x3D; &quot;rollback&quot;)</span><br><span class="line">	public  void updateAccountBalance(String accountNo, Double amount) &#123;</span><br><span class="line">		&#x2F;&#x2F;事务id</span><br><span class="line">		&#x2F;&#x2F;try幂等校验</span><br><span class="line">		&#x2F;&#x2F;try悬挂处理</span><br><span class="line">		&#x2F;&#x2F;从账户扣减及扣减失败</span><br><span class="line">		&#x2F;&#x2F;增加本地事务try成功记录，用于幂等性控制标识 accountInfoDao.addTry(transId);</span><br><span class="line">		&#x2F;&#x2F;远程调用bank2</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;feign</span><br><span class="line"></span><br><span class="line">	@FeignClient(value &#x3D; &quot;seata‐demo‐bank2&quot;, fallback &#x3D; Bank2Fallback.class)</span><br><span class="line">	public interface Bank2Client &#123;</span><br><span class="line">		@GetMapping(&quot;&#x2F;bank2&#x2F;transfer&quot;)</span><br><span class="line">		@Hmily</span><br><span class="line">		Boolean transfer(@RequestParam(&quot;amount&quot;) Double amount);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;controller 略</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
+<li>微观</li>
+</ul>
+<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
 <ul>
-<li>B账户 略</li>
+<li>宏观<br>1、对于产出的影响<ul>
+<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
+<li>促退论:通胀造成微观效率损失;</li>
+<li>中性论:“二分法”</li>
 </ul>
-<h4 id="TCC与2PC对比"><a href="#TCC与2PC对比" class="headerlink" title="TCC与2PC对比"></a>TCC与2PC对比</h4><ol>
-<li>2PC通常在DB层面，TCC在应用层面</li>
-<li>2PC无侵入性，TCC自定义数据操作粒度，锁冲突降低，提高吞吐，但业务逻辑每个分支都需要实现TCC三个方法，且需要按照网络状态、系统故障等不同的失败原因实现不同的回滚策略。</li>
-</ol>
+</li>
+</ul>
+<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
+<p>3、对利率、汇率等重要经济变量的影响</p>
+<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
+<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
+<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
+<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
+<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
+</ul>
+<br>
+而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
+
+
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
+<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
+<p>3、价格的绝对值无意义，房价回不到过去。</p>
+<p>4、一般来说，批发价上涨幅度高于零售。</p>
 ]]></content>
       <tags>
-        <tag>分布式</tag>
+        <tag>货银</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>银行拨备</title>
+    <url>/2021/02/17/%E9%93%B6%E8%A1%8C%E6%8B%A8%E5%A4%87/</url>
+    <content><![CDATA[<p><br> <br></p>
+<p>拨备有一个重要的功能，就是“以丰补歉”，以平滑利润。</p>
+<blockquote>
+<p>为什么要平滑利润？<br><br>如果银行全部股东一直没有变动，那么其实要不要以丰补歉都是一样的，反正赚和亏都是这些股东的。但是，因为股东每个交易日有进有出，所以得考虑利润跨期平滑问题。<br><br>假设有一家银行，过去每年盈利100元，非常稳定地持续了5年以上。突然有一年，发生了一笔不良资产，当年会亏损200元。如果这家银行没有以丰补歉，而是前5年把利润全分红了，然后有股票换手，有新股东进来，然后到了第6年亏损200元，那么新股东怎么都不会开心的。他们会觉得，前面的股东赚走了贷款的利息，而这笔贷款发生违约时，亏损让自己承担，这太不公平了。<br><br>这跟信用债交易有点类似。有些信用债在违约发生前发生交易，新买入的投资者成了接盘侠……</p>
+</blockquote>
+<a id="more"></a>
+
+<p>如果按照要求计提拨备，也很做到平滑利润（不良太多，把超额拨备消耗完毕之后还不够）。那么，还有一个方法，就是在不良贷款的确认上动手脚。因为不良资产和非不良资产之间，并没有清晰、客观的边界，边界划分在哪，是有一定的主观性的。</p>
+<p>基于拨备覆盖率指标，我们可以有这样一个假设（确实存在例外的情况）：<code>银行不太可能一边宽松认定不良（甚至隐藏不良），一边又计提大量超额拨备，保持很高的拨备覆盖率。</code></p>
+<blockquote>
+<p>（1）如果一家银行拨备覆盖率远超监管标准（比如150%），并且还在持续提升，那么很明显是处于丰的阶段。很显然，市场上，这样的银行股，估值一般不低，而且主升浪是从它们拨备覆盖率开始显著上升开始的。<br><br>（2）如果一家银行拨备覆盖率在较长时期内仅维持在监管标准附近，那么有可能是：每年的营业收入用于消化存量不良之后，无能力留存额外的拨备。甚至，它是每年收入能消化多少不良就确认多少不良，并且还有存量不良还未消化完毕（存量不良有可能还未确认到报表中），还在补欠。<br><br>（3）如果一家银行拨备覆盖率高位回落，可能也是处于补欠的阶段，即每年收入已经不足以消化新发生不良，而是需要拿过去的超额拨备去消化新发生的不良。<br><br>（4）一家银行的拨备覆盖率从监管标准开始起飞，则有可能是存量不良处置完毕了，开始进入丰的阶段，积累超额拨备。</p>
+</blockquote>
+]]></content>
+      <tags>
+        <tag>商业银行,货银</tag>
       </tags>
   </entry>
   <entry>
     <title>分布式事务-下</title>
     <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/</url>
-    <content><![CDATA[<p><strong>摘要</strong></p>
+    <content><![CDATA[<p><br> <br></p>
+<p><strong>摘要</strong></p>
 <p>1、可靠消息最终一致性，概念特点、问题、针对问题的方案(本地消息表、Rocketmq)<br>2、本地消息表流程图<br>3、Rocketmq流程、实战<br>4、最大努力通知，流程、</p>
 <h2 id="可靠消息最终一致性"><a href="#可靠消息最终一致性" class="headerlink" title="可靠消息最终一致性"></a>可靠消息最终一致性</h2><p>当事务发起方执行完成本地事务后并发出一条消息，事务参与方(消息消费者)一定能 够接收消息并处理事务成功，此方案强调的是只要消息发给事务参与方最终事务要达到一致。</p>
 <ul>
@@ -597,135 +774,6 @@
 ]]></content>
       <tags>
         <tag>分布式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>外汇储备</title>
-    <url>/2021/02/17/%E5%A4%96%E6%B1%87%E5%82%A8%E5%A4%87/</url>
-    <content><![CDATA[<h2 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h2><p>1、外汇储备越高的影响</p>
-]]></content>
-      <tags>
-        <tag>国际金融</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>梯度</title>
-    <url>/2021/02/04/%E6%A2%AF%E5%BA%A6/</url>
-    <content><![CDATA[<h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
-<li><p>deep后带来的信息传递/梯度传递问题</p>
-<ul>
-<li><p>层数过多导致？sigmoid和tanh为什么会导致梯度消失？</p>
-<ol>
-<li>直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。</li>
-<li>反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。<br>    </li>
-</ol>
-</li>
-<li><p>梯度消失</p>
-<ol>
-<li>原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应</li>
-<li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br>
-<a id="more"></a>
-</li>
-</ol>
-</li>
-<li><p>梯度爆炸</p>
-<ol>
-<li>原因：1）隐藏层的层数过多；2）权重的初始化值过大</li>
-<li>在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。</li>
-<li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
-</ol>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <tags>
-        <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>通货膨胀</title>
-    <url>/2021/02/17/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80/</url>
-    <content><![CDATA[<p><strong>摘要</strong></p>
-<p>通胀的基础知识、历史及分析</p>
-<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
-<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><h4 id="古罗马的铸币成色下降"><a href="#古罗马的铸币成色下降" class="headerlink" title="古罗马的铸币成色下降"></a>古罗马的铸币成色下降</h4><p>当铸币被减少成色时，首先感知的是发行者，最终才是到物价上。最终感知的人的财富被转移到发行者手里。在刚减少、甚至未减少前感知到时，购入资产–窖藏黄金。此时流通的多为劣币。随着铸币数量增多，价值越跌。而执政者采取的冻结物价的措施，结果却是，规则越来越细、维护规则而设立的官员数量越来越多，触犯规则而死亡的人越来越多，市场越发萧条、充斥恐惧。</p>
-<p>=&gt;<br>无法用立法(价格控制)取代经济规律。通胀是更深问题的表象。</p>
-<h4 id="西班牙的白银涌入"><a href="#西班牙的白银涌入" class="headerlink" title="西班牙的白银涌入"></a>西班牙的白银涌入</h4><a id="more"></a>
-<p>特殊的是，大量涌入没有带来恶性通胀。</p>
-<p>1白银涌入<br>2西班牙物资缺乏，多进口<br>3白银官价低于真实价值<br>4人们没有认识到价格上涨的原因在于白银本身供给</p>
-<p>=&gt;<br>物价上涨，人们窖藏白银，市场中白银少，流通的为劣币。拥有白银的人以为富有、白银价值不变，不进行生产投资。在舶来品和军事冒险上消耗白银，却未能将白银投入促进生产。流通货币成色降低导致物价进一步上涨。但因为滞后的工资上涨、军事冒险、皇室奢靡、文艺的黄金时代，西班牙一度凭借美洲白银输入和通胀，而使得其王室贵族强极一时。富有者的财富得到巩固，农奴制进一步加强。北欧的革命、宗教革命都未能影响西班牙。</p>
-<p>而当美洲白银输入回落，西班牙落后。</p>
-<p>=&gt;<br>货币更多不等于财富更多；西班牙最终并未能将货币转为资产、留住涌入的白银的价值；白银收入减缓了制度变革的压力，但并非一件好事；通胀具有传导性，通过贸易传导到其他国家；温和的通胀有助于短期繁荣；虽然金属货币铸造需要成本和受采矿影响，但同样会产生通胀，而纸币受发行者–中央政府官员的良心影响，与通胀的结合就更为天然。</p>
-<p>=&gt;<br>工资上浮，并不意味这购买力增加，需要警惕货币幻觉；<br>财富如果不投资、自己不进行变革成长，则长期自然落后，受货币幻觉影响而躺在舒适里，并非好事。<br>大水漫灌的虚假繁荣。</p>
-<h4 id="约翰劳的纸币"><a href="#约翰劳的纸币" class="headerlink" title="约翰劳的纸币"></a>约翰劳的纸币</h4><p>法国政府财政赤字重,政府用纸币支付、削减债务<br>1716/05，通用银行成立<br>10月，银行券可支付税收</p>
-<p>1717/8，西印度公司成立</p>
-<p>开始疯狂:</p>
-<blockquote>
-<p>1718/12，承诺12%-40%股息回报，垄断烟草业，获得铸币权，接手包税公司(交税给国家、从民众手里征税)，银行大量发行纸币，将国债成功转为股票。<br>出售更多的股票来支付股息。高于市场价33%购入自己公司股票期货。向原始股东限售股票。继续发行大量纸币。</p>
-</blockquote>
-<blockquote>
-<p>1720/1，投放一年前9倍的纸币，新股发行价为40倍，保证金交易出现。</p>
-</blockquote>
-<p>开始破灭:</p>
-<blockquote>
-<p>1720上半年，亲王要求兑成硬通货。和东印度合并、高股价回购都不能挽回局势。<br>1720/05，发布规定6个月内纸币贬值，股票降价各50%。</p>
-</blockquote>
-<p>工薪和小店主受打击小–物价和工资同步地涨跌、且幅度不算太高，投机者有的丧失了所有财富。<br>疯狂到破灭，也就一年时间。</p>
-<h4 id="大陆币"><a href="#大陆币" class="headerlink" title="大陆币"></a>大陆币</h4><p>1、战争时期，货币发行来获得物资，导致事后的物价抬升、货币贬值。通过通胀转移私人财富资源用以战备。多种手段，通胀是其一。<br>2、战后的纸币贬值，此时纸币退出流通，或者限制物价，导致通货紧缩。则债务人负担被动加重、物价骤降、经济萧条，价格秩序又被流动性减少而打破。因此，更好的策略是维持战时的物价水平，并保证流动性，促进经济复苏。<br>3、工薪阶层希望价格恢复到战前水平，但是价格本身就是相对的，之前价格的绝对值并不具有意义。战后的价格本应是绝对值高于战前的，而和货币发行相适应。</p>
-<p>=&gt;<br>如果流动性和通胀不断地上升或者继续，房价水涨船高，并不会跌回十年前。除非极大萧条，利率极高，央行官员不热爱财富、国家不追求GDP。价格的绝对值，无意义。</p>
-<h4 id="法国大革命和分配券"><a href="#法国大革命和分配券" class="headerlink" title="法国大革命和分配券"></a>法国大革命和分配券</h4><p>1788，旱灾导致物价上涨<br>1789，法国政府严重赤字<br>1789/07，攻占巴士底监狱<br>1790/04，革命者没收教会财产，发行分配券，首次利率3%<br>1792，反革命战争爆发<br>1793，路易十六上断头台，9月价格管制出台，开始了恐怖统治；没收有钱人的不动产<br>1794，罗伯斯庇尔遇害，开始了白色恐怖，直到1799拿破仑掌权<br>1795，限价法被废，通胀、经济复苏，粮食价格飞涨，开始了反革命行动 – 烧纸币，恢复铸币，经济秩序(价格)迅速恢复稳定<br>1796，距离首次发行分配券6年不到，分配券面值已经为最为保证的教会财产的20倍。</p>
-<p>1770-1787通缩；89-1796通胀；97-1870通缩。</p>
-<blockquote>
-<p>发行分配券后很快开始贬值，金银开始窖藏，劣币再次驱逐良币。<br>当政府宣布废弃分配券时，大量的分配券沉淀在普通公民手中，他们没有将财富及时转换为永久价值的物品。<br>而工资滞后于物价上涨，工薪和固定收入者丧失了购买力。<br>社会里都是暴发户、投机者、穷人。<br>民众抢掠商人。商业活动萧条，易货贸易、违法交易层出不穷。</p>
-</blockquote>
-<blockquote>
-<p>起初，企业主和大众即布尔乔亚和工人，联合起来对付王室。王室倒台后，开始内斗。最高限价法标志这个马克思阶级斗争的开始。企业主获得了胜利，管制被解除。</p>
-</blockquote>
-<p>=&gt;<br>历史再度重演。和当初古罗马的通胀没什么区别，都是价格管制来控制，结果无效。和大陆币也区别不大，通胀都是在战争时的手段，并以管制解决，然后无效。战争和革命，虽然让社会进步，但不止以士兵生命为代价，还有穷人和富人们。投机者却大发横财。</p>
-<br>
-
-<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><ul>
-<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
-</li>
-<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
-</li>
-<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
-</li>
-<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
-</li>
-</ul>
-<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
-<li>微观</li>
-</ul>
-<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
-<ul>
-<li>宏观<br>1、对于产出的影响<ul>
-<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
-<li>促退论:通胀造成微观效率损失;</li>
-<li>中性论:“二分法”</li>
-</ul>
-</li>
-</ul>
-<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
-<p>3、对利率、汇率等重要经济变量的影响</p>
-<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
-<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
-<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
-<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
-<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
-</ul>
-<br>
-而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
-
-
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
-<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
-<p>3、</p>
-]]></content>
-      <tags>
-        <tag>货银</tag>
       </tags>
   </entry>
 </search>
