@@ -138,6 +138,192 @@
       </tags>
   </entry>
   <entry>
+    <title>SVM</title>
+    <url>/2021/02/04/SVM/</url>
+    <content><![CDATA[<ul>
+<li><p>reference：[非常好的两本书。再加上libsvm的源码与调参的论文。]<br>[1]<a href="http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf">http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf</a><br>[2]An Introduction to Support Vector Machines and Other Kernel-based Learning Methods<br>[3]<a href="https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793">https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793</a></p>
+</li>
+<li><p>干货</p>
+</li>
+<li><p>首先，SVM是解决supervised learning 中classification问题。有两种情况，看是否linearly separable。线性不可分则引入kernel，想法为先做transformation到其他空间进而转为可分问题。</p>
+</li>
+<li><p>对于线性可分的监督分类问题，SVM的目标是什么呢? find  the optimal separating hyperplane which maximizes the margin of the training data</p>
+</li>
+<li><p>为什么以最大化间隔为目标？因为it correctly classifies the training data and because it is the one which will generalize better with unseen data</p>
+</li>
+</ul>
+<a id="more"></a>
+<ul>
+<li><p>这里的 间隔 指？关于间隔涉及到两种分类，一种分类为几何间隔与函数间隔；一种为软、硬间隔。几何间隔在二维则为点线距离，三维空间就是我们学习的点面距离。函数间隔二维中可以理解为<em>几个</em>点没有在线上，三维则为<em>几个</em>点没有在面上；或者结合几何间隔可理解为，是将几何间隔求解的分母去掉了，没有归一化(也因此SVM中不能选择以函数间隔衡量，否则maximizes是没有意义的)。关于软硬，是看噪声，There will never be any data point inside the margin.  If data is noisy, we need soft margin classifier.</p>
+</li>
+<li><p>继上面的目标，假设该超平面的公式为W*X=0，这里会有疑惑：</p>
+<ul>
+<li>Why do we use the hyperplane equation W<em>X instead of   Y=a</em>x+b? –&gt; the vector W will always be normal to the hyperplane</li>
+</ul>
+</li>
+<li><p>澄清下要做的步骤：</p>
+<ul>
+<li>1 数据集 2 选择两个超平面能够分类数据并在两平面间没有其他点<br>3 最大化超平面间隔</li>
+</ul>
+</li>
+<li><p>将步骤整理成数学过程</p>
+<ul>
+<li><p>设两个超平面， W<em>X+b = -θ  和  W</em>X+b = +θ。这里，为什么我们需要两个超平面？我们设想的是，假定最佳的超平面在这两个超平面的中间。我们求得两个超平面即可求得最佳分类超平面。</p>
+</li>
+<li><p>θ取值无关，直接设为1。 即得W<em>X+b = -1  和  W</em>X+b = +1。这里要想明白W与b到底是什么关系？b依赖还是独立于W？显然，是独立的，可以想象为，我们需要求得W与b两个变量，能够最大化间隔。</p>
+</li>
+<li><p>需要满足两个约束: 1. 任何&gt;=1的为class 1 2.任何&lt;=-1的为class -1 –&gt;这个限制使在两平面间没有其他点</p>
+</li>
+<li><p>将两个约束写为一个式子即： y*(w*x+b)&gt;=1</p>
+</li>
+<li><p>最大化间隔 ？对于这个问题，目前我们已知条件是两个。一个是两个平面 W<em>X+b = -1  和  W</em>X+b = +1。一个是有一个点x在平面  W<em>X+b = -1 上</em>。得：<br><code>w*(x + m*w/||w||)+b=1</code><br>化简得 <code> m = 2/||w||</code></p>
+</li>
+<li><p>得到的公式意味着：如果||w||没有限制，那么m我们可以取得任意大的值。</p>
+</li>
+<li><p>现在自然就面临optimization problem。所有的点subject to  y*(w*x+b)&gt;=1, 在此条件下如何minimize ||w||?先引入<strong>理论1</strong>，该理论为两个条件，在两个条件满足的情况下，可以说我们得到了一个scalar function的local minimum。<br><img src="/2021/02/04/SVM/theorem1" alt="theorem1"></p>
+</li>
+<li><p>f为从集合σ(其元素为vector)到实数集(其元素为值)的映射，且在x处 连续、可二阶导。这里涉及到两个的概念：</p>
+<ol>
+<li>**gradient ：a generalization of the usual concept of derivative of  a function in one dimension to a function in several dimensions  ( the gradient of a function is a vector containing each of its partial derivatives.)**注意符号为 nabla,图中倒三角。 </li>
+<li><strong>scalar function：A scalar valued function is a function that takes one or more values but returns a single value. In our case f is a scalar valued function.</strong></li>
+</ol>
+</li>
+<li><p>positive definite：<br>A symmetric matrix A  is called positive definite if x.T<em>A</em>x&gt;0 , for all n维的实数向量x。</p>
+</li>
+<li><p><strong>theorem 2</strong>中的四个条件是等价的。因此可以通过其他三种情况来判断是否为正定。这里选择主子式来判断Hessian正定，涉及到三个概念：<br><img src="/2021/02/04/SVM/theorem2" alt="theorem2"></p>
+<ol>
+<li>Minors： 删除某行和某列的所有值再计算行列式。remove the ith line and the jth column</li>
+<li>Principal minors ：删除的行、列号一致。remove the ith line and the jth column and i=j</li>
+<li>Leading principal minor ：The leading principal minor of A of order k is the minor of order k obtained by <strong>deleting the last n−k rows and columns</strong>.（这里包含一个正三角符号，标注删除哪些行列）栗子看图Leading principal minor<br>![leading principal minor.jpg](leading principal minor.jpg)</li>
+</ol>
+</li>
+<li><p>得到了local minimum，How can we find a global minimum?两步走， 1. Find all the local minima 2. Take the smallest one; it is the global minimum. 另一个思路是看我们的f是否是<strong>convex</strong> ,是then we are sure its local minimum is a global minimum.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Theorem: A local minimum of a convex function is a global minimum</strong> 这里又涉及到convex function, convex set的定义。</p>
+<ul>
+<li><p>What is a <a href="http://mathworld.wolfram.com/ConvexFunction.html">convex function</a>? A function is convex if you can trace a line between two of its points without crossing the function line.<br><img src="http://upload-images.jianshu.io/upload_images/8716089-fd9cfea722d77a1d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="convex  0&lt;λ&lt;1.jpg"></p>
+<blockquote>
+<p>A function is convex if its epigraph (the set of points on or above the graph of the function) is a convex set. In Euclidean space, a convex set is the region such that, for every pair of points within the region, every point on the straight line segment that joins the pair of points is also within the region. </p>
+</blockquote>
+<p>栗子看图convex set</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/8716089-b484ebf0cfdf222d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="convex set.jpg"></p>
+</li>
+<li><p>同样根据Hessian判断是否convex，这里需要看是否是<strong>positive semidefinite</strong>,而semi有对应三个条件是与之等价。看 theorem 3</p>
+<blockquote>
+<p>**More generally, a continuous, twice differentiable function of several variables is convex on a convex set if and only if its Hessian matrix is positive semidefinite on the interior of the convex set.**The difference here is that we need to check all the principal minors, not only the leading principal minors. </p>
+</blockquote>
+<p><img src="http://upload-images.jianshu.io/upload_images/8716089-744d4e22dac7d5aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="theorem 3.jpg"></p>
+</li>
+<li><p>其中on the interior of the convex set是什么意思呢？定义：the domain of a convex function is a convex set，那么 a function is convex on a convex set意思就是在domain上是convex function，而interior只是意味着为两边开区间。</p>
+</li>
+<li><p><a href="http://www.math.cmu.edu/~ploh/docs/math/mop2013/convexity-soln.pdf">其他证明是convex function的方法</a></p>
+</li>
+<li><p>这里就谈convex function的optimization问题求解。涉及对偶概念，根据wiki，</p>
+<blockquote>
+<p>Duality :duality means that optimization problems may be viewed from either of two perspectives, the primal problem or the dual problem (the duality principle). The solution to the dual problem <strong>provides a lower bound</strong> to the solution of the primal (minimization) problem. </p>
+</blockquote>
+<p>给最小值以下限。lower bound中有一个值为<strong>infimum</strong> (即 greatest lower bound)。补充，相对而言</p>
+<blockquote>
+<p>The same logic apply with the relation “greater than or equal” and we have the concept of upper-bound and supremum.</p>
+</blockquote>
+</li>
+<li><p>对偶，在求最小值时求对应的最大值，求出的最大值将是=&lt;最小值，两者之差即为**duality gap**。对应来说，在求最大值时求对应最小值，求出的最小值将是&gt;=最大值即upper bound。<strong>duality gap</strong>为正，我们称之<strong>weak duality holds</strong>，为0则为<strong>strong duality holds</strong>。</p>
+</li>
+<li><p>拉格朗日乘子 ： </p>
+<blockquote>
+<p>In mathematical optimization, the method of Lagrange multipliers is a strategy for finding the local maxima and minima of a function subject to <strong>equality</strong> constraints. </p>
+</blockquote>
+<p><img src="http://upload-images.jianshu.io/upload_images/8716089-59b1f2660a4869b6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Lagrange_portrait.jpg"></p>
+</li>
+<li><p>如何将3D图在2D平面表示：Contour lines  两个要点：1. 线上的点z值不变，for each point on a line, the function returns the same value 2. 颜色扮演标识，the darker the area is, the smallest the value of the function is<br><img src="http://upload-images.jianshu.io/upload_images/8716089-271a7e44b55a0424.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="contours.png"></p>
+</li>
+<li><p>那么梯度就可以用<strong>向量场</strong>进行可视化。箭头指向函数增长的方向。与Contour lines 图有什么关系呢？在Contour lines 图中，gradient vectors非常容易画出，1 垂直于Contour lines 2.指向增加的方向。<img src="http://upload-images.jianshu.io/upload_images/8716089-8ee3efb4b3646c71.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="gradient_and_contour.png"></p>
+</li>
+<li><p>将约束函数和优化目标函数以contour lines 画在一幅图中，并画出两者的gradient vector。可得到最优点。图中的优化目标函数为x^2+y^2, 约束函数为 y=1-x。 <img src="http://upload-images.jianshu.io/upload_images/8716089-fc1f3051bbf27c8a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="function_and_constraint.png"></p>
+</li>
+<li><p>▽f(x,y) = λ ▽g(x,y)<br>λ 这就是拉格朗日乘子。根据图中，当两个gradient vector平行时，我们得到最优解。无论是否同向。更无论是否等长。乘以λ 即意味着不必等长。即求▽L(x,y,λ )=0时的x，y。现在我们需要列出L并求解。</p>
+</li>
+<li><p>由于我们需要求f(w)=1/2*||w||^2的最小值，将每个约束函数乘以的 λ需要取正数。<img src="http://upload-images.jianshu.io/upload_images/8716089-76c3fc3fc413375d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="L.jpg"></p>
+</li>
+<li><p>又面临一个问题，求L(x,y,λ )=0， the problem can only be solved <strong>analytically when the number of examples is small</strong> (Tyson Smith, 2004 即只有当约束函数数量比较小的时候，λ 个数不多，我们才能用分析的方法求解). So we will once again rewrite the problem using the duality principle–&gt;we need to minimize with respect to w and b, and to maximize with respect to a at the same time.我们在上一步需要最小化<br><img src="http://upload-images.jianshu.io/upload_images/8716089-4ca65da333340058.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="duality_after_L.jpg"></p>
+</li>
+<li><p>这里需要讲清楚三个问题。1. 拉格朗日是对约束函数是等式的情况，那么我们在这里是不等式约束的问题，也用拉格朗日乘子解决，需要满足什么条件吗？(KKT)2.之前说了，对偶问题有强与弱，只有当强时，gap才为0，我们才能将对偶问题的最大值作为原问题的最小值。那么，这里是否满足是strong duality holds? （强对偶 即下文Slater’s condition）3.或许你对为什么能够是对w b求min，对a求max还是留有疑问。(拉格朗日到对偶问题这两个之间的转化过程)</p>
+</li>
+<li><p>仍需要引入两个理论。1.  duality principle 2.Slater’s condition 3.KKT<br>首先，L对w与b求偏导，令为0(这里两个等式)，再将这两个等式带入到L中，消去了w、b，只剩下变量a，即得L(a)。于是将问题转化为 Wolfe dual Problem<br><img src="http://upload-images.jianshu.io/upload_images/8716089-67cdfbf09b820630.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="wolfe dual.jpg"></p>
+</li>
+<li><p>慢着，这里又出现一个问题。</p>
+<blockquote>
+<p>Traditionally the Wolfe dual Lagrangian problem is constrained by the gradients being equal to zero. In theory, we should add the constraints θL/θw=0  and  θL/θb=0 . However, we only added the latter, because it is necessary for removing   b from the function. However, we can solve the problem without the constraint   θL/θw=0.</p>
+</blockquote>
+<p>这里就会不明白为什么不需要加上θL/θw=0约束仍能够solve the problem？暂且保留疑问。</p>
+</li>
+<li><p>Karush-Kuhn-Tucker conditions :<strong>first-order necessary conditions</strong> for a solution of an optimization problem to be optimal<br>除了KKT还需要满足一些regularity conditions，其中之一为Slater’s condition。</p>
+<blockquote>
+<p>Because the primal problem we are trying to solve is a convex problem, the KKT conditions are also sufficient for the point to be primal and dual optimal, and there is zero duality gap.</p>
+</blockquote>
+<p>这里说的，即只要为convex问题，KKT也满足，即可说得出的结果是原问题或对偶问题的最优解，因为Slater’s condition是一定满足了的，gap=0。对于SVM，如果结果满足KKT，那么即可说是最优解。(详细证明过程[2] ch5)</p>
+<p>   <img src="http://upload-images.jianshu.io/upload_images/8716089-62f19539ba8a88bc.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="KKT.jpg"></p>
+</li>
+<li><p>可见，1. stationary 即为偏导为0即为驻点,若无约束函数则直接gradient是0，有了约束则gradient of the Lagrangian为0。2. primal feasibility为原问题约束函数  3. dual feasibility 为我们对L求解时使用对偶理论时的约束函数  4.complementary slackness含义是，要么a=0，要么y*(w*x+b)-1=0.这里与<strong>Support vectors</strong>相关，</p>
+<blockquote>
+<p>Support vectors are examples having a positive Lagrange multiplier. They are the ones for which the constraint y*(w<em>x+b)-1&gt;=0  is active. (We say the constraint is active when y</em>(w*x+b)-1=0 )</p>
+</blockquote>
+<p>这里，是否会疑惑为什么不能同时为0？为什么multiplier一定是正数？在KKT中，我们只选取支持向量，即将不等号约束改为等号约束，其他的点不考虑。</p>
+<blockquote>
+<p>Solving the SVM problem is equivalent to finding a solution to the KKT conditions.” (Burges, 1988)</p>
+</blockquote>
+</li>
+<li><p>现在有了L(a),求导即可。得到了a。再根据偏导为0的公式回代得到w 。再根据prime problem中的约束函数y*(w*x+b)-1&gt;=0，计算b</p>
+<ul>
+<li>用QP solver来解对偶问题。用python CVXOPT包。将wolfe dual.jpg中我们需要求解的公式转化到下面CVXOPT支持的形式。这里引入了一个Gram matrix - The matrix of all possible inner products of X.<br><img src="http://upload-images.jianshu.io/upload_images/8716089-907dcfe22f62860e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="CVXOPT.jpg"><br><img src="http://upload-images.jianshu.io/upload_images/8716089-ac41318c2c79efb1.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="转化过程.jpg"><br>这个图里有问题，minimize部分最后一项需要q.T*a, 详见代码部分，需要q = cvxopt.matrix(-1 * np.ones(m))。</li>
+</ul>
+</li>
+<li><p>code部分：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import cvxopt.solvers</span><br><span class="line">X, y &#x3D; 这里获取到数据</span><br><span class="line">m &#x3D; X.shape[0]  #data有多少</span><br><span class="line"># Gram </span><br><span class="line">K &#x3D; np.array([np.dot(X[i], X[j]) for j in range(m) for i in range(m)]).reshape((m, m)) </span><br><span class="line">P &#x3D; cvxopt.matrix(np.outer(y, y) * K)</span><br><span class="line">q &#x3D; cvxopt.matrix(-1 * np.ones(m))</span><br><span class="line"># 等式约束</span><br><span class="line">A &#x3D; cvxopt.matrix(y, (1, m))</span><br><span class="line">b &#x3D; cvxopt.matrix(0.0)</span><br><span class="line"># 不等式约束</span><br><span class="line">G &#x3D; cvxopt.matrix(np.diag(-1 * np.ones(m))) h &#x3D; cvxopt.matrix(np.zeros(m))</span><br><span class="line"># 求解</span><br><span class="line">solution &#x3D; cvxopt.solvers.qp(P, q, G, h, A, b)</span><br><span class="line"># 拉格朗日乘子</span><br><span class="line">multipliers &#x3D; np.ravel(solution[&#39;x&#39;])</span><br><span class="line"># 支持向量</span><br><span class="line">has_positive_multiplier &#x3D; multipliers &gt; 1e-7 </span><br><span class="line">sv_multipliers &#x3D; multipliers[has_positive_multiplier]</span><br><span class="line">support_vectors &#x3D; X[has_positive_multiplier] </span><br><span class="line">support_vectors_y &#x3D; y[has_positive_multiplier]</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#计算w，b</span><br><span class="line">def compute_w(multipliers, X, y):</span><br><span class="line">    return np.sum(multipliers[i] * y[i] * X[i]  for i in range(len(y)))</span><br><span class="line">def compute_b(w, X, y):</span><br><span class="line">    return np.sum([y[i] - np.dot(w, X[i]) for i in range(len(X))])&#x2F;len(X)</span><br><span class="line"></span><br><span class="line">w &#x3D; compute_w(multipliers, X, y)</span><br><span class="line">w_from_sv &#x3D; compute_w(sv_multipliers, support_vectors, support_vect</span><br><span class="line">b &#x3D; compute_b(w, support_vectors, support_vectors_y)</span><br><span class="line"> </span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<blockquote>
+<p>We saw that the original optimization problem can be rewritten using a Lagrangian function. Then, thanks to duality theory, we transformed the Lagrangian problem into the Wolfe dual problem. We eventually used the package CVXOPT to solve the Wolfe dual.</p>
+</blockquote>
+<ul>
+<li>为什么需要将拉格朗日函数转化为对偶问题到wolfe dual？<br>这里还差对偶原则及Slater’s condition 概念。</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<a id="more"></a>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+]]></content>
+      <tags>
+        <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>redis</title>
     <url>/2021/01/31/redis/</url>
     <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
@@ -168,31 +354,6 @@
 ]]></content>
       <tags>
         <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<a id="more"></a>
-
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
-]]></content>
-      <tags>
-        <tag>dubbo</tag>
       </tags>
   </entry>
   <entry>
@@ -370,174 +531,89 @@
       </tags>
   </entry>
   <entry>
-    <title>SVM</title>
-    <url>/2021/02/04/SVM/</url>
-    <content><![CDATA[<ul>
-<li><p>reference：[非常好的两本书。再加上libsvm的源码与调参的论文。]<br>[1]<a href="http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf">http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf</a><br>[2]An Introduction to Support Vector Machines and Other Kernel-based Learning Methods<br>[3]<a href="https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793">https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793</a></p>
-</li>
-<li><p>干货</p>
-</li>
-<li><p>首先，SVM是解决supervised learning 中classification问题。有两种情况，看是否linearly separable。线性不可分则引入kernel，想法为先做transformation到其他空间进而转为可分问题。</p>
-</li>
-<li><p>对于线性可分的监督分类问题，SVM的目标是什么呢? find  the optimal separating hyperplane which maximizes the margin of the training data</p>
-</li>
-<li><p>为什么以最大化间隔为目标？因为it correctly classifies the training data and because it is the one which will generalize better with unseen data</p>
+    <title>分布式事务-下</title>
+    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/</url>
+    <content><![CDATA[<p><br> <br></p>
+<p><strong>摘要</strong></p>
+<p>1、可靠消息最终一致性，概念特点、问题、针对问题的方案(本地消息表、Rocketmq)<br>2、本地消息表流程图<br>3、Rocketmq流程、实战<br>4、最大努力通知，流程、</p>
+<h2 id="可靠消息最终一致性"><a href="#可靠消息最终一致性" class="headerlink" title="可靠消息最终一致性"></a>可靠消息最终一致性</h2><p>当事务发起方执行完成本地事务后并发出一条消息，事务参与方(消息消费者)一定能 够接收消息并处理事务成功，此方案强调的是只要消息发给事务参与方最终事务要达到一致。</p>
+<ul>
+<li>特点<ul>
+<li>适合执行周期长且实时性要求不高的场景</li>
+<li>引入消息机制后，同步的事务操作变为基于消 息执行的异步操作, 避免了分布式事务中的同步阻塞操作的影响，并实现了两个服务的解耦。</li>
+</ul>
 </li>
 </ul>
 <a id="more"></a>
-<ul>
-<li><p>这里的 间隔 指？关于间隔涉及到两种分类，一种分类为几何间隔与函数间隔；一种为软、硬间隔。几何间隔在二维则为点线距离，三维空间就是我们学习的点面距离。函数间隔二维中可以理解为<em>几个</em>点没有在线上，三维则为<em>几个</em>点没有在面上；或者结合几何间隔可理解为，是将几何间隔求解的分母去掉了，没有归一化(也因此SVM中不能选择以函数间隔衡量，否则maximizes是没有意义的)。关于软硬，是看噪声，There will never be any data point inside the margin.  If data is noisy, we need soft margin classifier.</p>
-</li>
-<li><p>继上面的目标，假设该超平面的公式为W*X=0，这里会有疑惑：</p>
-<ul>
-<li>Why do we use the hyperplane equation W<em>X instead of   Y=a</em>x+b? –&gt; the vector W will always be normal to the hyperplane</li>
-</ul>
-</li>
-<li><p>澄清下要做的步骤：</p>
-<ul>
-<li>1 数据集 2 选择两个超平面能够分类数据并在两平面间没有其他点<br>3 最大化超平面间隔</li>
-</ul>
-</li>
-<li><p>将步骤整理成数学过程</p>
-<ul>
-<li><p>设两个超平面， W<em>X+b = -θ  和  W</em>X+b = +θ。这里，为什么我们需要两个超平面？我们设想的是，假定最佳的超平面在这两个超平面的中间。我们求得两个超平面即可求得最佳分类超平面。</p>
-</li>
-<li><p>θ取值无关，直接设为1。 即得W<em>X+b = -1  和  W</em>X+b = +1。这里要想明白W与b到底是什么关系？b依赖还是独立于W？显然，是独立的，可以想象为，我们需要求得W与b两个变量，能够最大化间隔。</p>
-</li>
-<li><p>需要满足两个约束: 1. 任何&gt;=1的为class 1 2.任何&lt;=-1的为class -1 –&gt;这个限制使在两平面间没有其他点</p>
-</li>
-<li><p>将两个约束写为一个式子即： y*(w*x+b)&gt;=1</p>
-</li>
-<li><p>最大化间隔 ？对于这个问题，目前我们已知条件是两个。一个是两个平面 W<em>X+b = -1  和  W</em>X+b = +1。一个是有一个点x在平面  W<em>X+b = -1 上</em>。得：<br><code>w*(x + m*w/||w||)+b=1</code><br>化简得 <code> m = 2/||w||</code></p>
-</li>
-<li><p>得到的公式意味着：如果||w||没有限制，那么m我们可以取得任意大的值。</p>
-</li>
-<li><p>现在自然就面临optimization problem。所有的点subject to  y*(w*x+b)&gt;=1, 在此条件下如何minimize ||w||?先引入<strong>理论1</strong>，该理论为两个条件，在两个条件满足的情况下，可以说我们得到了一个scalar function的local minimum。<br><img src="/2021/02/04/SVM/theorem1" alt="theorem1"></p>
-</li>
-<li><p>f为从集合σ(其元素为vector)到实数集(其元素为值)的映射，且在x处 连续、可二阶导。这里涉及到两个的概念：</p>
-<ol>
-<li>**gradient ：a generalization of the usual concept of derivative of  a function in one dimension to a function in several dimensions  ( the gradient of a function is a vector containing each of its partial derivatives.)**注意符号为 nabla,图中倒三角。 </li>
-<li><strong>scalar function：A scalar valued function is a function that takes one or more values but returns a single value. In our case f is a scalar valued function.</strong></li>
-</ol>
-</li>
-<li><p>positive definite：<br>A symmetric matrix A  is called positive definite if x.T<em>A</em>x&gt;0 , for all n维的实数向量x。</p>
-</li>
-<li><p><strong>theorem 2</strong>中的四个条件是等价的。因此可以通过其他三种情况来判断是否为正定。这里选择主子式来判断Hessian正定，涉及到三个概念：<br><img src="/2021/02/04/SVM/theorem2" alt="theorem2"></p>
-<ol>
-<li>Minors： 删除某行和某列的所有值再计算行列式。remove the ith line and the jth column</li>
-<li>Principal minors ：删除的行、列号一致。remove the ith line and the jth column and i=j</li>
-<li>Leading principal minor ：The leading principal minor of A of order k is the minor of order k obtained by <strong>deleting the last n−k rows and columns</strong>.（这里包含一个正三角符号，标注删除哪些行列）栗子看图Leading principal minor<br>![leading principal minor.jpg](leading principal minor.jpg)</li>
-</ol>
-</li>
-<li><p>得到了local minimum，How can we find a global minimum?两步走， 1. Find all the local minima 2. Take the smallest one; it is the global minimum. 另一个思路是看我们的f是否是<strong>convex</strong> ,是then we are sure its local minimum is a global minimum.</p>
-</li>
-</ul>
-</li>
-</ul>
-<p><strong>Theorem: A local minimum of a convex function is a global minimum</strong> 这里又涉及到convex function, convex set的定义。</p>
-<ul>
-<li><p>What is a <a href="http://mathworld.wolfram.com/ConvexFunction.html">convex function</a>? A function is convex if you can trace a line between two of its points without crossing the function line.<br><img src="http://upload-images.jianshu.io/upload_images/8716089-fd9cfea722d77a1d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="convex  0&lt;λ&lt;1.jpg"></p>
-<blockquote>
-<p>A function is convex if its epigraph (the set of points on or above the graph of the function) is a convex set. In Euclidean space, a convex set is the region such that, for every pair of points within the region, every point on the straight line segment that joins the pair of points is also within the region. </p>
-</blockquote>
-<p>栗子看图convex set</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/8716089-b484ebf0cfdf222d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="convex set.jpg"></p>
-</li>
-<li><p>同样根据Hessian判断是否convex，这里需要看是否是<strong>positive semidefinite</strong>,而semi有对应三个条件是与之等价。看 theorem 3</p>
-<blockquote>
-<p>**More generally, a continuous, twice differentiable function of several variables is convex on a convex set if and only if its Hessian matrix is positive semidefinite on the interior of the convex set.**The difference here is that we need to check all the principal minors, not only the leading principal minors. </p>
-</blockquote>
-<p><img src="http://upload-images.jianshu.io/upload_images/8716089-744d4e22dac7d5aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="theorem 3.jpg"></p>
-</li>
-<li><p>其中on the interior of the convex set是什么意思呢？定义：the domain of a convex function is a convex set，那么 a function is convex on a convex set意思就是在domain上是convex function，而interior只是意味着为两边开区间。</p>
-</li>
-<li><p><a href="http://www.math.cmu.edu/~ploh/docs/math/mop2013/convexity-soln.pdf">其他证明是convex function的方法</a></p>
-</li>
-<li><p>这里就谈convex function的optimization问题求解。涉及对偶概念，根据wiki，</p>
-<blockquote>
-<p>Duality :duality means that optimization problems may be viewed from either of two perspectives, the primal problem or the dual problem (the duality principle). The solution to the dual problem <strong>provides a lower bound</strong> to the solution of the primal (minimization) problem. </p>
-</blockquote>
-<p>给最小值以下限。lower bound中有一个值为<strong>infimum</strong> (即 greatest lower bound)。补充，相对而言</p>
-<blockquote>
-<p>The same logic apply with the relation “greater than or equal” and we have the concept of upper-bound and supremum.</p>
-</blockquote>
-</li>
-<li><p>对偶，在求最小值时求对应的最大值，求出的最大值将是=&lt;最小值，两者之差即为**duality gap**。对应来说，在求最大值时求对应最小值，求出的最小值将是&gt;=最大值即upper bound。<strong>duality gap</strong>为正，我们称之<strong>weak duality holds</strong>，为0则为<strong>strong duality holds</strong>。</p>
-</li>
-<li><p>拉格朗日乘子 ： </p>
-<blockquote>
-<p>In mathematical optimization, the method of Lagrange multipliers is a strategy for finding the local maxima and minima of a function subject to <strong>equality</strong> constraints. </p>
-</blockquote>
-<p><img src="http://upload-images.jianshu.io/upload_images/8716089-59b1f2660a4869b6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Lagrange_portrait.jpg"></p>
-</li>
-<li><p>如何将3D图在2D平面表示：Contour lines  两个要点：1. 线上的点z值不变，for each point on a line, the function returns the same value 2. 颜色扮演标识，the darker the area is, the smallest the value of the function is<br><img src="http://upload-images.jianshu.io/upload_images/8716089-271a7e44b55a0424.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="contours.png"></p>
-</li>
-<li><p>那么梯度就可以用<strong>向量场</strong>进行可视化。箭头指向函数增长的方向。与Contour lines 图有什么关系呢？在Contour lines 图中，gradient vectors非常容易画出，1 垂直于Contour lines 2.指向增加的方向。<img src="http://upload-images.jianshu.io/upload_images/8716089-8ee3efb4b3646c71.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="gradient_and_contour.png"></p>
-</li>
-<li><p>将约束函数和优化目标函数以contour lines 画在一幅图中，并画出两者的gradient vector。可得到最优点。图中的优化目标函数为x^2+y^2, 约束函数为 y=1-x。 <img src="http://upload-images.jianshu.io/upload_images/8716089-fc1f3051bbf27c8a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="function_and_constraint.png"></p>
-</li>
-<li><p>▽f(x,y) = λ ▽g(x,y)<br>λ 这就是拉格朗日乘子。根据图中，当两个gradient vector平行时，我们得到最优解。无论是否同向。更无论是否等长。乘以λ 即意味着不必等长。即求▽L(x,y,λ )=0时的x，y。现在我们需要列出L并求解。</p>
-</li>
-<li><p>由于我们需要求f(w)=1/2*||w||^2的最小值，将每个约束函数乘以的 λ需要取正数。<img src="http://upload-images.jianshu.io/upload_images/8716089-76c3fc3fc413375d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="L.jpg"></p>
-</li>
-<li><p>又面临一个问题，求L(x,y,λ )=0， the problem can only be solved <strong>analytically when the number of examples is small</strong> (Tyson Smith, 2004 即只有当约束函数数量比较小的时候，λ 个数不多，我们才能用分析的方法求解). So we will once again rewrite the problem using the duality principle–&gt;we need to minimize with respect to w and b, and to maximize with respect to a at the same time.我们在上一步需要最小化<br><img src="http://upload-images.jianshu.io/upload_images/8716089-4ca65da333340058.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="duality_after_L.jpg"></p>
-</li>
-<li><p>这里需要讲清楚三个问题。1. 拉格朗日是对约束函数是等式的情况，那么我们在这里是不等式约束的问题，也用拉格朗日乘子解决，需要满足什么条件吗？(KKT)2.之前说了，对偶问题有强与弱，只有当强时，gap才为0，我们才能将对偶问题的最大值作为原问题的最小值。那么，这里是否满足是strong duality holds? （强对偶 即下文Slater’s condition）3.或许你对为什么能够是对w b求min，对a求max还是留有疑问。(拉格朗日到对偶问题这两个之间的转化过程)</p>
-</li>
-<li><p>仍需要引入两个理论。1.  duality principle 2.Slater’s condition 3.KKT<br>首先，L对w与b求偏导，令为0(这里两个等式)，再将这两个等式带入到L中，消去了w、b，只剩下变量a，即得L(a)。于是将问题转化为 Wolfe dual Problem<br><img src="http://upload-images.jianshu.io/upload_images/8716089-67cdfbf09b820630.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="wolfe dual.jpg"></p>
-</li>
-<li><p>慢着，这里又出现一个问题。</p>
-<blockquote>
-<p>Traditionally the Wolfe dual Lagrangian problem is constrained by the gradients being equal to zero. In theory, we should add the constraints θL/θw=0  and  θL/θb=0 . However, we only added the latter, because it is necessary for removing   b from the function. However, we can solve the problem without the constraint   θL/θw=0.</p>
-</blockquote>
-<p>这里就会不明白为什么不需要加上θL/θw=0约束仍能够solve the problem？暂且保留疑问。</p>
-</li>
-<li><p>Karush-Kuhn-Tucker conditions :<strong>first-order necessary conditions</strong> for a solution of an optimization problem to be optimal<br>除了KKT还需要满足一些regularity conditions，其中之一为Slater’s condition。</p>
-<blockquote>
-<p>Because the primal problem we are trying to solve is a convex problem, the KKT conditions are also sufficient for the point to be primal and dual optimal, and there is zero duality gap.</p>
-</blockquote>
-<p>这里说的，即只要为convex问题，KKT也满足，即可说得出的结果是原问题或对偶问题的最优解，因为Slater’s condition是一定满足了的，gap=0。对于SVM，如果结果满足KKT，那么即可说是最优解。(详细证明过程[2] ch5)</p>
-<p>   <img src="http://upload-images.jianshu.io/upload_images/8716089-62f19539ba8a88bc.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="KKT.jpg"></p>
-</li>
-<li><p>可见，1. stationary 即为偏导为0即为驻点,若无约束函数则直接gradient是0，有了约束则gradient of the Lagrangian为0。2. primal feasibility为原问题约束函数  3. dual feasibility 为我们对L求解时使用对偶理论时的约束函数  4.complementary slackness含义是，要么a=0，要么y*(w*x+b)-1=0.这里与<strong>Support vectors</strong>相关，</p>
-<blockquote>
-<p>Support vectors are examples having a positive Lagrange multiplier. They are the ones for which the constraint y*(w<em>x+b)-1&gt;=0  is active. (We say the constraint is active when y</em>(w*x+b)-1=0 )</p>
-</blockquote>
-<p>这里，是否会疑惑为什么不能同时为0？为什么multiplier一定是正数？在KKT中，我们只选取支持向量，即将不等号约束改为等号约束，其他的点不考虑。</p>
-<blockquote>
-<p>Solving the SVM problem is equivalent to finding a solution to the KKT conditions.” (Burges, 1988)</p>
-</blockquote>
-</li>
-<li><p>现在有了L(a),求导即可。得到了a。再根据偏导为0的公式回代得到w 。再根据prime problem中的约束函数y*(w*x+b)-1&gt;=0，计算b</p>
-<ul>
-<li>用QP solver来解对偶问题。用python CVXOPT包。将wolfe dual.jpg中我们需要求解的公式转化到下面CVXOPT支持的形式。这里引入了一个Gram matrix - The matrix of all possible inner products of X.<br><img src="http://upload-images.jianshu.io/upload_images/8716089-907dcfe22f62860e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="CVXOPT.jpg"><br><img src="http://upload-images.jianshu.io/upload_images/8716089-ac41318c2c79efb1.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="转化过程.jpg"><br>这个图里有问题，minimize部分最后一项需要q.T*a, 详见代码部分，需要q = cvxopt.matrix(-1 * np.ones(m))。</li>
-</ul>
-</li>
-<li><p>code部分：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import cvxopt.solvers</span><br><span class="line">X, y &#x3D; 这里获取到数据</span><br><span class="line">m &#x3D; X.shape[0]  #data有多少</span><br><span class="line"># Gram </span><br><span class="line">K &#x3D; np.array([np.dot(X[i], X[j]) for j in range(m) for i in range(m)]).reshape((m, m)) </span><br><span class="line">P &#x3D; cvxopt.matrix(np.outer(y, y) * K)</span><br><span class="line">q &#x3D; cvxopt.matrix(-1 * np.ones(m))</span><br><span class="line"># 等式约束</span><br><span class="line">A &#x3D; cvxopt.matrix(y, (1, m))</span><br><span class="line">b &#x3D; cvxopt.matrix(0.0)</span><br><span class="line"># 不等式约束</span><br><span class="line">G &#x3D; cvxopt.matrix(np.diag(-1 * np.ones(m))) h &#x3D; cvxopt.matrix(np.zeros(m))</span><br><span class="line"># 求解</span><br><span class="line">solution &#x3D; cvxopt.solvers.qp(P, q, G, h, A, b)</span><br><span class="line"># 拉格朗日乘子</span><br><span class="line">multipliers &#x3D; np.ravel(solution[&#39;x&#39;])</span><br><span class="line"># 支持向量</span><br><span class="line">has_positive_multiplier &#x3D; multipliers &gt; 1e-7 </span><br><span class="line">sv_multipliers &#x3D; multipliers[has_positive_multiplier]</span><br><span class="line">support_vectors &#x3D; X[has_positive_multiplier] </span><br><span class="line">support_vectors_y &#x3D; y[has_positive_multiplier]</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#计算w，b</span><br><span class="line">def compute_w(multipliers, X, y):</span><br><span class="line">    return np.sum(multipliers[i] * y[i] * X[i]  for i in range(len(y)))</span><br><span class="line">def compute_b(w, X, y):</span><br><span class="line">    return np.sum([y[i] - np.dot(w, X[i]) for i in range(len(X))])&#x2F;len(X)</span><br><span class="line"></span><br><span class="line">w &#x3D; compute_w(multipliers, X, y)</span><br><span class="line">w_from_sv &#x3D; compute_w(sv_multipliers, support_vectors, support_vect</span><br><span class="line">b &#x3D; compute_b(w, support_vectors, support_vectors_y)</span><br><span class="line"> </span><br></pre></td></tr></table></figure>
 
+<ul>
+<li>网络通信的不确定性会导致分布式事务问题：</li>
+</ul>
+<ol>
+<li>事务发起方(消息生产方)将消息发给消息中间件</li>
+<li>事务参与方从消息中间件接收消息</li>
+</ol>
+<h3 id="可靠消息最终一致性的问题"><a href="#可靠消息最终一致性的问题" class="headerlink" title="可靠消息最终一致性的问题"></a>可靠消息最终一致性的问题</h3><p>1、本地事务与消息发送的原子性问题</p>
+<ul>
+<li>发送消息成功，数据库操作失败  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">		&#x2F;&#x2F;1.发送MQ</span><br><span class="line">		&#x2F;&#x2F;2.数据库操作 </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure></li>
+<li>如果发送MQ消息失败，就会抛出异常，导致数据库事务回滚。但如果是超时异常，数 据库回滚，但MQ其实已经正常发送了，同样会导致不一致。  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">	&#x2F;&#x2F;1.数据库操作</span><br><span class="line">	&#x2F;&#x2F;2.发送MQ </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure>
+2、事务参与方接收消息的可靠性，需要如果接收消息失败可以重复接收消息</li>
+</ul>
+<p>3、消息重复消费的问题，要解决消息重复消费的问题就要实现事务参与方的方法幂等性。 </p>
+<h2 id="本地消息表方案"><a href="#本地消息表方案" class="headerlink" title="本地消息表方案"></a>本地消息表方案</h2><p><img src="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/bendixiaoxibiao.png" alt="本地消息表方案"></p>
+<ul>
+<li>交互流程规范</li>
+</ul>
+<ol>
+<li>用户服务在本地事务新增用户和增加 ”积分消息日志“。(用户表和消息表通过本地事务保证一致)</li>
+<li>定时任务扫描日志–&gt;保证将消息发送给消息队列。启动独立的线程，定时对消息日志表中的消息进行扫描并发送至消息中间件，在消息中间件反馈发送成功后删除该消息日志，否则等待定时任务下一周期重试。</li>
+<li>MQ的ack(即消息确认)机制–&gt;幂等，收到ack，MQ将不再向消费者推送消息，否则消费者会不断重 试向消费者来发送消息。</li>
+</ol>
+<h2 id="RocketMQ事务消息方案"><a href="#RocketMQ事务消息方案" class="headerlink" title="RocketMQ事务消息方案"></a>RocketMQ事务消息方案</h2><ul>
+<li>交互流程实现</li>
+</ul>
+<ol>
+<li>Producer (MQ发送方)发送事务消息至MQ Server，MQ Server将消息状态标记为Prepared(预备状态)，注意此时这条消息消费者(MQ订阅方)是无法消费到的。</li>
+<li>MQ Server接收到Producer 发送给的消息则回应发送成功表示MQ已接收到消息。</li>
+<li>Producer 端执行业务代码逻辑，通过本地数据库事务控制。</li>
+<li>若Producer 本地事务执行成功则自动向MQServer发送commit消息，MQ Server接收到commit消息后将状态标记为可消费，此时MQ订阅方(积分服务)即正常消费消息。若Producer 本地事务执行失败则自动向MQServer发送rollback消息，MQ Server接收到rollback消息后 将删除消息。</li>
+<li>如果执行Producer端本地事务过程中，执行端挂掉或者超时，MQ Server将会不停的询问同组的其他 Producer来获取事务执行状态，这个过程叫事务回查。MQ Server会根据事务回查结果来决定是否投递消息。 </li>
+</ol>
+<br>
+
+<ul>
+<li>以上主干流程已由RocketMQ实现，对用户侧来说，用户需要：</li>
+</ul>
+<ol>
+<li>实现本地事务执行</li>
+<li>本地事务回查方法，因此关注本地事务的执行状态</li>
+</ol>
+<h3 id="RocketMq事务"><a href="#RocketMq事务" class="headerlink" title="RocketMq事务"></a>RocketMq事务</h3><p>RocketMQ主要解决了两个功能:<br>1、本地事务与消息发送的原子性问题。<br>2、事务参与方接收消息的可靠性。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;回调</span><br><span class="line"></span><br><span class="line"> public interface RocketMQLocalTransactionListener &#123;</span><br><span class="line">      &#x2F;**</span><br><span class="line">		‐ 发送prepare消息成功此方法被回调，该方法用于执行本地事务</span><br><span class="line">		‐ @param msg 回传的消息，利用transactionId即可获取到该消息的唯一Id</span><br><span class="line">		‐ @param arg 调用send方法时传递的参数，当send时候若有额外的参数可以传递到send方法中，这里能获取到</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg);</span><br><span class="line"></span><br><span class="line">      	&#x2F;**</span><br><span class="line">		‐ @param msg 通过获取transactionId来判断这条消息的本地事务执行状态</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState checkLocalTransaction(Message msg);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> &#x2F;&#x2F; 发送事务消息API  </span><br><span class="line">TransactionMQProducer producer &#x3D; new TransactionMQProducer(&quot;ProducerGroup&quot;); producer.setNamesrvAddr(&quot;127.0.0.1:9876&quot;);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;设置TransactionListener实现 producer.setTransactionListener(transactionListener);</span><br><span class="line">&#x2F;&#x2F;发送事务消息</span><br><span class="line">SendResult sendResult &#x3D; producer.sendMessageInTransaction(msg, null);  </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>实践：</p>
+<ul>
+<li><p>在application-local.propertis中配置rocketMQ nameServer地址及生产组</p>
+</li>
+<li><p>service</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;从event构建消息体</span><br><span class="line">	public void sendUpdateAccountBalance(AccountChangeEvent accountChangeEvent) </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;发送消息并收到回应后执行本地事务</span><br><span class="line">public void doUpdateAccountBalance(AccountChangeEvent accountChangeEvent)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;实现执行本地事务和事务回查两个方法</span><br><span class="line"> 	@RocketMQTransactionListener(txProducerGroup &#x3D; &quot;producer_group_txmsg_bank1&quot;)</span><br><span class="line"> 	public class ProducerTxmsgListener implements RocketMQLocalTransactionListener </span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>controller 略</p>
+</li>
+<li><p>B账户的MQ 监听类</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;需要实现幂等</span><br><span class="line">@RocketMQMessageListener(topic &#x3D; &quot;topic_txmsg&quot;,consumerGroup &#x3D; &quot;consumer_txmsg_group_bank2&quot;)</span><br><span class="line">public class TxmsgConsumer implements RocketMQListener&lt;String&gt; </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="最大努力通知"><a href="#最大努力通知" class="headerlink" title="最大努力通知"></a>最大努力通知</h2></li>
+</ul>
+</li>
+<li><p>流程</p>
 </li>
 </ul>
-<blockquote>
-<p>We saw that the original optimization problem can be rewritten using a Lagrangian function. Then, thanks to duality theory, we transformed the Lagrangian problem into the Wolfe dual problem. We eventually used the package CVXOPT to solve the Wolfe dual.</p>
-</blockquote>
-<ul>
-<li>为什么需要将拉格朗日函数转化为对偶问题到wolfe dual？<br>这里还差对偶原则及Slater’s condition 概念。</li>
-</ul>
+<ol>
+<li></li>
+</ol>
 ]]></content>
       <tags>
-        <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>外汇储备</title>
-    <url>/2021/02/17/%E5%A4%96%E6%B1%87%E5%82%A8%E5%A4%87/</url>
-    <content><![CDATA[<p><br> <br></p>
-<h2 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h2><p>1、外汇储备越高的影响</p>
-]]></content>
-      <tags>
-        <tag>国际金融</tag>
+        <tag>分布式</tag>
       </tags>
   </entry>
   <entry>
@@ -624,7 +700,52 @@
 <p>白银黄金比价：1867，16：1；1896，31：1；1989，71：1。<br>如果在1867年实行白银本位，则劣币驱良。黄金被窖藏。而流通的白银(因其贬值)，反而可能会促使价格回升。</p>
 </blockquote>
 <p>=&gt;<br>温和通胀有效，而通缩不利于经济。<br>一国货币贬值，则物价相对于其他货币稳定的国家是上涨的。<br>硬通货的拥护者占了上风，要求按照战前水平兑付黄金，使得货币升值，通缩产生。</p>
-<h4 id="美国内战时期南方"><a href="#美国内战时期南方" class="headerlink" title="美国内战时期南方"></a>美国内战时期南方</h4><br>
+<h4 id="德国马克"><a href="#德国马克" class="headerlink" title="德国马克"></a>德国马克</h4><p><strong>1、事实：</strong></p>
+<p>每月价格上涨50%–&gt;恶性通胀；马克的恶通胀认为导致了希特勒。</p>
+<ul>
+<li><p>通胀从小跑进入狂奔<br>一战后的德国，物价是战前的2.5倍，一年后上涨3倍，一年后又上涨2倍多，后来的几个月停顿了下。<br>1921年11月，为战前的40倍。<br>1922年11月开始进一步加速。23年年中开始恐怖狂奔。年末停止。<br>算下爬行阶段耗时2年多，小跑1年半多，狂奔半年多。最高能一个月涨二十多倍。小跑中间也有几个月算温和。<br>23年1月，法国进入鲁尔盆地，8月政府宣布征税，11月与法国战败。此种种不满终于带来了希特勒发动的啤酒馆暴动。</p>
+</li>
+<li><p>现象<br>民间的借贷利息是政府的120倍。<br>政府和企业主精英重建了工厂，巩固了权力，而对各个家庭生活或者不同经济部门，何等不平等不公正。<br>低利息时大肆借贷购入不动产和商品，马克贬值再用马克归还，产生了新富。<br>政府注销了所有内债。<br>农民享受了高的粮食卖出价格，抵押贷款偿债压力减弱。<br>实际工资下降，真实工资已经低于维持生活的需要。<br>工会要求工资同生活费用指数挂钩，但是消费在一周后进行，当前的指数仍然无法避免手里的钱一周后失去价值。<br>死亡、移民、犯罪上升。<br>耐用品的价格不再取决于需求，而是取决于一周后获得的成本，一周后可能需要双倍的当前价格。<br>汇率贬值-&gt; 国内物价上升-&gt; 增发纸币-&gt; 进一步贬值-&gt; 物价进一步上升  的恶性循环。<br>但，<br>20-23年间国GDP表现不错。钢铁产量稳定。</p>
+</li>
+<li><p>1923年<br>通胀狂奔后，马克失去信用。11月，失业23%，煤产量44%等经济毁灭。<br>对策：财政部领导人变更，确定结束通胀的新方案，严格削减开支、建立新的税种，德国回复了预算平衡。引入新马克作为临时货币。</p>
+</li>
+</ul>
+<p>=&gt;<br>通胀到了极限，就停顿了。</p>
+<p><strong>2、原因探究：</strong></p>
+<ul>
+<li><p>赔款<br>巨额赔款需要金马克支付，国际市场美元升值高于国内，外国银行购入马克，而使得德国免费获得大量的食品和原材料。但22年7月停止以外汇支付赔款，通胀却加速了。</p>
+</li>
+<li><p>国际收支<br>出口商品以支付赔款的压力(需要大量出口来获得用以赔偿的外汇，主动性地贬值来刺激出口) 导致马克贬值，国内物价上涨，为维持国内商贸不得不继续印发纸币。</p>
+</li>
+<li><p>马克投机<br>卖空马克者</p>
+</li>
+<li><p>避免革命<br>失业和商品短缺会带来俄国一样革命。通胀至少有表面的繁荣。</p>
+</li>
+<li><p>通胀获利团体的助力<br>马克贬值，外国人希望用马克购买德国艺术品(马克需求增多、而增发的马克进一步大于需求？)；担心受损，资产纷纷被转移到国外。这些都进一步导致货币进一步超发。</p>
+</li>
+<li><p>政府赤字</p>
+</li>
+</ul>
+<p>=&gt;美元升值和出口压力，为超发找到了借口。本质是巨额赔款成为超发货币的借口。而且政府是通胀获利的最大团体，政府不想看到革命，而马克投机者里，更多是否是政府中人呢。经济现象的解释里，很多结果会反作用于现象，造成现象的强化，而这样的结果被认为成”原因”。这并非根因。</p>
+<p><strong>3、问题</strong></p>
+<ul>
+<li>如果是超发，那么当时真的减少发行，又会出现什么样子呢，会不会紧缩–失业和短缺呢。会不会赔款付不了呢。受害的会否比这样的通胀好？为什么这样的恶性通胀，竟然伴随着就业和GDP的稳定甚至增长呢？</li>
+</ul>
+<p>(减少发行，如果控制得好能够不会恶性通胀，但是亦不能因此通缩。需要把握节奏。并且，大量的赔款如果不发行足够的货币，除非经济的增长速度快，能够产生相应的流动性需要，否则赔款就是突发的流动性需求。会付不了，或者时间很长。就业和GDP稳定因为，也是算温和的。23年狂奔后导致了大量失业和降产，失业大幅增多现象比通胀发生地慢一些。也可能是失业统计的数据，发生在通胀之后。)</p>
+<ul>
+<li>新马克和分配券有什么不同呢，都是以土地作为抵押保证。新马克的背景：赔款和政治经济都还是老样子，而新马克却使得恶性通胀恢复地惊人。劣币无法流通后良币取而代之。–海温斯坦为啥能取得稳定货币的成就？</li>
+</ul>
+<p>(本质是，新马克保证了其价值、控制了发行；而分配券还是超发。似乎根本不在于表面的这些相似，而在于对欲望的态度。)</p>
+<ul>
+<li>为什么通胀是旧价格的延续而通缩不是？</li>
+</ul>
+<p>(如果货币价值✖️价格 = 商品劳务价值，那么通胀不改变商品劳务价值，则旧的价格是由于货币价值而反向变动。通缩则是流动性不足，当人们不愿意拿钱买、不愿意出钱投资，认为商品都不值得买，并不是因为觉得货币更值钱，更多可能出于谨慎因素，回报低或者对未来悲观。商品也会慢慢退出市场。由于悲观，影响到投资和产出，变化来自等式右边。)</p>
+<ul>
+<li>为什么会小跑到狂奔？</li>
+</ul>
+<p>=&gt;<br>惊人的数字让人记忆犹新。德国现在仍会谨慎。</p>
+<h4 id="俄国计划经济"><a href="#俄国计划经济" class="headerlink" title="俄国计划经济"></a>俄国计划经济</h4><p>todo                    </p>
+<br>
 
 <h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><ul>
 <li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
@@ -688,92 +809,6 @@
 ]]></content>
       <tags>
         <tag>商业银行,货银</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>分布式事务-下</title>
-    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/</url>
-    <content><![CDATA[<p><br> <br></p>
-<p><strong>摘要</strong></p>
-<p>1、可靠消息最终一致性，概念特点、问题、针对问题的方案(本地消息表、Rocketmq)<br>2、本地消息表流程图<br>3、Rocketmq流程、实战<br>4、最大努力通知，流程、</p>
-<h2 id="可靠消息最终一致性"><a href="#可靠消息最终一致性" class="headerlink" title="可靠消息最终一致性"></a>可靠消息最终一致性</h2><p>当事务发起方执行完成本地事务后并发出一条消息，事务参与方(消息消费者)一定能 够接收消息并处理事务成功，此方案强调的是只要消息发给事务参与方最终事务要达到一致。</p>
-<ul>
-<li>特点<ul>
-<li>适合执行周期长且实时性要求不高的场景</li>
-<li>引入消息机制后，同步的事务操作变为基于消 息执行的异步操作, 避免了分布式事务中的同步阻塞操作的影响，并实现了两个服务的解耦。</li>
-</ul>
-</li>
-</ul>
-<a id="more"></a>
-
-<ul>
-<li>网络通信的不确定性会导致分布式事务问题：</li>
-</ul>
-<ol>
-<li>事务发起方(消息生产方)将消息发给消息中间件</li>
-<li>事务参与方从消息中间件接收消息</li>
-</ol>
-<h3 id="可靠消息最终一致性的问题"><a href="#可靠消息最终一致性的问题" class="headerlink" title="可靠消息最终一致性的问题"></a>可靠消息最终一致性的问题</h3><p>1、本地事务与消息发送的原子性问题</p>
-<ul>
-<li>发送消息成功，数据库操作失败  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">		&#x2F;&#x2F;1.发送MQ</span><br><span class="line">		&#x2F;&#x2F;2.数据库操作 </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure></li>
-<li>如果发送MQ消息失败，就会抛出异常，导致数据库事务回滚。但如果是超时异常，数 据库回滚，但MQ其实已经正常发送了，同样会导致不一致。  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">	&#x2F;&#x2F;1.数据库操作</span><br><span class="line">	&#x2F;&#x2F;2.发送MQ </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure>
-2、事务参与方接收消息的可靠性，需要如果接收消息失败可以重复接收消息</li>
-</ul>
-<p>3、消息重复消费的问题，要解决消息重复消费的问题就要实现事务参与方的方法幂等性。 </p>
-<h2 id="本地消息表方案"><a href="#本地消息表方案" class="headerlink" title="本地消息表方案"></a>本地消息表方案</h2><p><img src="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/bendixiaoxibiao.png" alt="本地消息表方案"></p>
-<ul>
-<li>交互流程规范</li>
-</ul>
-<ol>
-<li>用户服务在本地事务新增用户和增加 ”积分消息日志“。(用户表和消息表通过本地事务保证一致)</li>
-<li>定时任务扫描日志–&gt;保证将消息发送给消息队列。启动独立的线程，定时对消息日志表中的消息进行扫描并发送至消息中间件，在消息中间件反馈发送成功后删除该消息日志，否则等待定时任务下一周期重试。</li>
-<li>MQ的ack(即消息确认)机制–&gt;幂等，收到ack，MQ将不再向消费者推送消息，否则消费者会不断重 试向消费者来发送消息。</li>
-</ol>
-<h2 id="RocketMQ事务消息方案"><a href="#RocketMQ事务消息方案" class="headerlink" title="RocketMQ事务消息方案"></a>RocketMQ事务消息方案</h2><ul>
-<li>交互流程实现</li>
-</ul>
-<ol>
-<li>Producer (MQ发送方)发送事务消息至MQ Server，MQ Server将消息状态标记为Prepared(预备状态)，注意此时这条消息消费者(MQ订阅方)是无法消费到的。</li>
-<li>MQ Server接收到Producer 发送给的消息则回应发送成功表示MQ已接收到消息。</li>
-<li>Producer 端执行业务代码逻辑，通过本地数据库事务控制。</li>
-<li>若Producer 本地事务执行成功则自动向MQServer发送commit消息，MQ Server接收到commit消息后将状态标记为可消费，此时MQ订阅方(积分服务)即正常消费消息。若Producer 本地事务执行失败则自动向MQServer发送rollback消息，MQ Server接收到rollback消息后 将删除消息。</li>
-<li>如果执行Producer端本地事务过程中，执行端挂掉或者超时，MQ Server将会不停的询问同组的其他 Producer来获取事务执行状态，这个过程叫事务回查。MQ Server会根据事务回查结果来决定是否投递消息。 </li>
-</ol>
-<br>
-
-<ul>
-<li>以上主干流程已由RocketMQ实现，对用户侧来说，用户需要：</li>
-</ul>
-<ol>
-<li>实现本地事务执行</li>
-<li>本地事务回查方法，因此关注本地事务的执行状态</li>
-</ol>
-<h3 id="RocketMq事务"><a href="#RocketMq事务" class="headerlink" title="RocketMq事务"></a>RocketMq事务</h3><p>RocketMQ主要解决了两个功能:<br>1、本地事务与消息发送的原子性问题。<br>2、事务参与方接收消息的可靠性。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;回调</span><br><span class="line"></span><br><span class="line"> public interface RocketMQLocalTransactionListener &#123;</span><br><span class="line">      &#x2F;**</span><br><span class="line">		‐ 发送prepare消息成功此方法被回调，该方法用于执行本地事务</span><br><span class="line">		‐ @param msg 回传的消息，利用transactionId即可获取到该消息的唯一Id</span><br><span class="line">		‐ @param arg 调用send方法时传递的参数，当send时候若有额外的参数可以传递到send方法中，这里能获取到</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg);</span><br><span class="line"></span><br><span class="line">      	&#x2F;**</span><br><span class="line">		‐ @param msg 通过获取transactionId来判断这条消息的本地事务执行状态</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState checkLocalTransaction(Message msg);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> &#x2F;&#x2F; 发送事务消息API  </span><br><span class="line">TransactionMQProducer producer &#x3D; new TransactionMQProducer(&quot;ProducerGroup&quot;); producer.setNamesrvAddr(&quot;127.0.0.1:9876&quot;);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;设置TransactionListener实现 producer.setTransactionListener(transactionListener);</span><br><span class="line">&#x2F;&#x2F;发送事务消息</span><br><span class="line">SendResult sendResult &#x3D; producer.sendMessageInTransaction(msg, null);  </span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>实践：</p>
-<ul>
-<li><p>在application-local.propertis中配置rocketMQ nameServer地址及生产组</p>
-</li>
-<li><p>service</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;从event构建消息体</span><br><span class="line">	public void sendUpdateAccountBalance(AccountChangeEvent accountChangeEvent) </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;发送消息并收到回应后执行本地事务</span><br><span class="line">public void doUpdateAccountBalance(AccountChangeEvent accountChangeEvent)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;实现执行本地事务和事务回查两个方法</span><br><span class="line"> 	@RocketMQTransactionListener(txProducerGroup &#x3D; &quot;producer_group_txmsg_bank1&quot;)</span><br><span class="line"> 	public class ProducerTxmsgListener implements RocketMQLocalTransactionListener </span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
-<li><p>controller 略</p>
-</li>
-<li><p>B账户的MQ 监听类</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;需要实现幂等</span><br><span class="line">@RocketMQMessageListener(topic &#x3D; &quot;topic_txmsg&quot;,consumerGroup &#x3D; &quot;consumer_txmsg_group_bank2&quot;)</span><br><span class="line">public class TxmsgConsumer implements RocketMQListener&lt;String&gt; </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h2 id="最大努力通知"><a href="#最大努力通知" class="headerlink" title="最大努力通知"></a>最大努力通知</h2></li>
-</ul>
-</li>
-<li><p>流程</p>
-</li>
-</ul>
-<ol>
-<li></li>
-</ol>
-]]></content>
-      <tags>
-        <tag>分布式</tag>
       </tags>
   </entry>
 </search>
