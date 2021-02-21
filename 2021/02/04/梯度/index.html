@@ -16,7 +16,7 @@
 <meta property="og:description" content="梯度消失和爆炸 deep后带来的信息传递&#x2F;梯度传递问题  层数过多导致？sigmoid和tanh为什么会导致梯度消失？  直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。 反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-02-04T03:48:05.000Z">
-<meta property="article:modified_time" content="2021-02-04T10:39:24.870Z">
+<meta property="article:modified_time" content="2021-02-21T10:56:55.030Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="dl">
 <meta name="twitter:card" content="summary">
@@ -82,7 +82,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">17.5k</span>
+    总字数 <span class="post-count">18.8k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -197,9 +197,9 @@
 </li>
 <li><p>梯度爆炸</p>
 <ol>
-<li>原因：1）隐藏层的层数过多；2）权重的初始化值过大</li>
+<li>原因：1）隐藏层的层数过多；2）<strong>权重的初始化值过大</strong></li>
 <li>在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。</li>
-<li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
+<li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）<strong>LSTM的结构设计也可以改善RNN中的梯度消失问题。</strong>（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
 </ol>
 </li>
 </ul>
@@ -468,7 +468,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">ml</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">分布式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">方法论</a>
               </li>
              
               <li class="article-tag-list-item">

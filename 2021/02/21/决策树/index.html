@@ -6,14 +6,19 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>Archives: 2021/1 | satyrswang</title>
+  <title>决策树 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="satyrswang">
-<meta property="og:url" content="http://example.com/archives/2021/01/index.html">
+  <meta name="description" content="让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。 Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？  分析这棵树需要满足的基本性质互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="决策树">
+<meta property="og:url" content="http://example.com/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/index.html">
 <meta property="og:site_name" content="satyrswang">
+<meta property="og:description" content="让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。 Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？  分析这棵树需要满足的基本性质互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-02-21T09:25:02.000Z">
+<meta property="article:modified_time" content="2021-02-21T10:56:06.038Z">
 <meta property="article:author" content="yuqing wang">
+<meta property="article:tag" content="ml">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
@@ -149,136 +154,233 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
+            <article id="post-决策树" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      决策树
+    </h1>
+  
+
+        
+        <a href="/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/" class="archive-article-date">
+  	<time datetime="2021-02-21T09:25:02.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-21</time>
+</a>
             
-  
-  
+        
+      </header>
     
-    
+    <div align="center" class="post-count">
+    字数：1.1k字 | 预计阅读时长：3分钟
+</div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。</p>
+<p>Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？</p>
+<ul>
+<li>分析这棵树需要满足的基本性质<br>互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。</li>
+</ul>
+<a id="more"></a>
+
+<ul>
+<li><p>生成这棵树的过程<br>1、要得到中间节点(特征)。分类能力越强的特征，越靠近根。<br>2、要找到当前特征的切分点，而进行分叉。<br>即涉及到特征选择(特征间重要性比较以及当前特征的切分点)。<br>而构建的过程，则是递归地选择特征的过程。<br>直到，没有特征可选、或者样本点已经完全覆盖(特征选择的标准达到阈值，不再分叉)。</p>
+</li>
+<li><p>分析回归树<br>1、回归树对特征选择和切分点选择的标准，肯定是区别于分类树的。<br>2、回归树的y如何生成？<br>分类树的label来自于多数投票。回归树则来自于，落入叶子的样本的均值。</p>
+</li>
+</ul>
+<p>综上，<br>1、特征选择只在当前考虑选择最优，属于贪心策略，为局部最优。<br>2、本质上，是将样本空间进行直线(线性棱的空间体)切割。是概率中的条件概率。多个特征规则组合的条件下，样本所属类别的判定。<br>3、由于1，生成的树易产生过拟合。<br>4、回归树的回归结果，相比于lr等回归预测模型，结果数量是少的。</p>
+<p>Q2：如何进行特征选择？</p>
+<p>1、对于分类树：</p>
+<ul>
+<li>例如性别、年龄，如果已知性别能够比已知年龄，是更好的信息–即可以更大概率地判断出所属类别，那么就是更重要的特征。</li>
+<li>其中，更大概率地判断出所属类别 – 即降低经验条件熵。</li>
+<li>而经验条件熵的缺点是，对于取值比较多的特征，具有偏向性。其公式导致，取值多则经验条件熵值会小。可以考虑极端情况，当每个样本的该特征都取值不同，则经验条件熵为0。就有了C4.5，通过信息增益比来选择特征。</li>
+<li>CART的gini系数本质和熵类似。越小，熵越小，确定性越高，特征越重要。</li>
+</ul>
+<p>2、对于回归树：</p>
+<ul>
+<li>cart回归树是二叉，要么是要么否。</li>
+<li>回归树的切分选择不以熵入手考虑，而以均方误差作为判断标准。</li>
+<li>对于当前特征，找到这样的切分点 – 使得此切分下的两个叶子样本集中，均方误差和最小。误差为：y-所有样本y的均值。</li>
+<li>生成树过程和分类树一样。</li>
+</ul>
+<p>3、为什么不用相关性？<br>余弦相似度是特征向量在label向量方向上的投影长度。一定程度也是特征重要的体现。<br>但是，在树模型中，由于本质是条件概率模型，熵就更能反映出概率模型的好坏。</p>
+<p>Q3：过拟合处理？</p>
+<p>1、剪枝</p>
+<ul>
+<li>ID3,C4.5的剪枝是一个动态规划算法。对于某个非叶节点，计算剪去子树后的树的loss和不剪的loss。根据loss小的选择相应动作。而loss大小的比较，可以进行局部计算。因此可用动规实现。</li>
+<li>loss为，每棵树的所有叶子上样本的熵之和，加上惩罚项(叶子数量或者节点数量)。</li>
+<li>本质为，正则化的极大似然函数，来选择概率模型。</li>
+</ul>
+<p>2、CART剪枝</p>
+<ul>
+<li>区别于ID3&amp;C4.5，利用了递归思想，对所生成的树进行剪枝。</li>
+<li>对于某个中间节点，找到进行剪枝动作的阈值–a的大小，a大于阈值则剪枝。即对于每一个中间节点，都有这样的阈值thre所决定的区间[thre,正无穷），剪枝后的树优于生成树。</li>
+<li>对于所有的最优字数，交叉验证得到最终的最优树，并得到响应的a的thre。</li>
+</ul>
+<p>Q4：</p>
+
+      
+
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>thanks for tips<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/img/alipay.jpg">
+                      <span class="reward-type">支付宝</span>
+                    </div>
+                    
+                    
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/img/wechatpay.jpg">
+                      <span class="reward-type">微信</span>
+                    </div>
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
+        </div>
+      
+    </div>
+    <div class="article-info article-info-index">
       
       
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2021" class="archive-year">2021</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2021/01/31/dubbo-spi/" class="archive-article-date">
-  	<time datetime="2021-01-31T14:11:31.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-01-31</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/01/31/dubbo-spi/">dubbo-spi</a>
-    </h1>
-  
-
-        <div class="article-info info-on-right">
-          
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">dubbo</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">ml</a>
         		</li>
       		
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2021/01/31/redis/" class="archive-article-date">
-  	<time datetime="2021-01-31T04:51:48.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-01-31</time>
-</a>
+<nav id="article-nav">
+  
+    <a href="/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          学习模型的模式
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/02/17/%E9%93%B6%E8%A1%8C%E6%8B%A8%E5%A4%87/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">银行拨备</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
+        
+        
+    </div>
+</aside>
+
+
+
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/01/31/redis/">redis</a>
-    </h1>
+  
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">redis</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2021/01/31/LSTM/" class="archive-article-date">
-  	<time datetime="2021-01-31T04:03:58.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-01-31</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/01/31/LSTM/">LSTM</a>
-    </h1>
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">dl</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
   
 
-    
+  
 
 
           </div>
@@ -301,8 +403,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,

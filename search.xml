@@ -303,11 +303,11 @@
     <url>/2021/01/31/dubbo-spi/</url>
     <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
 <p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<a id="more"></a>
+
 <p><strong>dubbo spi</strong></p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
 <p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<a id="more"></a>
-
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
 <p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
 <p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
@@ -327,10 +327,10 @@
     <title>redis</title>
     <url>/2021/01/31/redis/</url>
     <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+<a id="more"></a>
 <p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
 <p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
 <p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
-<a id="more"></a>
 <p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
 <p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
 <p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
@@ -357,10 +357,64 @@
       </tags>
   </entry>
   <entry>
+    <title>决策树</title>
+    <url>/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/</url>
+    <content><![CDATA[<p>让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。</p>
+<p>Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？</p>
+<ul>
+<li>分析这棵树需要满足的基本性质<br>互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。</li>
+</ul>
+<a id="more"></a>
+
+<ul>
+<li><p>生成这棵树的过程<br>1、要得到中间节点(特征)。分类能力越强的特征，越靠近根。<br>2、要找到当前特征的切分点，而进行分叉。<br>即涉及到特征选择(特征间重要性比较以及当前特征的切分点)。<br>而构建的过程，则是递归地选择特征的过程。<br>直到，没有特征可选、或者样本点已经完全覆盖(特征选择的标准达到阈值，不再分叉)。</p>
+</li>
+<li><p>分析回归树<br>1、回归树对特征选择和切分点选择的标准，肯定是区别于分类树的。<br>2、回归树的y如何生成？<br>分类树的label来自于多数投票。回归树则来自于，落入叶子的样本的均值。</p>
+</li>
+</ul>
+<p>综上，<br>1、特征选择只在当前考虑选择最优，属于贪心策略，为局部最优。<br>2、本质上，是将样本空间进行直线(线性棱的空间体)切割。是概率中的条件概率。多个特征规则组合的条件下，样本所属类别的判定。<br>3、由于1，生成的树易产生过拟合。<br>4、回归树的回归结果，相比于lr等回归预测模型，结果数量是少的。</p>
+<p>Q2：如何进行特征选择？</p>
+<p>1、对于分类树：</p>
+<ul>
+<li>例如性别、年龄，如果已知性别能够比已知年龄，是更好的信息–即可以更大概率地判断出所属类别，那么就是更重要的特征。</li>
+<li>其中，更大概率地判断出所属类别 – 即降低经验条件熵。</li>
+<li>而经验条件熵的缺点是，对于取值比较多的特征，具有偏向性。其公式导致，取值多则经验条件熵值会小。可以考虑极端情况，当每个样本的该特征都取值不同，则经验条件熵为0。就有了C4.5，通过信息增益比来选择特征。</li>
+<li>CART的gini系数本质和熵类似。越小，熵越小，确定性越高，特征越重要。</li>
+</ul>
+<p>2、对于回归树：</p>
+<ul>
+<li>cart回归树是二叉，要么是要么否。</li>
+<li>回归树的切分选择不以熵入手考虑，而以均方误差作为判断标准。</li>
+<li>对于当前特征，找到这样的切分点 – 使得此切分下的两个叶子样本集中，均方误差和最小。误差为：y-所有样本y的均值。</li>
+<li>生成树过程和分类树一样。</li>
+</ul>
+<p>3、为什么不用相关性？<br>余弦相似度是特征向量在label向量方向上的投影长度。一定程度也是特征重要的体现。<br>但是，在树模型中，由于本质是条件概率模型，熵就更能反映出概率模型的好坏。</p>
+<p>Q3：过拟合处理？</p>
+<p>1、剪枝</p>
+<ul>
+<li>ID3,C4.5的剪枝是一个动态规划算法。对于某个非叶节点，计算剪去子树后的树的loss和不剪的loss。根据loss小的选择相应动作。而loss大小的比较，可以进行局部计算。因此可用动规实现。</li>
+<li>loss为，每棵树的所有叶子上样本的熵之和，加上惩罚项(叶子数量或者节点数量)。</li>
+<li>本质为，正则化的极大似然函数，来选择概率模型。</li>
+</ul>
+<p>2、CART剪枝</p>
+<ul>
+<li>区别于ID3&amp;C4.5，利用了递归思想，对所生成的树进行剪枝。</li>
+<li>对于某个中间节点，找到进行剪枝动作的阈值–a的大小，a大于阈值则剪枝。即对于每一个中间节点，都有这样的阈值thre所决定的区间[thre,正无穷），剪枝后的树优于生成树。</li>
+<li>对于所有的最优字数，交叉验证得到最终的最优树，并得到响应的a的thre。</li>
+</ul>
+<p>Q4：</p>
+]]></content>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>分布式事务</title>
     <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/</url>
     <content><![CDATA[<p><strong>摘要</strong></p>
 <p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务<br>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
+<a id="more"></a>
+
 <h2 id="1、事务、分布式事务及场景"><a href="#1、事务、分布式事务及场景" class="headerlink" title="1、事务、分布式事务及场景"></a>1、事务、分布式事务及场景</h2><ul>
 <li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
 </li>
@@ -373,14 +427,15 @@
 </li>
 <li><p>场景：</p>
 <ul>
-<li>微服务架构中，即需要跨JVM进程。无论是多个服务访问一个实例，还是多个服务多个实例，本地事务都无法解决。</li>
-<li>单个系统访问多个数据库实例，就需要进行不同的数据库连接</li>
+<li><p>微服务架构中，即需要跨JVM进程。无论是多个服务访问一个实例，还是多个服务多个实例，本地事务都无法解决。</p>
+</li>
+<li><p>单个系统访问多个数据库实例，就需要进行不同的数据库连接</p>
+<br>
+
+</li>
 </ul>
 </li>
 </ul>
-<a id="more"></a>
-<br>
-
 <h2 id="2、CAP"><a href="#2、CAP" class="headerlink" title="2、CAP"></a>2、CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
 <p>一致性、可用性、分区容错性</p>
 <ul>
@@ -617,6 +672,20 @@
       </tags>
   </entry>
   <entry>
+    <title>学习模型的模式</title>
+    <url>/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<p>伪代码的算法流程 + 数学逻辑 –&gt;才能真的掌握住这个模型的本质。<br>而其他都是表象。所以数学肯定是要啃的。矩阵论和概率统计，微积分，必然是需要的。<br>更多的应用和实践，会深化对于模型的认知。</p>
+<a id="more"></a>
+
+<p>基本要求：<br>1、历史背景及演进：解决什么问题而生<br>2、伪代码表述流程<br>3、前提、局限、适用场景<br>4、演化和可优化之处、优化思路<br>5、和其他模型对比</p>
+<p>进阶要求：<br>1、根据伪代码思路，看具体实现<br>2、为什么会有这样的前提和局限–&gt;数学证明：唯一性证明、误差上线证明、loss函数证明、模型参数的迭代公式证明</p>
+<p>炉火纯青：<br>1、当我问你某个公式，你能够给出，并给出推导过程<br>2、和其他模型相似问题下的解决方案(公式)对比</p>
+]]></content>
+      <tags>
+        <tag>方法论</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>梯度</title>
     <url>/2021/02/04/%E6%A2%AF%E5%BA%A6/</url>
     <content><![CDATA[<h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
@@ -638,9 +707,9 @@
 </li>
 <li><p>梯度爆炸</p>
 <ol>
-<li>原因：1）隐藏层的层数过多；2）权重的初始化值过大</li>
+<li>原因：1）隐藏层的层数过多；2）<strong>权重的初始化值过大</strong></li>
 <li>在深度网络或循环神经网络（Recurrent Neural Network, RNN）等网络结构中，梯度可在网络更新的过程中不断累积，变成非常大的梯度，导致网络权重值的大幅更新，使得网络不稳定；在极端情况下，权重值甚至会溢出，变为$NaN$值，再也无法更新。</li>
-<li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）LSTM的结构设计也可以改善RNN中的梯度消失问题。（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
+<li>解决：1）用ReLU、Leaky-ReLU、P-ReLU、R-ReLU、Maxout等替代sigmoid函数。（2）用Batch Normalization。（3）<strong>LSTM的结构设计也可以改善RNN中的梯度消失问题。</strong>（4）进行梯度裁剪(clip), 如果梯度值大于某个阈值，我们就进行梯度裁剪，限制在一个范围内.（5）使用正则化，这样会限制参数 的大小，从而防止梯度爆炸。（6）设计网络层数更少的网络进行模型训练</li>
 </ol>
 </li>
 </ul>
@@ -796,11 +865,11 @@
     <url>/2021/02/17/%E9%93%B6%E8%A1%8C%E6%8B%A8%E5%A4%87/</url>
     <content><![CDATA[<p><br> <br></p>
 <p>拨备有一个重要的功能，就是“以丰补歉”，以平滑利润。</p>
+<a id="more"></a>
+
 <blockquote>
 <p>为什么要平滑利润？<br><br>如果银行全部股东一直没有变动，那么其实要不要以丰补歉都是一样的，反正赚和亏都是这些股东的。但是，因为股东每个交易日有进有出，所以得考虑利润跨期平滑问题。<br><br>假设有一家银行，过去每年盈利100元，非常稳定地持续了5年以上。突然有一年，发生了一笔不良资产，当年会亏损200元。如果这家银行没有以丰补歉，而是前5年把利润全分红了，然后有股票换手，有新股东进来，然后到了第6年亏损200元，那么新股东怎么都不会开心的。他们会觉得，前面的股东赚走了贷款的利息，而这笔贷款发生违约时，亏损让自己承担，这太不公平了。<br><br>这跟信用债交易有点类似。有些信用债在违约发生前发生交易，新买入的投资者成了接盘侠……</p>
 </blockquote>
-<a id="more"></a>
-
 <p>如果按照要求计提拨备，也很做到平滑利润（不良太多，把超额拨备消耗完毕之后还不够）。那么，还有一个方法，就是在不良贷款的确认上动手脚。因为不良资产和非不良资产之间，并没有清晰、客观的边界，边界划分在哪，是有一定的主观性的。</p>
 <p>基于拨备覆盖率指标，我们可以有这样一个假设（确实存在例外的情况）：<code>银行不太可能一边宽松认定不良（甚至隐藏不良），一边又计提大量超额拨备，保持很高的拨备覆盖率。</code></p>
 <blockquote>
