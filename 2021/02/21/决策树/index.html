@@ -5,18 +5,18 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
-  <link rel="dns-prefetch" href="http://example.com">
+  <link rel="dns-prefetch" href="http://satyrswang.github.io.com">
   <title>决策树 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。 Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？  分析这棵树需要满足的基本性质互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。">
+  <meta name="description" content="让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。    基本问题Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？  分析这棵树需要满足的基本性质互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="决策树">
-<meta property="og:url" content="http://example.com/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/index.html">
+<meta property="og:url" content="http://satyrswang.github.io.com/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。 Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？  分析这棵树需要满足的基本性质互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。">
+<meta property="og:description" content="让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。    基本问题Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？  分析这棵树需要满足的基本性质互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-02-21T09:25:02.000Z">
-<meta property="article:modified_time" content="2021-02-21T10:56:06.038Z">
+<meta property="article:modified_time" content="2021-02-21T12:23:56.241Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="ml">
 <meta name="twitter:card" content="summary">
@@ -64,6 +64,8 @@
 	        
 				<li><a target="_blank" rel="noopener" href="https://leetcode-cn.com/u/satyrs/">leetcode</a></li>
 	        
+				<li><a href="/categories">categories</a></li>
+	        
 			</ul>
 		</nav>
 		<nav class="header-smart-menu">
@@ -82,7 +84,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">18.8k</span>
+    总字数 <span class="post-count">19.3k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -121,6 +123,8 @@
 			
 				
 			
+				
+			
 			
 			
 			<nav class="header-nav">
@@ -134,12 +138,14 @@
 			</nav>
 
 			<nav class="header-menu js-header-menu">
-				<ul style="width: 50%">
+				<ul style="width: 70%">
 				
 				
-					<li style="width: 50%"><a href="/">home</a></li>
+					<li style="width: 33.333333333333336%"><a href="/">home</a></li>
 		        
-					<li style="width: 50%"><a target="_blank" rel="noopener" href="https://leetcode-cn.com/u/satyrs/">leetcode</a></li>
+					<li style="width: 33.333333333333336%"><a target="_blank" rel="noopener" href="https://leetcode-cn.com/u/satyrs/">leetcode</a></li>
+		        
+					<li style="width: 33.333333333333336%"><a href="/categories">categories</a></li>
 		        
 				</ul>
 			</nav>
@@ -174,12 +180,16 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：1.1k字 | 预计阅读时长：3分钟
+    字数：1.6k字 | 预计阅读时长：5分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。</p>
-<p>Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？</p>
+        <br>
+让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。
+<br>
+<br>
+
+<h4 id="基本问题"><a href="#基本问题" class="headerlink" title="基本问题"></a>基本问题</h4><p>Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？</p>
 <ul>
 <li>分析这棵树需要满足的基本性质<br>互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。</li>
 </ul>
@@ -193,38 +203,55 @@
 </ul>
 <p>综上，<br>1、特征选择只在当前考虑选择最优，属于贪心策略，为局部最优。<br>2、本质上，是将样本空间进行直线(线性棱的空间体)切割。是概率中的条件概率。多个特征规则组合的条件下，样本所属类别的判定。<br>3、由于1，生成的树易产生过拟合。<br>4、回归树的回归结果，相比于lr等回归预测模型，结果数量是少的。</p>
 <p>Q2：如何进行特征选择？</p>
-<p>1、对于分类树：</p>
 <ul>
-<li>例如性别、年龄，如果已知性别能够比已知年龄，是更好的信息–即可以更大概率地判断出所属类别，那么就是更重要的特征。</li>
-<li>其中，更大概率地判断出所属类别 – 即降低经验条件熵。</li>
-<li>而经验条件熵的缺点是，对于取值比较多的特征，具有偏向性。其公式导致，取值多则经验条件熵值会小。可以考虑极端情况，当每个样本的该特征都取值不同，则经验条件熵为0。就有了C4.5，通过信息增益比来选择特征。</li>
-<li>CART的gini系数本质和熵类似。越小，熵越小，确定性越高，特征越重要。</li>
+<li><p>对于分类树：<br>1、例如性别、年龄，如果已知性别能够比已知年龄，是更好的信息–即可以更大概率地判断出所属类别，那么就是更重要的特征。<br>2、其中，更大概率地判断出所属类别 – 即降低经验条件熵。<br>3、而经验条件熵的缺点是，对于取值比较多的特征，具有偏向性。其公式导致，取值多则经验条件熵值会小。可以考虑极端情况，当每个样本的该特征都取值不同，则经验条件熵为0。就有了C4.5，通过信息增益比来选择特征。<br>4、CART的gini系数本质和熵类似。越小，熵越小，确定性越高，特征越重要。</p>
+</li>
+<li><p>对于回归树：<br>1、cart回归树是二叉，要么是要么否。<br>2、回归树的切分选择不以熵入手考虑，而以均方误差作为判断标准。<br>3、对于当前特征，找到这样的切分点 – 使得此切分下的两个叶子样本集中，均方误差和最小。误差为：y-所有样本y的均值。<br>4、生成树过程和分类树一样。</p>
+</li>
+<li><p>为什么不用相关性？<br>余弦相似度是特征向量在label向量方向上的投影长度。一定程度也是特征重要的体现。<br>但是，在树模型中，由于本质是条件概率模型，熵就更能反映出概率模型的好坏。</p>
+</li>
 </ul>
-<p>2、对于回归树：</p>
-<ul>
-<li>cart回归树是二叉，要么是要么否。</li>
-<li>回归树的切分选择不以熵入手考虑，而以均方误差作为判断标准。</li>
-<li>对于当前特征，找到这样的切分点 – 使得此切分下的两个叶子样本集中，均方误差和最小。误差为：y-所有样本y的均值。</li>
-<li>生成树过程和分类树一样。</li>
-</ul>
-<p>3、为什么不用相关性？<br>余弦相似度是特征向量在label向量方向上的投影长度。一定程度也是特征重要的体现。<br>但是，在树模型中，由于本质是条件概率模型，熵就更能反映出概率模型的好坏。</p>
 <p>Q3：过拟合处理？</p>
-<p>1、剪枝</p>
 <ul>
-<li>ID3,C4.5的剪枝是一个动态规划算法。对于某个非叶节点，计算剪去子树后的树的loss和不剪的loss。根据loss小的选择相应动作。而loss大小的比较，可以进行局部计算。因此可用动规实现。</li>
-<li>loss为，每棵树的所有叶子上样本的熵之和，加上惩罚项(叶子数量或者节点数量)。</li>
-<li>本质为，正则化的极大似然函数，来选择概率模型。</li>
+<li><p>剪枝<br>1、ID3,C4.5的剪枝是一个动态规划算法。对于某个非叶节点，计算剪去子树后的树的loss和不剪的loss。根据loss小的选择相应动作。而loss大小的比较，可以进行局部计算。因此可用动规实现。<br>2、loss为，每棵树的所有叶子上样本的熵之和，加上惩罚项(叶子数量或者节点数量)。<br>3、本质为，正则化的极大似然函数，来选择概率模型。</p>
+</li>
+<li><p>CART剪枝<br>1、区别于ID3&amp;C4.5，利用了递归思想，对所生成的树进行剪枝。<br>2、对于某个中间节点，找到进行剪枝动作的阈值–a的大小，a大于阈值则剪枝。即对于每一个中间节点，都有这样的阈值thre所决定的区间[thre,正无穷），剪枝后的树优于生成树。<br>3、对于所有的最优字数，交叉验证得到最终的最优树，并得到响应的a的thre。</p>
+</li>
 </ul>
-<p>2、CART剪枝</p>
-<ul>
-<li>区别于ID3&amp;C4.5，利用了递归思想，对所生成的树进行剪枝。</li>
-<li>对于某个中间节点，找到进行剪枝动作的阈值–a的大小，a大于阈值则剪枝。即对于每一个中间节点，都有这样的阈值thre所决定的区间[thre,正无穷），剪枝后的树优于生成树。</li>
-<li>对于所有的最优字数，交叉验证得到最终的最优树，并得到响应的a的thre。</li>
-</ul>
-<p>Q4：</p>
+<br>
+
+
+<h4 id="扩展问题"><a href="#扩展问题" class="headerlink" title="扩展问题"></a>扩展问题</h4><p>Q4：信息增益比的缺点？<br>偏好取值少的特征。<br>C4.5不是直接选择增益比最大的特征，而是之前先把信息增益低于均值的属性剔除，然后在剩下的特征中选择而信息增益比最大的。得到兼顾。</p>
+<p>Q5：预剪枝？<br>1、对当前节点在划分时，进行估计，如果不能够提升泛化能力则不进行划分。<br>2、本质是基于贪心，对当前节点进行判断是否划分。<br>3、坏处：当前虽然不能提升泛化能力，但可能划分后子树能够提升泛化能力。导致模型欠拟合。</p>
+<p>Q6：对比LR和决策树？<br>1、y的结果上，决策树是固定的几个值。<br>2、LR比决策树慢，时间复杂度高。<br>3、LR无法处理缺失值，需要赋值。并且对极端值更敏感<br>4、LR对线性关系、全局拟合较好。决策树则是局部最优、局部数据探查更细致，不能更好地对多个特征同时考量。</p>
+<p>Q7：CART做了哪些简化？<br>1、log函数的计算量大，而gini有图形可知，是对熵模型的很好的近似。<br>2、CART是二叉树，对每个特征进行二分而非多分，减少了特征选择时的计算。</p>
+<p>Q8：测试集上缺失值的处理？<br>1、赋平均值或出现频次最高的值<br>2、走特征的常用分支<br>3、特征值专门处理的分支<br>C4.5的方式是，探查所有的分支，然后得到每个类别的概率，取最大的赋给该样本。</p>
+<p>Q9：CART对于离散特征处理的不同之处？<br>ID3&amp;C4.5都是多叉，特征只出现在一个中间节点；CART是对离散特征不断地二分。</p>
+<p>其他–都可以在上述问题中找到答案：<br>如何找到切分点？</p>
 
       
 
+       <!-- 添加版权声明 -->
+    
+
+  <div class="declare">
+    <strong>本文作者：</strong>
+    
+      yuqing wang
+    
+    <br>
+    <strong>本文链接：</strong>
+    <a href="http://satyrswang.github.io.com/2021/02/21/决策树/" title="决策树" target="_blank">http://satyrswang.github.io.com/2021/02/21/决策树/</a>
+    <br>
+    <strong>版权声明：</strong>
+    本作品采用
+    <a rel="license noopener" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>
+    进行许可。转载请注明出处！
+    
+  </div>
+
+      <!-- 添加版权声明 -->
+      
       
         <div class="page-reward">
           <a href="javascript:;" class="page-reward-btn tooltip-top">
@@ -273,6 +300,17 @@
 	</div>
 
       
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/ml//" class="article-tag-list-link color3">ml</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
 
       
 
@@ -322,7 +360,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://satyrswang.github.io.com/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -366,6 +404,19 @@
             </div>
         </div>
         
+        
+        <div class="toc-container tooltip-left">
+            <i class="icon-font icon-category"></i>
+            <div class="tooltip tooltip-east">
+                <span class="tooltip-item">
+                </span>
+                <span class="tooltip-content">
+                    <div class="toc-article">
+                    <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E9%97%AE%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">基本问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">扩展问题</span></a></li></ol>
+                    </div>
+                </span>
+            </div>
+        </div>
         
     </div>
 </aside>
@@ -501,7 +552,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">商业银行,货银</a>
+                <a href="javascript:void(0)" class="js-tag color5">货币政策</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
               </li>
             
             <div class="clearfix"></div>
