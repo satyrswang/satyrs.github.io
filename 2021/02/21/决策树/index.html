@@ -16,7 +16,7 @@
 <meta property="og:description" content="让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。    基本问题Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？  分析这棵树需要满足的基本性质互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-02-21T09:25:02.000Z">
-<meta property="article:modified_time" content="2021-02-21T12:23:56.241Z">
+<meta property="article:modified_time" content="2021-02-21T12:49:17.889Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="ml">
 <meta name="twitter:card" content="summary">
@@ -84,7 +84,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">19.3k</span>
+    总字数 <span class="post-count">25.8k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -180,7 +180,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：1.6k字 | 预计阅读时长：5分钟
+    字数：2.1k字 | 预计阅读时长：7分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -226,7 +226,8 @@
 <p>Q6：对比LR和决策树？<br>1、y的结果上，决策树是固定的几个值。<br>2、LR比决策树慢，时间复杂度高。<br>3、LR无法处理缺失值，需要赋值。并且对极端值更敏感<br>4、LR对线性关系、全局拟合较好。决策树则是局部最优、局部数据探查更细致，不能更好地对多个特征同时考量。</p>
 <p>Q7：CART做了哪些简化？<br>1、log函数的计算量大，而gini有图形可知，是对熵模型的很好的近似。<br>2、CART是二叉树，对每个特征进行二分而非多分，减少了特征选择时的计算。</p>
 <p>Q8：测试集上缺失值的处理？<br>1、赋平均值或出现频次最高的值<br>2、走特征的常用分支<br>3、特征值专门处理的分支<br>C4.5的方式是，探查所有的分支，然后得到每个类别的概率，取最大的赋给该样本。</p>
-<p>Q9：CART对于离散特征处理的不同之处？<br>ID3&amp;C4.5都是多叉，特征只出现在一个中间节点；CART是对离散特征不断地二分。</p>
+<p>Q9：CART对于离散特征处理、连续特征处理的不同之处？<br>1、ID3&amp;C4.5都是多叉，特征只出现在一个中间节点；CART是对离散特征不断地二分。<br>2、连续特征：遍历每个特征，对某特征找到最小化均方误差(loss)的thre点，该点作为该特征的切分点。在所有特征中找到最小的loss，得到最优的(特征，特征切分点)作为中间节点。二分后，对每个孩子继续进行最优的(特征，特征切分点)的查找。同离散特征一样，连续特征可以重复出现，作为中间节点。直到达到停止条件。<br>3、CART连续特征：换种表述：对于任意划分特征A，对应的任意划分点s两边划分成的数据集D1和D2，求出使D1和D2各自集合的均方差最小，同时D1和D2的均方差之和最小所对应的特征和特征值划分点。<br>4、ID3不支持连续特征划分。C4.5的做法是，将连续值进行排序，取两个值的中间值作为划分点，然后算信息增益比，(连续和离散的)最大的信息增益比为该中间节点。当连续值较多时，计算量的大。并且和CART一样，该连续特征同样可以继续作为中间节点，而非和离线一样一次性地生成多个孩子分叉。</p>
+<p>Q10：缺点或者优化？<br>1、分类决策不应该是由某一个特征决定的，而是应该由一组特征决定的。这样决策得到的决策树更加准确。这个决策树叫做多变量决策树(multi-variate decision tree)。在选择最优特征的时候，多变量决策树不是选择某一个最优特征，而是选择最优的一个特征线性组合来做决策。这个算法的代表是OC1。<br>2、如果样本发生一点点的改动，就会导致树结构的剧烈改变。这个可以通过集成学习里面的随机森林之类的方法解决。</p>
 <p>其他–都可以在上述问题中找到答案：<br>如何找到切分点？</p>
 
       
@@ -544,6 +545,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">股市理论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">方法论</a>
               </li>
              
@@ -552,11 +557,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
+                <a href="javascript:void(0)" class="js-tag color5">货币政策</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">货币政策</a>
+                <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
               </li>
             
             <div class="clearfix"></div>
