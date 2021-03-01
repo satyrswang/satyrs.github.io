@@ -305,35 +305,6 @@
       </tags>
   </entry>
   <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<a id="more"></a>
-
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
-<p>todo</p>
-]]></content>
-      <categories>
-        <category>dubbo</category>
-      </categories>
-      <tags>
-        <tag>dubbo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>redis</title>
     <url>/2021/01/31/redis/</url>
     <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
@@ -603,6 +574,35 @@
       </categories>
       <tags>
         <tag>分布式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<a id="more"></a>
+
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+<p>todo</p>
+]]></content>
+      <categories>
+        <category>dubbo</category>
+      </categories>
+      <tags>
+        <tag>dubbo</tag>
       </tags>
   </entry>
   <entry>
@@ -1038,6 +1038,8 @@
 <h4 id="大牛股"><a href="#大牛股" class="headerlink" title="大牛股"></a>大牛股</h4><ul>
 <li>现在没涨，一年内会涨；<code>现在涨了，预计继续上涨（至少在未来3个月内）</code>；曾经大涨，但现在已经停止上涨或者开始下跌或者已经大跌，且在短期内股价不存在大涨（创新高）的可能性。</li>
 <li>“买大牛股，抓主升浪”，这两句话是不可分的。</li>
+<li>高确定性的操作与盈利模式</li>
+<li>只关注那9～10类强势股</li>
 <li>股票投资要记住两句话：第一句话是不要赔钱，第二句话是记住第一句。<a id="more"></a></li>
 <li>绝大多数赔钱者，其赔钱的主要原因是缘于<code>选股问题——选错了股票，或者选中了非牛股，甚至是大熊股</code>，而操作技巧方面的不当只占赔钱的次要因素。</li>
 <li>短期暴涨型主升浪：<code>在短期内股价涨幅达到80%～100%的上涨波段，或者是股价涨幅能够在一年内至少翻倍的股票</code>。<br>
@@ -1088,6 +1090,7 @@
 <h4 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h4><p>大体说的，也是已知的，但是给了个分析框架。<br>基本面向好，为什么不能反映在股价。为什么8个月涨了4倍多。涨停的逻辑在哪。等问题在框架内还是有一定程度解释力。</p>
 <p>框架基本操作思路是牛股的大波段，选股思路为低估值+成长+题材。<br>并由力学中四种力，四种力的不同合力模式构成物体运动。<br>股市中不同合力模式构成股价上涨，主要三方面估值修复+价值成长+投机价值。<br>转而对原动力进行估值法定量衡量。<br>绝对估值法包含：PEG、隐蔽资产、要约收购。<br>比价效应带来领涨、补涨、跟涨虚高。而预期无参照物，不同于比价，即一切处于变化之中。<br>相对估值法包含：基本面预期、市场面预期(热点)、技术面预期、大盘面预期。</p>
 <p>再统一，即为投资价值和投机价值。</p>
+<p>补充：<br>基本面的信息主要包括政策性信息、行业性信息、经营信息（产品价格信息、重大合同信息、新项目与新产品信息）、财务信息（营收信息、净利润增减信息）等。<br>技术面信息主要包括价格图表、技术指标与交易信息，其中，价格图表是技术分析的核心要件，不同的交易者关注不同的图表；技术指标更是五花八门，多达数百种，只能是各取所需了；而交易信息主要是各种交易数据的排行榜，包括涨幅榜、换手率榜、成交量榜、量比榜、成交金额榜等。</p>
 ]]></content>
       <categories>
         <category>股市理论</category>
