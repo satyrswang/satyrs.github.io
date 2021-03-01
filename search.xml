@@ -96,8 +96,7 @@
 </blockquote>
 </li>
 </ul>
-<ol>
-<li><p>什么是forget gate？</p>
+<p>1、 什么是forget gate？</p>
 <ul>
 <li>其实就是将x h线性变换后做一个sigmoid， 如果结果是0，代表forget  c_out(t-1)。</li>
 <li>这个例子非常好：<blockquote>
@@ -105,19 +104,15 @@
 </blockquote>
 </li>
 </ul>
-</li>
-<li><p>i 和 c_in?</p>
+<p>2、 i 和 c_in?</p>
 <ul>
 <li>两步，第一步i，i = 1相当于是确定哪些值我们需要update或者说需要更新输入的多大成分，想象为将c_in scale了i倍；而tanh相当于为需要更新的值确定了更新成什么c_in。</li>
 <li>相乘，则确定了新的候选值，再与f相加，我们便确定了新的状态。</li>
 </ul>
-</li>
-</ol>
 <blockquote>
 <p>we’d want to add the gender of the new subject to the cell state, to replace the old one we’re forgetting.</p>
 </blockquote>
-<ol start="3">
-<li><p>那么输出什么？</p>
+<p>3、 那么输出什么？</p>
 <ul>
 <li>首先我们需要确定哪些更新后的状态需要输出，用sigmoid，得到的o就是我们想要输出的部分。 </li>
 <li> 然后 基于更新好的状态c_out(t)，将其tanh控制在[-1,1]之间。乘以o，输出我们要输出的。<blockquote>
@@ -125,12 +120,8 @@
 </blockquote>
 </li>
 </ul>
-</li>
-<li><p>各类变种<br><a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a><br><a href="http://arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a><br><a href="http://arxiv.org/pdf/1508.03790v2.pdf">Yao, et al. (2015)</a><br><a href="http://arxiv.org/pdf/1402.3511v1.pdf">Koutnik, et al. (2014)</a></p>
-</li>
-<li><p> 比对各类变种的结论<br><a href="http://arxiv.org/pdf/1503.04069.pdf">Greff, et al. (2015)</a><br><a href="http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a></p>
-</li>
-</ol>
+<p>4、 各类变种<br> <a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a><br><a href="http://arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a><br><a href="http://arxiv.org/pdf/1508.03790v2.pdf">Yao, et al. (2015)</a><br><a href="http://arxiv.org/pdf/1402.3511v1.pdf">Koutnik, et al. (2014)</a></p>
+<p>5、 比对各类变种的结论<br><a href="http://arxiv.org/pdf/1503.04069.pdf">Greff, et al. (2015)</a><br><a href="http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a></p>
 <p>欢迎补充材料。<br>reference:<br><a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">http://colah.github.io/posts/2015-08-Understanding-LSTMs/</a></p>
 ]]></content>
       <categories>
@@ -138,6 +129,233 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<a id="more"></a>
+
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+<p>todo</p>
+]]></content>
+      <categories>
+        <category>dubbo</category>
+      </categories>
+      <tags>
+        <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>redis</title>
+    <url>/2021/01/31/redis/</url>
+    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+<a id="more"></a>
+<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
+<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
+<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
+<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
+<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
+<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
+<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
+<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
+<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
+<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
+<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
+<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
+<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
+<p>14、cluster<br>Cluster bus通信、gossip协议</p>
+<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
+<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
+<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
+<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
+<p>19、穿透<br>没查到则写一个空值到redis</p>
+<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
+<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
+<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
+<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
+]]></content>
+      <categories>
+        <category>redis</category>
+      </categories>
+      <tags>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>决策树</title>
+    <url>/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/</url>
+    <content><![CDATA[<br>
+让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。
+<br>
+<br>
+
+<h4 id="基本问题"><a href="#基本问题" class="headerlink" title="基本问题"></a>基本问题</h4><p>Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？</p>
+<ul>
+<li>分析这棵树需要满足的基本性质<br>互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。</li>
+</ul>
+<a id="more"></a>
+
+<ul>
+<li><p>生成这棵树的过程<br>1、要得到中间节点(特征)。分类能力越强的特征，越靠近根。<br>2、要找到当前特征的切分点，而进行分叉。<br>即涉及到特征选择(特征间重要性比较以及当前特征的切分点)。<br>而构建的过程，则是递归地选择特征的过程。<br>直到，没有特征可选、或者样本点已经完全覆盖(特征选择的标准达到阈值，不再分叉)。</p>
+</li>
+<li><p>分析回归树<br>1、回归树对特征选择和切分点选择的标准，肯定是区别于分类树的。<br>2、回归树的y如何生成？<br>分类树的label来自于多数投票。回归树则来自于，落入叶子的样本的均值。</p>
+</li>
+</ul>
+<p>综上，<br>1、特征选择只在当前考虑选择最优，属于贪心策略，为局部最优。<br>2、本质上，是将样本空间进行直线(线性棱的空间体)切割。是概率中的条件概率。多个特征规则组合的条件下，样本所属类别的判定。<br>3、由于1，生成的树易产生过拟合。<br>4、回归树的回归结果，相比于lr等回归预测模型，结果数量是少的。</p>
+<p>Q2：如何进行特征选择？</p>
+<ul>
+<li><p>对于分类树：<br>1、例如性别、年龄，如果已知性别能够比已知年龄，是更好的信息–即可以更大概率地判断出所属类别，那么就是更重要的特征。<br>2、其中，更大概率地判断出所属类别 – 即降低经验条件熵。<br>3、而经验条件熵的缺点是，对于取值比较多的特征，具有偏向性。其公式导致，取值多则经验条件熵值会小。可以考虑极端情况，当每个样本的该特征都取值不同，则经验条件熵为0。就有了C4.5，通过信息增益比来选择特征。<br>4、CART的gini系数本质和熵类似。越小，熵越小，确定性越高，特征越重要。</p>
+</li>
+<li><p>对于回归树：<br>1、cart回归树是二叉，要么是要么否。<br>2、回归树的切分选择不以熵入手考虑，而以均方误差作为判断标准。<br>3、对于当前特征，找到这样的切分点 – 使得此切分下的两个叶子样本集中，均方误差和最小。误差为：y-所有样本y的均值。<br>4、生成树过程和分类树一样。</p>
+</li>
+<li><p>为什么不用相关性？<br>余弦相似度是特征向量在label向量方向上的投影长度。一定程度也是特征重要的体现。<br>但是，在树模型中，由于本质是条件概率模型，熵就更能反映出概率模型的好坏。</p>
+</li>
+</ul>
+<p>Q3：过拟合处理？</p>
+<ul>
+<li><p>剪枝<br>1、ID3,C4.5的剪枝是一个动态规划算法。对于某个非叶节点，计算剪去子树后的树的loss和不剪的loss。根据loss小的选择相应动作。而loss大小的比较，可以进行局部计算。因此可用动规实现。<br>2、loss为，每棵树的所有叶子上样本的熵之和，加上惩罚项(叶子数量或者节点数量)。<br>3、本质为，正则化的极大似然函数，来选择概率模型。</p>
+</li>
+<li><p>CART剪枝<br>1、区别于ID3&amp;C4.5，利用了递归思想，对所生成的树进行剪枝。<br>2、对于某个中间节点，找到进行剪枝动作的阈值–a的大小，a大于阈值则剪枝。即对于每一个中间节点，都有这样的阈值thre所决定的区间[thre,正无穷），剪枝后的树优于生成树。<br>3、对于所有的最优字数，交叉验证得到最终的最优树，并得到响应的a的thre。</p>
+</li>
+</ul>
+<br>
+
+
+<h4 id="扩展问题"><a href="#扩展问题" class="headerlink" title="扩展问题"></a>扩展问题</h4><p>Q4：信息增益比的缺点？<br>偏好取值少的特征。<br>C4.5不是直接选择增益比最大的特征，而是之前先把信息增益低于均值的属性剔除，然后在剩下的特征中选择而信息增益比最大的。得到兼顾。</p>
+<p>Q5：预剪枝？<br>1、对当前节点在划分时，进行估计，如果不能够提升泛化能力则不进行划分。<br>2、本质是基于贪心，对当前节点进行判断是否划分。<br>3、坏处：当前虽然不能提升泛化能力，但可能划分后子树能够提升泛化能力。导致模型欠拟合。</p>
+<p>Q6：对比LR和决策树？<br>1、y的结果上，决策树是固定的几个值。<br>2、LR比决策树慢，时间复杂度高。<br>3、LR无法处理缺失值，需要赋值。并且对极端值更敏感<br>4、LR对线性关系、全局拟合较好。决策树则是局部最优、局部数据探查更细致，不能更好地对多个特征同时考量。</p>
+<p>Q7：CART做了哪些简化？<br>1、log函数的计算量大，而gini有图形可知，是对熵模型的很好的近似。<br>2、CART是二叉树，对每个特征进行二分而非多分，减少了特征选择时的计算。</p>
+<p>Q8：测试集上缺失值的处理？<br>1、赋平均值或出现频次最高的值<br>2、走特征的常用分支<br>3、特征值专门处理的分支<br>C4.5的方式是，探查所有的分支，然后得到每个类别的概率，取最大的赋给该样本。</p>
+<p>Q9：CART对于离散特征处理、连续特征处理的不同之处？<br>1、ID3&amp;C4.5都是多叉，特征只出现在一个中间节点；CART是对离散特征不断地二分。<br>2、连续特征：遍历每个特征，对某特征找到最小化均方误差(loss)的thre点，该点作为该特征的切分点。在所有特征中找到最小的loss，得到最优的(特征，特征切分点)作为中间节点。二分后，对每个孩子继续进行最优的(特征，特征切分点)的查找。同离散特征一样，连续特征可以重复出现，作为中间节点。直到达到停止条件。<br>3、CART连续特征：换种表述：对于任意划分特征A，对应的任意划分点s两边划分成的数据集D1和D2，求出使D1和D2各自集合的均方差最小，同时D1和D2的均方差之和最小所对应的特征和特征值划分点。<br>4、ID3不支持连续特征划分。C4.5的做法是，将连续值进行排序，取两个值的中间值作为划分点，然后算信息增益比，(连续和离散的)最大的信息增益比为该中间节点。当连续值较多时，计算量的大。并且和CART一样，该连续特征同样可以继续作为中间节点，而非和离线一样一次性地生成多个孩子分叉。</p>
+<p>Q10：缺点或者优化？<br>1、分类决策不应该是由某一个特征决定的，而是应该由一组特征决定的。这样决策得到的决策树更加准确。这个决策树叫做多变量决策树(multi-variate decision tree)。在选择最优特征的时候，多变量决策树不是选择某一个最优特征，而是选择最优的一个特征线性组合来做决策。这个算法的代表是OC1。<br>2、如果样本发生一点点的改动，就会导致树结构的剧烈改变。这个可以通过集成学习里面的随机森林之类的方法解决。</p>
+<p>其他–都可以在上述问题中找到答案：<br>如何找到切分点？</p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习模型的模式</title>
+    <url>/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<p>伪代码的算法流程 + 数学逻辑 –&gt;才能真的掌握住这个模型的本质。<br>而其他都是表象。所以数学肯定是要啃的。矩阵论和概率统计，微积分，必然是需要的。<br>更多的应用和实践，会深化对于模型的认知。</p>
+<a id="more"></a>
+
+<p>基本要求：<br>1、历史背景及演进：解决什么问题而生<br>2、伪代码表述流程<br>3、前提、局限、适用场景<br>4、演化和可优化之处、优化思路<br>5、和其他模型对比</p>
+<p>进阶要求：<br>1、根据伪代码思路，看具体实现<br>2、为什么会有这样的前提和局限–&gt;数学证明：唯一性证明、误差上界证明、loss函数证明、模型参数的迭代公式证明</p>
+<p>炉火纯青：<br>1、当我问你某个公式，你能够给出，并给出推导过程<br>2、和其他模型相似问题下的解决方案(公式)对比</p>
+]]></content>
+      <categories>
+        <category>模型方法论</category>
+      </categories>
+      <tags>
+        <tag>方法论</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>分布式事务-下</title>
+    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/</url>
+    <content><![CDATA[<p><br> <br></p>
+<p><strong>摘要</strong></p>
+<p>1、可靠消息最终一致性，概念特点、问题、针对问题的方案(本地消息表、Rocketmq)<br>2、本地消息表流程图<br>3、Rocketmq流程、实战<br>4、最大努力通知，流程、</p>
+<h2 id="可靠消息最终一致性"><a href="#可靠消息最终一致性" class="headerlink" title="可靠消息最终一致性"></a>可靠消息最终一致性</h2><p>当事务发起方执行完成本地事务后并发出一条消息，事务参与方(消息消费者)一定能 够接收消息并处理事务成功，此方案强调的是只要消息发给事务参与方最终事务要达到一致。</p>
+<ul>
+<li>特点<ul>
+<li>适合执行周期长且实时性要求不高的场景</li>
+<li>引入消息机制后，同步的事务操作变为基于消 息执行的异步操作, 避免了分布式事务中的同步阻塞操作的影响，并实现了两个服务的解耦。</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+
+<ul>
+<li>网络通信的不确定性会导致分布式事务问题：</li>
+</ul>
+<ol>
+<li>事务发起方(消息生产方)将消息发给消息中间件</li>
+<li>事务参与方从消息中间件接收消息</li>
+</ol>
+<h3 id="可靠消息最终一致性的问题"><a href="#可靠消息最终一致性的问题" class="headerlink" title="可靠消息最终一致性的问题"></a>可靠消息最终一致性的问题</h3><p>1、本地事务与消息发送的原子性问题</p>
+<ul>
+<li>发送消息成功，数据库操作失败  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">		&#x2F;&#x2F;1.发送MQ</span><br><span class="line">		&#x2F;&#x2F;2.数据库操作 </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure></li>
+<li>如果发送MQ消息失败，就会抛出异常，导致数据库事务回滚。但如果是超时异常，数 据库回滚，但MQ其实已经正常发送了，同样会导致不一致。  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">	&#x2F;&#x2F;1.数据库操作</span><br><span class="line">	&#x2F;&#x2F;2.发送MQ </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure>
+2、事务参与方接收消息的可靠性，需要如果接收消息失败可以重复接收消息</li>
+</ul>
+<p>3、消息重复消费的问题，要解决消息重复消费的问题就要实现事务参与方的方法幂等性。 </p>
+<h2 id="本地消息表方案"><a href="#本地消息表方案" class="headerlink" title="本地消息表方案"></a>本地消息表方案</h2><p><img src="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/bendixiaoxibiao.png" alt="本地消息表方案"></p>
+<ul>
+<li>交互流程规范</li>
+</ul>
+<ol>
+<li>用户服务在本地事务新增用户和增加 ”积分消息日志“。(用户表和消息表通过本地事务保证一致)</li>
+<li>定时任务扫描日志–&gt;保证将消息发送给消息队列。启动独立的线程，定时对消息日志表中的消息进行扫描并发送至消息中间件，在消息中间件反馈发送成功后删除该消息日志，否则等待定时任务下一周期重试。</li>
+<li>MQ的ack(即消息确认)机制–&gt;幂等，收到ack，MQ将不再向消费者推送消息，否则消费者会不断重 试向消费者来发送消息。</li>
+</ol>
+<h2 id="RocketMQ事务消息方案"><a href="#RocketMQ事务消息方案" class="headerlink" title="RocketMQ事务消息方案"></a>RocketMQ事务消息方案</h2><ul>
+<li>交互流程实现</li>
+</ul>
+<ol>
+<li>Producer (MQ发送方)发送事务消息至MQ Server，MQ Server将消息状态标记为Prepared(预备状态)，注意此时这条消息消费者(MQ订阅方)是无法消费到的。</li>
+<li>MQ Server接收到Producer 发送给的消息则回应发送成功表示MQ已接收到消息。</li>
+<li>Producer 端执行业务代码逻辑，通过本地数据库事务控制。</li>
+<li>若Producer 本地事务执行成功则自动向MQServer发送commit消息，MQ Server接收到commit消息后将状态标记为可消费，此时MQ订阅方(积分服务)即正常消费消息。若Producer 本地事务执行失败则自动向MQServer发送rollback消息，MQ Server接收到rollback消息后 将删除消息。</li>
+<li>如果执行Producer端本地事务过程中，执行端挂掉或者超时，MQ Server将会不停的询问同组的其他 Producer来获取事务执行状态，这个过程叫事务回查。MQ Server会根据事务回查结果来决定是否投递消息。 </li>
+</ol>
+<br>
+
+<ul>
+<li>以上主干流程已由RocketMQ实现，对用户侧来说，用户需要：</li>
+</ul>
+<ol>
+<li>实现本地事务执行</li>
+<li>本地事务回查方法，因此关注本地事务的执行状态</li>
+</ol>
+<h3 id="RocketMq事务"><a href="#RocketMq事务" class="headerlink" title="RocketMq事务"></a>RocketMq事务</h3><p>RocketMQ主要解决了两个功能:<br>1、本地事务与消息发送的原子性问题。<br>2、事务参与方接收消息的可靠性。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;回调</span><br><span class="line"></span><br><span class="line"> public interface RocketMQLocalTransactionListener &#123;</span><br><span class="line">      &#x2F;**</span><br><span class="line">		‐ 发送prepare消息成功此方法被回调，该方法用于执行本地事务</span><br><span class="line">		‐ @param msg 回传的消息，利用transactionId即可获取到该消息的唯一Id</span><br><span class="line">		‐ @param arg 调用send方法时传递的参数，当send时候若有额外的参数可以传递到send方法中，这里能获取到</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg);</span><br><span class="line"></span><br><span class="line">      	&#x2F;**</span><br><span class="line">		‐ @param msg 通过获取transactionId来判断这条消息的本地事务执行状态</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState checkLocalTransaction(Message msg);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> &#x2F;&#x2F; 发送事务消息API  </span><br><span class="line">TransactionMQProducer producer &#x3D; new TransactionMQProducer(&quot;ProducerGroup&quot;); producer.setNamesrvAddr(&quot;127.0.0.1:9876&quot;);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;设置TransactionListener实现 producer.setTransactionListener(transactionListener);</span><br><span class="line">&#x2F;&#x2F;发送事务消息</span><br><span class="line">SendResult sendResult &#x3D; producer.sendMessageInTransaction(msg, null);  </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>实践：</p>
+<ul>
+<li><p>在application-local.propertis中配置rocketMQ nameServer地址及生产组</p>
+</li>
+<li><p>service</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;从event构建消息体</span><br><span class="line">	public void sendUpdateAccountBalance(AccountChangeEvent accountChangeEvent) </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;发送消息并收到回应后执行本地事务</span><br><span class="line">public void doUpdateAccountBalance(AccountChangeEvent accountChangeEvent)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;实现执行本地事务和事务回查两个方法</span><br><span class="line"> 	@RocketMQTransactionListener(txProducerGroup &#x3D; &quot;producer_group_txmsg_bank1&quot;)</span><br><span class="line"> 	public class ProducerTxmsgListener implements RocketMQLocalTransactionListener </span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>controller 略</p>
+</li>
+<li><p>B账户的MQ 监听类</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;需要实现幂等</span><br><span class="line">@RocketMQMessageListener(topic &#x3D; &quot;topic_txmsg&quot;,consumerGroup &#x3D; &quot;consumer_txmsg_group_bank2&quot;)</span><br><span class="line">public class TxmsgConsumer implements RocketMQListener&lt;String&gt; </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="最大努力通知"><a href="#最大努力通知" class="headerlink" title="最大努力通知"></a>最大努力通知</h2></li>
+</ul>
+</li>
+<li><p>流程</p>
+</li>
+</ul>
+<ol>
+<li></li>
+</ol>
+]]></content>
+      <categories>
+        <category>分布式</category>
+      </categories>
+      <tags>
+        <tag>分布式</tag>
       </tags>
   </entry>
   <entry>
@@ -305,95 +523,34 @@
       </tags>
   </entry>
   <entry>
-    <title>redis</title>
-    <url>/2021/01/31/redis/</url>
-    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
-<a id="more"></a>
-<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
-<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
-<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
-<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
-<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
-<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
-<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
-<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
-<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
-<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
-<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
-<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
-<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
-<p>14、cluster<br>Cluster bus通信、gossip协议</p>
-<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
-<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
-<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
-<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
-<p>19、穿透<br>没查到则写一个空值到redis</p>
-<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
-<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
-<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
-<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
-]]></content>
-      <categories>
-        <category>redis</category>
-      </categories>
-      <tags>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>决策树</title>
-    <url>/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/</url>
+    <title>庄家</title>
+    <url>/2021/02/22/%E5%BA%84%E5%AE%B6/</url>
     <content><![CDATA[<br>
-让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。
-<br>
 <br>
 
-<h4 id="基本问题"><a href="#基本问题" class="headerlink" title="基本问题"></a>基本问题</h4><p>Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？</p>
-<ul>
-<li>分析这棵树需要满足的基本性质<br>互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。</li>
-</ul>
+<p>Q1：庄家坐庄步骤？<br>1吸货 2拉升 3洗盘 4出货✅<br>1吸货 2洗盘 3拉升 4出货❎</p>
 <a id="more"></a>
-
-<ul>
-<li><p>生成这棵树的过程<br>1、要得到中间节点(特征)。分类能力越强的特征，越靠近根。<br>2、要找到当前特征的切分点，而进行分叉。<br>即涉及到特征选择(特征间重要性比较以及当前特征的切分点)。<br>而构建的过程，则是递归地选择特征的过程。<br>直到，没有特征可选、或者样本点已经完全覆盖(特征选择的标准达到阈值，不再分叉)。</p>
-</li>
-<li><p>分析回归树<br>1、回归树对特征选择和切分点选择的标准，肯定是区别于分类树的。<br>2、回归树的y如何生成？<br>分类树的label来自于多数投票。回归树则来自于，落入叶子的样本的均值。</p>
-</li>
-</ul>
-<p>综上，<br>1、特征选择只在当前考虑选择最优，属于贪心策略，为局部最优。<br>2、本质上，是将样本空间进行直线(线性棱的空间体)切割。是概率中的条件概率。多个特征规则组合的条件下，样本所属类别的判定。<br>3、由于1，生成的树易产生过拟合。<br>4、回归树的回归结果，相比于lr等回归预测模型，结果数量是少的。</p>
-<p>Q2：如何进行特征选择？</p>
-<ul>
-<li><p>对于分类树：<br>1、例如性别、年龄，如果已知性别能够比已知年龄，是更好的信息–即可以更大概率地判断出所属类别，那么就是更重要的特征。<br>2、其中，更大概率地判断出所属类别 – 即降低经验条件熵。<br>3、而经验条件熵的缺点是，对于取值比较多的特征，具有偏向性。其公式导致，取值多则经验条件熵值会小。可以考虑极端情况，当每个样本的该特征都取值不同，则经验条件熵为0。就有了C4.5，通过信息增益比来选择特征。<br>4、CART的gini系数本质和熵类似。越小，熵越小，确定性越高，特征越重要。</p>
-</li>
-<li><p>对于回归树：<br>1、cart回归树是二叉，要么是要么否。<br>2、回归树的切分选择不以熵入手考虑，而以均方误差作为判断标准。<br>3、对于当前特征，找到这样的切分点 – 使得此切分下的两个叶子样本集中，均方误差和最小。误差为：y-所有样本y的均值。<br>4、生成树过程和分类树一样。</p>
-</li>
-<li><p>为什么不用相关性？<br>余弦相似度是特征向量在label向量方向上的投影长度。一定程度也是特征重要的体现。<br>但是，在树模型中，由于本质是条件概率模型，熵就更能反映出概率模型的好坏。</p>
-</li>
-</ul>
-<p>Q3：过拟合处理？</p>
-<ul>
-<li><p>剪枝<br>1、ID3,C4.5的剪枝是一个动态规划算法。对于某个非叶节点，计算剪去子树后的树的loss和不剪的loss。根据loss小的选择相应动作。而loss大小的比较，可以进行局部计算。因此可用动规实现。<br>2、loss为，每棵树的所有叶子上样本的熵之和，加上惩罚项(叶子数量或者节点数量)。<br>3、本质为，正则化的极大似然函数，来选择概率模型。</p>
-</li>
-<li><p>CART剪枝<br>1、区别于ID3&amp;C4.5，利用了递归思想，对所生成的树进行剪枝。<br>2、对于某个中间节点，找到进行剪枝动作的阈值–a的大小，a大于阈值则剪枝。即对于每一个中间节点，都有这样的阈值thre所决定的区间[thre,正无穷），剪枝后的树优于生成树。<br>3、对于所有的最优字数，交叉验证得到最终的最优树，并得到响应的a的thre。</p>
-</li>
-</ul>
+<p>需要先拉升，在于底部吸货不足，卖家少。<br>拉升2倍左右，开始洗盘，洗盘过程中获利盘出货，给庄家吸货机会。这同时也抬高了吸货成本。<br>洗盘时间视情况而定，有时一个月左右。</p>
+<p>Q2：庄家吸货方法？<br>跌停板吸货 （亿安科技）<br>熊市顺势低吸（底部但是爆量）<br>抬升吸货 （洗盘但是无量）</p>
+<p>Q3：洗盘？<br>洗盘的目的：洗掉大户和集中的持股人。避免在高位卖出砸盘。<br>大户：几万、几十万都不是大户，几百万、上千万股的”人“。这样的人，属于对手。（主力和老庄家(被套的)–对手）</p>
+<p>Q4：主力和庄家？</p>
+<p>Q5：出货？<br>拉高出货，以变现锁定的获利。<br>成本区在之前的拉升和吸货之间的位置。<br>填权再拉。<br>然后高位震荡也能出货。<br>之前的拉升，净吃入。拉高出货不能吃，要卖。拉两三天，做个平台，拉两三天再做个平台，别人就会认为每次到平台就突破，就会买入。如果大盘面差，要跑的时候，向下钓鱼出货法–开始砸、跌停板打下来，然后巨大买盘，买盘巨大，不停再往上推，就会有买盘跟进，卖盘都是庄的，择机再砸掉买盘，又往上推，再砸，再推。1天可以卖掉好几千万资金。利用追涨杀跌。</p>
+<p>Q6：大波段操作<br>胆大心细。有胆量入场，指定止损–买入后预计涨结果跌了、或者预计强势结果未强势–&gt;改错择机出来。<br>买错即卖。<br>国家政策–&gt;板块和强势股(股票强度、涨停板)–&gt;龙头、二三龙头、补涨股等<br>–&gt;F10基本面符合–&gt;看技术面，平台突破点找买点</p>
+<p>Q7：二龙头补涨<br>二龙头的突破(某一天放量、十几分钟拉了3%-5%、分时线k线高于原来的平台)时加仓。补涨等不到回调机会。<br>卖出点只和技术面有关。<br>跌破五日线，先卖1/3。五日线十日线高位死叉卖1/3。死叉后又跌则全出。</p>
+<br>
 <br>
 
+<div align="center">    
+<img src="/2021/02/22/%E5%BA%84%E5%AE%B6/yakj.png" width="700" height="500" alt="亿安科技" align="center">
+</div>
 
-<h4 id="扩展问题"><a href="#扩展问题" class="headerlink" title="扩展问题"></a>扩展问题</h4><p>Q4：信息增益比的缺点？<br>偏好取值少的特征。<br>C4.5不是直接选择增益比最大的特征，而是之前先把信息增益低于均值的属性剔除，然后在剩下的特征中选择而信息增益比最大的。得到兼顾。</p>
-<p>Q5：预剪枝？<br>1、对当前节点在划分时，进行估计，如果不能够提升泛化能力则不进行划分。<br>2、本质是基于贪心，对当前节点进行判断是否划分。<br>3、坏处：当前虽然不能提升泛化能力，但可能划分后子树能够提升泛化能力。导致模型欠拟合。</p>
-<p>Q6：对比LR和决策树？<br>1、y的结果上，决策树是固定的几个值。<br>2、LR比决策树慢，时间复杂度高。<br>3、LR无法处理缺失值，需要赋值。并且对极端值更敏感<br>4、LR对线性关系、全局拟合较好。决策树则是局部最优、局部数据探查更细致，不能更好地对多个特征同时考量。</p>
-<p>Q7：CART做了哪些简化？<br>1、log函数的计算量大，而gini有图形可知，是对熵模型的很好的近似。<br>2、CART是二叉树，对每个特征进行二分而非多分，减少了特征选择时的计算。</p>
-<p>Q8：测试集上缺失值的处理？<br>1、赋平均值或出现频次最高的值<br>2、走特征的常用分支<br>3、特征值专门处理的分支<br>C4.5的方式是，探查所有的分支，然后得到每个类别的概率，取最大的赋给该样本。</p>
-<p>Q9：CART对于离散特征处理、连续特征处理的不同之处？<br>1、ID3&amp;C4.5都是多叉，特征只出现在一个中间节点；CART是对离散特征不断地二分。<br>2、连续特征：遍历每个特征，对某特征找到最小化均方误差(loss)的thre点，该点作为该特征的切分点。在所有特征中找到最小的loss，得到最优的(特征，特征切分点)作为中间节点。二分后，对每个孩子继续进行最优的(特征，特征切分点)的查找。同离散特征一样，连续特征可以重复出现，作为中间节点。直到达到停止条件。<br>3、CART连续特征：换种表述：对于任意划分特征A，对应的任意划分点s两边划分成的数据集D1和D2，求出使D1和D2各自集合的均方差最小，同时D1和D2的均方差之和最小所对应的特征和特征值划分点。<br>4、ID3不支持连续特征划分。C4.5的做法是，将连续值进行排序，取两个值的中间值作为划分点，然后算信息增益比，(连续和离散的)最大的信息增益比为该中间节点。当连续值较多时，计算量的大。并且和CART一样，该连续特征同样可以继续作为中间节点，而非和离线一样一次性地生成多个孩子分叉。</p>
-<p>Q10：缺点或者优化？<br>1、分类决策不应该是由某一个特征决定的，而是应该由一组特征决定的。这样决策得到的决策树更加准确。这个决策树叫做多变量决策树(multi-variate decision tree)。在选择最优特征的时候，多变量决策树不是选择某一个最优特征，而是选择最优的一个特征线性组合来做决策。这个算法的代表是OC1。<br>2、如果样本发生一点点的改动，就会导致树结构的剧烈改变。这个可以通过集成学习里面的随机森林之类的方法解决。</p>
-<p>其他–都可以在上述问题中找到答案：<br>如何找到切分点？</p>
 ]]></content>
       <categories>
-        <category>ml</category>
+        <category>股市理论</category>
+        <category>基础知识</category>
       </categories>
       <tags>
-        <tag>ml</tag>
+        <tag>股市理论</tag>
       </tags>
   </entry>
   <entry>
@@ -577,169 +734,14 @@
       </tags>
   </entry>
   <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<a id="more"></a>
-
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
-<p>todo</p>
-]]></content>
+    <title>提升方法</title>
+    <url>/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[]]></content>
       <categories>
-        <category>dubbo</category>
+        <category>ml</category>
       </categories>
       <tags>
-        <tag>dubbo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>分布式事务-下</title>
-    <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/</url>
-    <content><![CDATA[<p><br> <br></p>
-<p><strong>摘要</strong></p>
-<p>1、可靠消息最终一致性，概念特点、问题、针对问题的方案(本地消息表、Rocketmq)<br>2、本地消息表流程图<br>3、Rocketmq流程、实战<br>4、最大努力通知，流程、</p>
-<h2 id="可靠消息最终一致性"><a href="#可靠消息最终一致性" class="headerlink" title="可靠消息最终一致性"></a>可靠消息最终一致性</h2><p>当事务发起方执行完成本地事务后并发出一条消息，事务参与方(消息消费者)一定能 够接收消息并处理事务成功，此方案强调的是只要消息发给事务参与方最终事务要达到一致。</p>
-<ul>
-<li>特点<ul>
-<li>适合执行周期长且实时性要求不高的场景</li>
-<li>引入消息机制后，同步的事务操作变为基于消 息执行的异步操作, 避免了分布式事务中的同步阻塞操作的影响，并实现了两个服务的解耦。</li>
-</ul>
-</li>
-</ul>
-<a id="more"></a>
-
-<ul>
-<li>网络通信的不确定性会导致分布式事务问题：</li>
-</ul>
-<ol>
-<li>事务发起方(消息生产方)将消息发给消息中间件</li>
-<li>事务参与方从消息中间件接收消息</li>
-</ol>
-<h3 id="可靠消息最终一致性的问题"><a href="#可靠消息最终一致性的问题" class="headerlink" title="可靠消息最终一致性的问题"></a>可靠消息最终一致性的问题</h3><p>1、本地事务与消息发送的原子性问题</p>
-<ul>
-<li>发送消息成功，数据库操作失败  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">		&#x2F;&#x2F;1.发送MQ</span><br><span class="line">		&#x2F;&#x2F;2.数据库操作 </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure></li>
-<li>如果发送MQ消息失败，就会抛出异常，导致数据库事务回滚。但如果是超时异常，数 据库回滚，但MQ其实已经正常发送了，同样会导致不一致。  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">	&#x2F;&#x2F;1.数据库操作</span><br><span class="line">	&#x2F;&#x2F;2.发送MQ </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure>
-2、事务参与方接收消息的可靠性，需要如果接收消息失败可以重复接收消息</li>
-</ul>
-<p>3、消息重复消费的问题，要解决消息重复消费的问题就要实现事务参与方的方法幂等性。 </p>
-<h2 id="本地消息表方案"><a href="#本地消息表方案" class="headerlink" title="本地消息表方案"></a>本地消息表方案</h2><p><img src="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/bendixiaoxibiao.png" alt="本地消息表方案"></p>
-<ul>
-<li>交互流程规范</li>
-</ul>
-<ol>
-<li>用户服务在本地事务新增用户和增加 ”积分消息日志“。(用户表和消息表通过本地事务保证一致)</li>
-<li>定时任务扫描日志–&gt;保证将消息发送给消息队列。启动独立的线程，定时对消息日志表中的消息进行扫描并发送至消息中间件，在消息中间件反馈发送成功后删除该消息日志，否则等待定时任务下一周期重试。</li>
-<li>MQ的ack(即消息确认)机制–&gt;幂等，收到ack，MQ将不再向消费者推送消息，否则消费者会不断重 试向消费者来发送消息。</li>
-</ol>
-<h2 id="RocketMQ事务消息方案"><a href="#RocketMQ事务消息方案" class="headerlink" title="RocketMQ事务消息方案"></a>RocketMQ事务消息方案</h2><ul>
-<li>交互流程实现</li>
-</ul>
-<ol>
-<li>Producer (MQ发送方)发送事务消息至MQ Server，MQ Server将消息状态标记为Prepared(预备状态)，注意此时这条消息消费者(MQ订阅方)是无法消费到的。</li>
-<li>MQ Server接收到Producer 发送给的消息则回应发送成功表示MQ已接收到消息。</li>
-<li>Producer 端执行业务代码逻辑，通过本地数据库事务控制。</li>
-<li>若Producer 本地事务执行成功则自动向MQServer发送commit消息，MQ Server接收到commit消息后将状态标记为可消费，此时MQ订阅方(积分服务)即正常消费消息。若Producer 本地事务执行失败则自动向MQServer发送rollback消息，MQ Server接收到rollback消息后 将删除消息。</li>
-<li>如果执行Producer端本地事务过程中，执行端挂掉或者超时，MQ Server将会不停的询问同组的其他 Producer来获取事务执行状态，这个过程叫事务回查。MQ Server会根据事务回查结果来决定是否投递消息。 </li>
-</ol>
-<br>
-
-<ul>
-<li>以上主干流程已由RocketMQ实现，对用户侧来说，用户需要：</li>
-</ul>
-<ol>
-<li>实现本地事务执行</li>
-<li>本地事务回查方法，因此关注本地事务的执行状态</li>
-</ol>
-<h3 id="RocketMq事务"><a href="#RocketMq事务" class="headerlink" title="RocketMq事务"></a>RocketMq事务</h3><p>RocketMQ主要解决了两个功能:<br>1、本地事务与消息发送的原子性问题。<br>2、事务参与方接收消息的可靠性。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;回调</span><br><span class="line"></span><br><span class="line"> public interface RocketMQLocalTransactionListener &#123;</span><br><span class="line">      &#x2F;**</span><br><span class="line">		‐ 发送prepare消息成功此方法被回调，该方法用于执行本地事务</span><br><span class="line">		‐ @param msg 回传的消息，利用transactionId即可获取到该消息的唯一Id</span><br><span class="line">		‐ @param arg 调用send方法时传递的参数，当send时候若有额外的参数可以传递到send方法中，这里能获取到</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg);</span><br><span class="line"></span><br><span class="line">      	&#x2F;**</span><br><span class="line">		‐ @param msg 通过获取transactionId来判断这条消息的本地事务执行状态</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState checkLocalTransaction(Message msg);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> &#x2F;&#x2F; 发送事务消息API  </span><br><span class="line">TransactionMQProducer producer &#x3D; new TransactionMQProducer(&quot;ProducerGroup&quot;); producer.setNamesrvAddr(&quot;127.0.0.1:9876&quot;);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;设置TransactionListener实现 producer.setTransactionListener(transactionListener);</span><br><span class="line">&#x2F;&#x2F;发送事务消息</span><br><span class="line">SendResult sendResult &#x3D; producer.sendMessageInTransaction(msg, null);  </span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>实践：</p>
-<ul>
-<li><p>在application-local.propertis中配置rocketMQ nameServer地址及生产组</p>
-</li>
-<li><p>service</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;从event构建消息体</span><br><span class="line">	public void sendUpdateAccountBalance(AccountChangeEvent accountChangeEvent) </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;发送消息并收到回应后执行本地事务</span><br><span class="line">public void doUpdateAccountBalance(AccountChangeEvent accountChangeEvent)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;实现执行本地事务和事务回查两个方法</span><br><span class="line"> 	@RocketMQTransactionListener(txProducerGroup &#x3D; &quot;producer_group_txmsg_bank1&quot;)</span><br><span class="line"> 	public class ProducerTxmsgListener implements RocketMQLocalTransactionListener </span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
-<li><p>controller 略</p>
-</li>
-<li><p>B账户的MQ 监听类</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;需要实现幂等</span><br><span class="line">@RocketMQMessageListener(topic &#x3D; &quot;topic_txmsg&quot;,consumerGroup &#x3D; &quot;consumer_txmsg_group_bank2&quot;)</span><br><span class="line">public class TxmsgConsumer implements RocketMQListener&lt;String&gt; </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h2 id="最大努力通知"><a href="#最大努力通知" class="headerlink" title="最大努力通知"></a>最大努力通知</h2></li>
-</ul>
-</li>
-<li><p>流程</p>
-</li>
-</ul>
-<ol>
-<li></li>
-</ol>
-]]></content>
-      <categories>
-        <category>分布式</category>
-      </categories>
-      <tags>
-        <tag>分布式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习模型的模式</title>
-    <url>/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<p>伪代码的算法流程 + 数学逻辑 –&gt;才能真的掌握住这个模型的本质。<br>而其他都是表象。所以数学肯定是要啃的。矩阵论和概率统计，微积分，必然是需要的。<br>更多的应用和实践，会深化对于模型的认知。</p>
-<a id="more"></a>
-
-<p>基本要求：<br>1、历史背景及演进：解决什么问题而生<br>2、伪代码表述流程<br>3、前提、局限、适用场景<br>4、演化和可优化之处、优化思路<br>5、和其他模型对比</p>
-<p>进阶要求：<br>1、根据伪代码思路，看具体实现<br>2、为什么会有这样的前提和局限–&gt;数学证明：唯一性证明、误差上线证明、loss函数证明、模型参数的迭代公式证明</p>
-<p>炉火纯青：<br>1、当我问你某个公式，你能够给出，并给出推导过程<br>2、和其他模型相似问题下的解决方案(公式)对比</p>
-]]></content>
-      <categories>
-        <category>模型方法论</category>
-      </categories>
-      <tags>
-        <tag>方法论</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>庄家</title>
-    <url>/2021/02/22/%E5%BA%84%E5%AE%B6/</url>
-    <content><![CDATA[<br>
-<br>
-
-<p>Q1：庄家坐庄步骤？<br>1吸货 2拉升 3洗盘 4出货✅<br>1吸货 2洗盘 3拉升 4出货❎</p>
-<a id="more"></a>
-<p>需要先拉升，在于底部吸货不足，卖家少。<br>拉升2倍左右，开始洗盘，洗盘过程中获利盘出货，给庄家吸货机会。这同时也抬高了吸货成本。<br>洗盘时间视情况而定，有时一个月左右。</p>
-<p>Q2：庄家吸货方法？<br>跌停板吸货 （亿安科技）<br>熊市顺势低吸（底部但是爆量）<br>抬升吸货 （洗盘但是无量）</p>
-<p>Q3：洗盘？<br>洗盘的目的：洗掉大户和集中的持股人。避免在高位卖出砸盘。<br>大户：几万、几十万都不是大户，几百万、上千万股的”人“。这样的人，属于对手。（主力和老庄家(被套的)–对手）</p>
-<p>Q4：主力和庄家？</p>
-<p>Q5：出货？<br>拉高出货，以变现锁定的获利。<br>成本区在之前的拉升和吸货之间的位置。<br>填权再拉。<br>然后高位震荡也能出货。<br>之前的拉升，净吃入。拉高出货不能吃，要卖。拉两三天，做个平台，拉两三天再做个平台，别人就会认为每次到平台就突破，就会买入。如果大盘面差，要跑的时候，向下钓鱼出货法–开始砸、跌停板打下来，然后巨大买盘，买盘巨大，不停再往上推，就会有买盘跟进，卖盘都是庄的，择机再砸掉买盘，又往上推，再砸，再推。1天可以卖掉好几千万资金。利用追涨杀跌。</p>
-<p>Q6：大波段操作<br>胆大心细。有胆量入场，指定止损–买入后预计涨结果跌了、或者预计强势结果未强势–&gt;改错择机出来。<br>买错即卖。<br>国家政策–&gt;板块和强势股(股票强度、涨停板)–&gt;龙头、二三龙头、补涨股等<br>–&gt;F10基本面符合–&gt;看技术面，平台突破点找买点</p>
-<p>Q7：二龙头补涨<br>二龙头的突破(某一天放量、十几分钟拉了3%-5%、分时线k线高于原来的平台)时加仓。补涨等不到回调机会。<br>卖出点只和技术面有关。<br>跌破五日线，先卖1/3。五日线十日线高位死叉卖1/3。死叉后又跌则全出。</p>
-<br>
-<br>
-
-<div align="center">    
-<img src="/2021/02/22/%E5%BA%84%E5%AE%B6/yakj.png" width="700" height="500" alt="亿安科技" align="center">
-</div>
-
-]]></content>
-      <categories>
-        <category>股市理论</category>
-        <category>基础知识</category>
-      </categories>
-      <tags>
-        <tag>股市理论</tag>
+        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -797,17 +799,6 @@
       </tags>
   </entry>
   <entry>
-    <title>提升方法</title>
-    <url>/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[]]></content>
-      <categories>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>梯度</title>
     <url>/2021/02/04/%E6%A2%AF%E5%BA%A6/</url>
     <content><![CDATA[<h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
@@ -843,61 +834,6 @@
       </categories>
       <tags>
         <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>通货膨胀-下</title>
-    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
-    <content><![CDATA[<p><strong>摘要</strong></p>
-<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
-<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><a id="more"></a>
-<ul>
-<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
-</li>
-<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
-</li>
-<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
-</li>
-<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
-</li>
-</ul>
-<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
-<li>微观</li>
-</ul>
-<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
-<ul>
-<li>宏观<br>1、对于产出的影响<ul>
-<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
-<li>促退论:通胀造成微观效率损失;</li>
-<li>中性论:“二分法”</li>
-</ul>
-</li>
-</ul>
-<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
-<p>3、对利率、汇率等重要经济变量的影响</p>
-<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
-<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
-<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
-<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
-<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
-</ul>
-<br>
-而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
-
-
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
-<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
-<p>3、价格的绝对值无意义，房价回不到过去。</p>
-<p>4、一般来说，批发价上涨幅度高于零售。</p>
-]]></content>
-      <categories>
-        <category>货银</category>
-        <category>货币政策</category>
-      </categories>
-      <tags>
-        <tag>货银</tag>
-        <tag>货币政策</tag>
       </tags>
   </entry>
   <entry>
@@ -994,6 +930,61 @@
 <p>=&gt;<br>惊人的数字让人记忆犹新。德国现在仍会谨慎。</p>
 <h4 id="俄国计划经济"><a href="#俄国计划经济" class="headerlink" title="俄国计划经济"></a>俄国计划经济</h4><p>todo                    </p>
 <br>
+]]></content>
+      <categories>
+        <category>货银</category>
+        <category>货币政策</category>
+      </categories>
+      <tags>
+        <tag>货银</tag>
+        <tag>货币政策</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>通货膨胀-下</title>
+    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
+    <content><![CDATA[<p><strong>摘要</strong></p>
+<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
+<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><a id="more"></a>
+<ul>
+<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
+</li>
+<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
+</li>
+<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
+</li>
+<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
+</li>
+</ul>
+<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
+<li>微观</li>
+</ul>
+<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
+<ul>
+<li>宏观<br>1、对于产出的影响<ul>
+<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
+<li>促退论:通胀造成微观效率损失;</li>
+<li>中性论:“二分法”</li>
+</ul>
+</li>
+</ul>
+<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
+<p>3、对利率、汇率等重要经济变量的影响</p>
+<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
+<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
+<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
+<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
+<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
+</ul>
+<br>
+而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
+
+
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
+<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
+<p>3、价格的绝对值无意义，房价回不到过去。</p>
+<p>4、一般来说，批发价上涨幅度高于零售。</p>
 ]]></content>
       <categories>
         <category>货银</category>
