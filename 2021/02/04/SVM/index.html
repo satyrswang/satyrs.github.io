@@ -18,7 +18,6 @@
 <meta property="og:image" content="https://satyrswang.github.io/2021/02/04/SVM/theorem1">
 <meta property="og:image" content="https://satyrswang.github.io/2021/02/04/SVM/theorem2">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-fd9cfea722d77a1d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-b484ebf0cfdf222d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-744d4e22dac7d5aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-59b1f2660a4869b6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-271a7e44b55a0424.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
@@ -28,8 +27,6 @@
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-4ca65da333340058.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-67cdfbf09b820630.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-62f19539ba8a88bc.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-907dcfe22f62860e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-ac41318c2c79efb1.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="article:published_time" content="2021-02-04T11:57:25.000Z">
 <meta property="article:modified_time" content="2021-03-01T05:54:27.233Z">
 <meta property="article:author" content="yuqing wang">
@@ -100,7 +97,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">20.5k</span>
+    总字数 <span class="post-count">29.1k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -196,7 +193,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：3.2k字 | 预计阅读时长：14分钟
+    字数：3.3k字 | 预计阅读时长：14分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -269,35 +266,38 @@
 <p>A function is convex if its epigraph (the set of points on or above the graph of the function) is a convex set. In Euclidean space, a convex set is the region such that, for every pair of points within the region, every point on the straight line segment that joins the pair of points is also within the region. </p>
 </blockquote>
 <p>栗子看图convex set</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/8716089-b484ebf0cfdf222d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="convex set.jpg"></p>
 </li>
-<li><p>同样根据Hessian判断是否convex，这里需要看是否是<strong>positive semidefinite</strong>,而semi有对应三个条件是与之等价。看 theorem 3</p>
-<blockquote>
+</ul>
+<pre><code>![convex set.jpg](http://upload-images.jianshu.io/upload_images/8716089-b484ebf0cfdf222d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+</code></pre>
+<ul>
+<li>同样根据Hessian判断是否convex，这里需要看是否是<strong>positive semidefinite</strong>,而semi有对应三个条件是与之等价。看 theorem 3<blockquote>
 <p>**More generally, a continuous, twice differentiable function of several variables is convex on a convex set if and only if its Hessian matrix is positive semidefinite on the interior of the convex set.**The difference here is that we need to check all the principal minors, not only the leading principal minors. </p>
 </blockquote>
-<p><img src="http://upload-images.jianshu.io/upload_images/8716089-744d4e22dac7d5aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="theorem 3.jpg"></p>
 </li>
-<li><p>其中on the interior of the convex set是什么意思呢？定义：the domain of a convex function is a convex set，那么 a function is convex on a convex set意思就是在domain上是convex function，而interior只是意味着为两边开区间。</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="http://www.math.cmu.edu/~ploh/docs/math/mop2013/convexity-soln.pdf">其他证明是convex function的方法</a></p>
-</li>
-<li><p>这里就谈convex function的optimization问题求解。涉及对偶概念，根据wiki，</p>
-<blockquote>
+</ul>
+<p>  <img src="http://upload-images.jianshu.io/upload_images/8716089-744d4e22dac7d5aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="theorem 3.jpg"></p>
+<ul>
+<li>其中on the interior of the convex set是什么意思呢？定义：the domain of a convex function is a convex set，那么 a function is convex on a convex set意思就是在domain上是convex function，而interior只是意味着为两边开区间。</li>
+<li><a target="_blank" rel="noopener" href="http://www.math.cmu.edu/~ploh/docs/math/mop2013/convexity-soln.pdf">其他证明是convex function的方法</a></li>
+<li>这里就谈convex function的optimization问题求解。涉及对偶概念，根据wiki，<blockquote>
 <p>Duality :duality means that optimization problems may be viewed from either of two perspectives, the primal problem or the dual problem (the duality principle). The solution to the dual problem <strong>provides a lower bound</strong> to the solution of the primal (minimization) problem. </p>
 </blockquote>
-<p>给最小值以下限。lower bound中有一个值为<strong>infimum</strong> (即 greatest lower bound)。补充，相对而言</p>
+</li>
+</ul>
+<p>  给最小值以下限。lower bound中有一个值为<strong>infimum</strong> (即 greatest lower bound)。补充，相对而言</p>
 <blockquote>
 <p>The same logic apply with the relation “greater than or equal” and we have the concept of upper-bound and supremum.</p>
 </blockquote>
-</li>
-<li><p>对偶，在求最小值时求对应的最大值，求出的最大值将是=&lt;最小值，两者之差即为**duality gap**。对应来说，在求最大值时求对应最小值，求出的最小值将是&gt;=最大值即upper bound。<strong>duality gap</strong>为正，我们称之<strong>weak duality holds</strong>，为0则为<strong>strong duality holds</strong>。</p>
-</li>
-<li><p>拉格朗日乘子 ： </p>
-<blockquote>
+<ul>
+<li>对偶，在求最小值时求对应的最大值，求出的最大值将是=&lt;最小值，两者之差即为<strong>duality gap**。对应来说，在求最大值时求对应最小值，求出的最小值将是&gt;=最大值即upper bound。</strong>duality gap<strong>为正，我们称之</strong>weak duality holds<strong>，为0则为</strong>strong duality holds**。</li>
+<li>拉格朗日乘子 ： <blockquote>
 <p>In mathematical optimization, the method of Lagrange multipliers is a strategy for finding the local maxima and minima of a function subject to <strong>equality</strong> constraints. </p>
 </blockquote>
-<p><img src="http://upload-images.jianshu.io/upload_images/8716089-59b1f2660a4869b6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Lagrange_portrait.jpg"></p>
 </li>
+</ul>
+<p>  <img src="http://upload-images.jianshu.io/upload_images/8716089-59b1f2660a4869b6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Lagrange_portrait.jpg"></p>
+<ul>
 <li><p>如何将3D图在2D平面表示：Contour lines  两个要点：1. 线上的点z值不变，for each point on a line, the function returns the same value 2. 颜色扮演标识，the darker the area is, the smallest the value of the function is<br><img src="http://upload-images.jianshu.io/upload_images/8716089-271a7e44b55a0424.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="contours.png"></p>
 </li>
 <li><p>那么梯度就可以用<strong>向量场</strong>进行可视化。箭头指向函数增长的方向。与Contour lines 图有什么关系呢？在Contour lines 图中，gradient vectors非常容易画出，1 垂直于Contour lines 2.指向增加的方向。<img src="http://upload-images.jianshu.io/upload_images/8716089-8ee3efb4b3646c71.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="gradient_and_contour.png"></p>
@@ -337,15 +337,16 @@
 </blockquote>
 </li>
 <li><p>现在有了L(a),求导即可。得到了a。再根据偏导为0的公式回代得到w 。再根据prime problem中的约束函数y*(w*x+b)-1&gt;=0，计算b</p>
-<ul>
-<li>用QP solver来解对偶问题。用python CVXOPT包。将wolfe dual.jpg中我们需要求解的公式转化到下面CVXOPT支持的形式。这里引入了一个Gram matrix - The matrix of all possible inner products of X.<br><img src="http://upload-images.jianshu.io/upload_images/8716089-907dcfe22f62860e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="CVXOPT.jpg"><br><img src="http://upload-images.jianshu.io/upload_images/8716089-ac41318c2c79efb1.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="转化过程.jpg"><br>这个图里有问题，minimize部分最后一项需要q.T*a, 详见代码部分，需要q = cvxopt.matrix(-1 * np.ones(m))。</li>
+</li>
 </ul>
-</li>
-<li><p>code部分：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">import cvxopt.solvers</span><br><span class="line">X, y &#x3D; 这里获取到数据</span><br><span class="line">m &#x3D; X.shape[0]  #data有多少</span><br><span class="line"># Gram </span><br><span class="line">K &#x3D; np.array([np.dot(X[i], X[j]) for j in range(m) for i in range(m)]).reshape((m, m)) </span><br><span class="line">P &#x3D; cvxopt.matrix(np.outer(y, y) * K)</span><br><span class="line">q &#x3D; cvxopt.matrix(-1 * np.ones(m))</span><br><span class="line"># 等式约束</span><br><span class="line">A &#x3D; cvxopt.matrix(y, (1, m))</span><br><span class="line">b &#x3D; cvxopt.matrix(0.0)</span><br><span class="line"># 不等式约束</span><br><span class="line">G &#x3D; cvxopt.matrix(np.diag(-1 * np.ones(m))) h &#x3D; cvxopt.matrix(np.zeros(m))</span><br><span class="line"># 求解</span><br><span class="line">solution &#x3D; cvxopt.solvers.qp(P, q, G, h, A, b)</span><br><span class="line"># 拉格朗日乘子</span><br><span class="line">multipliers &#x3D; np.ravel(solution[&#39;x&#39;])</span><br><span class="line"># 支持向量</span><br><span class="line">has_positive_multiplier &#x3D; multipliers &gt; 1e-7 </span><br><span class="line">sv_multipliers &#x3D; multipliers[has_positive_multiplier]</span><br><span class="line">support_vectors &#x3D; X[has_positive_multiplier] </span><br><span class="line">support_vectors_y &#x3D; y[has_positive_multiplier]</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#计算w，b</span><br><span class="line">def compute_w(multipliers, X, y):</span><br><span class="line">    return np.sum(multipliers[i] * y[i] * X[i]  for i in range(len(y)))</span><br><span class="line">def compute_b(w, X, y):</span><br><span class="line">    return np.sum([y[i] - np.dot(w, X[i]) for i in range(len(X))])&#x2F;len(X)</span><br><span class="line"></span><br><span class="line">w &#x3D; compute_w(multipliers, X, y)</span><br><span class="line">w_from_sv &#x3D; compute_w(sv_multipliers, support_vectors, support_vect</span><br><span class="line">b &#x3D; compute_b(w, support_vectors, support_vectors_y)</span><br><span class="line"> </span><br></pre></td></tr></table></figure>
-
-</li>
+<pre><code>- 用QP solver来解对偶问题。用python CVXOPT包。将wolfe dual.jpg中我们需要求解的公式转化到下面CVXOPT支持的形式。这里引入了一个Gram matrix - The matrix of all possible inner products of X.
+  ![CVXOPT.jpg](http://upload-images.jianshu.io/upload_images/8716089-907dcfe22f62860e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+   ![转化过程.jpg](http://upload-images.jianshu.io/upload_images/8716089-ac41318c2c79efb1.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+这个图里有问题，minimize部分最后一项需要q.T*a, 详见代码部分，需要q = cvxopt.matrix(-1 * np.ones(m))。
+</code></pre>
+<ul>
+<li>code部分：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">import cvxopt.solvers</span><br><span class="line">X, y &#x3D; 这里获取到数据</span><br><span class="line">m &#x3D; X.shape[0]  #data有多少</span><br><span class="line"># Gram </span><br><span class="line">K &#x3D; np.array([np.dot(X[i], X[j]) for j in range(m) for i in range(m)]).reshape((m, m)) </span><br><span class="line">P &#x3D; cvxopt.matrix(np.outer(y, y) * K)</span><br><span class="line">q &#x3D; cvxopt.matrix(-1 * np.ones(m))</span><br><span class="line"># 等式约束</span><br><span class="line">A &#x3D; cvxopt.matrix(y, (1, m))</span><br><span class="line">b &#x3D; cvxopt.matrix(0.0)</span><br><span class="line"># 不等式约束</span><br><span class="line">G &#x3D; cvxopt.matrix(np.diag(-1 * np.ones(m))) h &#x3D; cvxopt.matrix(np.zeros(m))</span><br><span class="line"># 求解</span><br><span class="line">solution &#x3D; cvxopt.solvers.qp(P, q, G, h, A, b)</span><br><span class="line"># 拉格朗日乘子</span><br><span class="line">multipliers &#x3D; np.ravel(solution[&#39;x&#39;])</span><br><span class="line"># 支持向量</span><br><span class="line">has_positive_multiplier &#x3D; multipliers &gt; 1e-7 </span><br><span class="line">sv_multipliers &#x3D; multipliers[has_positive_multiplier]</span><br><span class="line">support_vectors &#x3D; X[has_positive_multiplier] </span><br><span class="line">support_vectors_y &#x3D; y[has_positive_multiplier]</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#计算w，b</span><br><span class="line">def compute_w(multipliers, X, y):</span><br><span class="line">    return np.sum(multipliers[i] * y[i] * X[i]  for i in range(len(y)))</span><br><span class="line">def compute_b(w, X, y):</span><br><span class="line">    return np.sum([y[i] - np.dot(w, X[i]) for i in range(len(X))])&#x2F;len(X)</span><br><span class="line"></span><br><span class="line">w &#x3D; compute_w(multipliers, X, y)</span><br><span class="line">w_from_sv &#x3D; compute_w(sv_multipliers, support_vectors, support_vect</span><br><span class="line">b &#x3D; compute_b(w, support_vectors, support_vectors_y)</span><br><span class="line"> </span><br></pre></td></tr></table></figure></li>
 </ul>
 <blockquote>
 <p>We saw that the original optimization problem can be rewritten using a Lagrangian function. Then, thanks to duality theory, we transformed the Lagrangian problem into the Wolfe dual problem. We eventually used the package CVXOPT to solve the Wolfe dual.</p>
@@ -640,11 +641,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">ml</a>
+                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+                <a href="javascript:void(0)" class="js-tag color3">ml</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -656,11 +657,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">方法论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">股市理论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">历史</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">货银</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">货币政策</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
             
             <div class="clearfix"></div>

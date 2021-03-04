@@ -84,7 +84,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">20.5k</span>
+    总字数 <span class="post-count">29.1k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -200,15 +200,13 @@
 </li>
 <li><p>场景：</p>
 <ul>
-<li><p>微服务架构中，即需要跨JVM进程。无论是多个服务访问一个实例，还是多个服务多个实例，本地事务都无法解决。</p>
+<li>微服务架构中，即需要跨JVM进程。无论是多个服务访问一个实例，还是多个服务多个实例，本地事务都无法解决。</li>
+<li>单个系统访问多个数据库实例，就需要进行不同的数据库连接</li>
+</ul>
 </li>
-<li><p>单个系统访问多个数据库实例，就需要进行不同的数据库连接</p>
+</ul>
 <br>
 
-</li>
-</ul>
-</li>
-</ul>
 <h2 id="2、CAP"><a href="#2、CAP" class="headerlink" title="2、CAP"></a>2、CAP</h2><h3 id="分布式事务控制目标"><a href="#分布式事务控制目标" class="headerlink" title="分布式事务控制目标"></a>分布式事务控制目标</h3><p>场景：mysql一主一从，商品写主读从。</p>
 <p>一致性、可用性、分区容错性</p>
 <ul>
@@ -305,26 +303,25 @@
 <ul>
 <li><p>实战step：</p>
 <ul>
-<li><p>下载，解压并启动seata服务器 /bin/seata-server.bat -p 8888 -m file 。端口和文件方式存储信息。(TC)</p>
-</li>
-<li><p>添加discover-server子模块，discover-server基于Eureka实现。</p>
-</li>
-<li><p>添加微服务子模块，子模块pom中引入spring-cloud-alibaba-seata（包含了RM TM），并配置TC的地址：registry.conf、file.conf中：</p>
+<li>下载，解压并启动seata服务器 /bin/seata-server.bat -p 8888 -m file 。端口和文件方式存储信息。(TC)</li>
+<li>添加discover-server子模块，discover-server基于Eureka实现。</li>
+<li>添加微服务子模块，子模块pom中引入spring-cloud-alibaba-seata（包含了RM TM），并配置TC的地址：registry.conf、file.conf中：</li>
+</ul>
 <blockquote>
 <p>在file.conf中更改service.vgroup_mapping.[springcloud服务名]-fescar-service-group = “default”，并修改 service.default.grouplist =[seata服务端地址]</p>
 </blockquote>
-</li>
-<li><p>创建代理数据源（配置mysql连接）</p>
+<ul>
+<li>创建代理数据源（配置mysql连接）</li>
+</ul>
 <blockquote>
-<p>Seata的RM通过DataSourceProxy才能在业务代码的事务提交时，通过这个切<br>入点，与TC进行通信交互、记录undo_log等。每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</p>
+<p>Seata的RM通过DataSourceProxy才能在业务代码的事务提交时，通过这个切<br>  入点，与TC进行通信交互、记录undo_log等。每个RM使用DataSourceProxy连接数据库，其目的是使用ConnectionProxy，使用数据源和数据连接代理的目 的就是在第一阶段将undo_log和业务数据放在一个本地事务提交，这样就保存了只要有业务操作就一定有 undo_log。</p>
 </blockquote>
-</li>
-<li><p>代码部分细节：<code>FeignClient</code>、<code>@GlobalTransactional</code>、<code>@Transactional</code></p>
+<ul>
+<li>代码部分细节：<code>FeignClient</code>、<code>@GlobalTransactional</code>、<code>@Transactional</code></li>
+</ul>
 <blockquote>
 <p>将@GlobalTransactional注解标注在全局事务发起的Service实现方法上，开启全局事务: GlobalTransactionalInterceptor会拦截@GlobalTransactional注解的方法，生成全局事务ID(XID)，XID会在整个分布式事务中传递。 在远程调用时，spring-cloud-alibaba-seata会拦截Feign调用将XID传递到下游服务。</p>
 </blockquote>
-</li>
-</ul>
 </li>
 </ul>
 <br>
@@ -640,11 +637,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">ml</a>
+                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+                <a href="javascript:void(0)" class="js-tag color3">ml</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -656,11 +653,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">方法论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">股市理论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">历史</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">货银</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">货币政策</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
             
             <div class="clearfix"></div>

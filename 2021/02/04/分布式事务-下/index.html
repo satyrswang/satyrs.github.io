@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">20.5k</span>
+    总字数 <span class="post-count">29.1k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -247,17 +247,16 @@
 <ul>
 <li><p>实践：</p>
 <ul>
-<li><p>在application-local.propertis中配置rocketMQ nameServer地址及生产组</p>
-</li>
-<li><p>service</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;从event构建消息体</span><br><span class="line">	public void sendUpdateAccountBalance(AccountChangeEvent accountChangeEvent) </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;发送消息并收到回应后执行本地事务</span><br><span class="line">public void doUpdateAccountBalance(AccountChangeEvent accountChangeEvent)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;实现执行本地事务和事务回查两个方法</span><br><span class="line"> 	@RocketMQTransactionListener(txProducerGroup &#x3D; &quot;producer_group_txmsg_bank1&quot;)</span><br><span class="line"> 	public class ProducerTxmsgListener implements RocketMQLocalTransactionListener </span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
-<li><p>controller 略</p>
-</li>
-<li><p>B账户的MQ 监听类</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;需要实现幂等</span><br><span class="line">@RocketMQMessageListener(topic &#x3D; &quot;topic_txmsg&quot;,consumerGroup &#x3D; &quot;consumer_txmsg_group_bank2&quot;)</span><br><span class="line">public class TxmsgConsumer implements RocketMQListener&lt;String&gt; </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h2 id="最大努力通知"><a href="#最大努力通知" class="headerlink" title="最大努力通知"></a>最大努力通知</h2></li>
+<li>在application-local.propertis中配置rocketMQ nameServer地址及生产组</li>
+<li>service</li>
 </ul>
-</li>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;从event构建消息体</span><br><span class="line">	public void sendUpdateAccountBalance(AccountChangeEvent accountChangeEvent) </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;发送消息并收到回应后执行本地事务</span><br><span class="line">public void doUpdateAccountBalance(AccountChangeEvent accountChangeEvent)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;实现执行本地事务和事务回查两个方法</span><br><span class="line"> 	@RocketMQTransactionListener(txProducerGroup &#x3D; &quot;producer_group_txmsg_bank1&quot;)</span><br><span class="line"> 	public class ProducerTxmsgListener implements RocketMQLocalTransactionListener </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>controller 略</li>
+<li>B账户的MQ 监听类</li>
+</ul>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;需要实现幂等</span><br><span class="line">@RocketMQMessageListener(topic &#x3D; &quot;topic_txmsg&quot;,consumerGroup &#x3D; &quot;consumer_txmsg_group_bank2&quot;)</span><br><span class="line">public class TxmsgConsumer implements RocketMQListener&lt;String&gt; </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="最大努力通知"><a href="#最大努力通知" class="headerlink" title="最大努力通知"></a>最大努力通知</h2></li>
 <li><p>流程</p>
 </li>
 </ul>
@@ -551,11 +550,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">ml</a>
+                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+                <a href="javascript:void(0)" class="js-tag color3">ml</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -567,11 +566,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">方法论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">股市理论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">历史</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">货银</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">货币政策</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
             
             <div class="clearfix"></div>

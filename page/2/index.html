@@ -79,7 +79,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">20.5k</span>
+    总字数 <span class="post-count">29.1k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -156,6 +156,531 @@
           </div>
           <div id="js-content" class="content-ll">
             
+  
+    <article id="post-SVM" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/02/04/SVM/">SVM</a>
+    </h1>
+  
+
+        
+        <a href="/2021/02/04/SVM/" class="archive-article-date">
+  	<time datetime="2021-02-04T11:57:25.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-04</time>
+</a>
+            
+        
+      </header>
+    
+    <div align="center" class="post-count">
+    字数：3.3k字 | 预计阅读时长：14分钟
+</div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><p>reference：[非常好的两本书。再加上libsvm的源码与调参的论文。]<br>[1]<a target="_blank" rel="noopener" href="http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf">http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf</a><br>[2]An Introduction to Support Vector Machines and Other Kernel-based Learning Methods<br>[3]<a target="_blank" rel="noopener" href="https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793">https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793</a></p>
+</li>
+<li><p>干货</p>
+</li>
+<li><p>首先，SVM是解决supervised learning 中classification问题。有两种情况，看是否linearly separable。线性不可分则引入kernel，想法为先做transformation到其他空间进而转为可分问题。</p>
+</li>
+<li><p>对于线性可分的监督分类问题，SVM的目标是什么呢? find  the optimal separating hyperplane which maximizes the margin of the training data</p>
+</li>
+<li><p>为什么以最大化间隔为目标？因为it correctly classifies the training data and because it is the one which will generalize better with unseen data</p>
+</li>
+</ul>
+        
+          <a class="article-more-a" href="/2021/02/04/SVM/#more">more >></a>
+        
+      
+
+       <!-- 添加版权声明 -->
+    
+
+  <div class="declare" hidden="hidden"></div>
+
+      <!-- 添加版权声明 -->
+      
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">ml</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/ml//" class="article-tag-list-link color3">ml</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/02/04/SVM/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-分布式事务-下" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/">分布式事务-下</a>
+    </h1>
+  
+
+        
+        <a href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/" class="archive-article-date">
+  	<time datetime="2021-02-04T10:48:56.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-04</time>
+</a>
+            
+        
+      </header>
+    
+    <div align="center" class="post-count">
+    字数：1.4k字 | 预计阅读时长：5分钟
+</div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><br> <br></p>
+<p><strong>摘要</strong></p>
+<p>1、可靠消息最终一致性，概念特点、问题、针对问题的方案(本地消息表、Rocketmq)<br>2、本地消息表流程图<br>3、Rocketmq流程、实战<br>4、最大努力通知，流程、</p>
+<h2 id="可靠消息最终一致性"><a href="#可靠消息最终一致性" class="headerlink" title="可靠消息最终一致性"></a>可靠消息最终一致性</h2><p>当事务发起方执行完成本地事务后并发出一条消息，事务参与方(消息消费者)一定能 够接收消息并处理事务成功，此方案强调的是只要消息发给事务参与方最终事务要达到一致。</p>
+<ul>
+<li>特点<ul>
+<li>适合执行周期长且实时性要求不高的场景</li>
+<li>引入消息机制后，同步的事务操作变为基于消 息执行的异步操作, 避免了分布式事务中的同步阻塞操作的影响，并实现了两个服务的解耦。</li>
+</ul>
+</li>
+</ul>
+        
+          <a class="article-more-a" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/#more">more >></a>
+        
+      
+
+       <!-- 添加版权声明 -->
+    
+
+  <div class="declare" hidden="hidden"></div>
+
+      <!-- 添加版权声明 -->
+      
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">分布式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/分布式//" class="article-tag-list-link color4">分布式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-梯度" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/02/04/%E6%A2%AF%E5%BA%A6/">梯度</a>
+    </h1>
+  
+
+        
+        <a href="/2021/02/04/%E6%A2%AF%E5%BA%A6/" class="archive-article-date">
+  	<time datetime="2021-02-04T03:48:05.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-04</time>
+</a>
+            
+        
+      </header>
+    
+    <div align="center" class="post-count">
+    字数：604字 | 预计阅读时长：2分钟
+</div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
+<li><p>deep后带来的信息传递/梯度传递问题</p>
+<ul>
+<li><p>层数过多导致？sigmoid和tanh为什么会导致梯度消失？</p>
+<ol>
+<li>直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。</li>
+<li>反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使用激活函数如sigmoid，导数小于一，因此累乘会逐渐变小，导致梯度消失，前面的网络层权重更新变慢；如果权重 本身比较大，累乘会导致前面网络的参数偏导数变大，产生数值上溢。<br>    </li>
+</ol>
+</li>
+<li><p>梯度消失</p>
+<ol>
+<li>原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应</li>
+<li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br></li></ol></li></ul></li></ul>
+        
+          <a class="article-more-a" href="/2021/02/04/%E6%A2%AF%E5%BA%A6/#more">more >></a>
+        
+      
+
+       <!-- 添加版权声明 -->
+    
+
+  <div class="declare" hidden="hidden"></div>
+
+      <!-- 添加版权声明 -->
+      
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">dl</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/dl//" class="article-tag-list-link color3">dl</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/02/04/%E6%A2%AF%E5%BA%A6/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-分布式事务-上" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/">分布式事务</a>
+    </h1>
+  
+
+        
+        <a href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/" class="archive-article-date">
+  	<time datetime="2021-02-04T03:30:17.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-04</time>
+</a>
+            
+        
+      </header>
+    
+    <div align="center" class="post-count">
+    字数：2.6k字 | 预计阅读时长：9分钟
+</div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>摘要</strong></p>
+<p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务<br>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
+        
+          <a class="article-more-a" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/#more">more >></a>
+        
+      
+
+       <!-- 添加版权声明 -->
+    
+
+  <div class="declare" hidden="hidden"></div>
+
+      <!-- 添加版权声明 -->
+      
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">分布式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/分布式//" class="article-tag-list-link color4">分布式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-dubbo-spi" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/01/31/dubbo-spi/">dubbo-spi</a>
+    </h1>
+  
+
+        
+        <a href="/2021/01/31/dubbo-spi/" class="archive-article-date">
+  	<time datetime="2021-01-31T14:11:31.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-01-31</time>
+</a>
+            
+        
+      </header>
+    
+    <div align="center" class="post-count">
+    字数：715字 | 预计阅读时长：2分钟
+</div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+        
+          <a class="article-more-a" href="/2021/01/31/dubbo-spi/#more">more >></a>
+        
+      
+
+       <!-- 添加版权声明 -->
+    
+
+  <div class="declare" hidden="hidden"></div>
+
+      <!-- 添加版权声明 -->
+      
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">dubbo</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/dubbo//" class="article-tag-list-link color1">dubbo</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/01/31/dubbo-spi/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
   
     <article id="post-redis" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
@@ -468,11 +993,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">ml</a>
+                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+                <a href="javascript:void(0)" class="js-tag color3">ml</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -484,11 +1009,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">方法论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">股市理论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">历史</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">货银</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">货币政策</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
             
             <div class="clearfix"></div>
