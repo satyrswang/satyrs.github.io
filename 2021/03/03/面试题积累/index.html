@@ -6,20 +6,18 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
-  <title>银行拨备 | satyrswang</title>
+  <title>面试题积累 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="拨备有一个重要的功能，就是“以丰补歉”，以平滑利润。">
+  <meta name="description" content="java1、线程安全地使用listCollections.SynchronizedList能把所有 List 接口的实现类转换成线程安全的List，比 Vector 有更好的扩展性和兼容性java.util.concurrent.CopyOnWriteArrayList，读不加锁，写加锁、复制后写，读多写少的场景合适，写多的场景要复制，不合适。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="银行拨备">
-<meta property="og:url" content="https://satyrswang.github.io/2021/02/17/%E9%93%B6%E8%A1%8C%E6%8B%A8%E5%A4%87/index.html">
+<meta property="og:title" content="面试题积累">
+<meta property="og:url" content="https://satyrswang.github.io/2021/03/03/%E9%9D%A2%E8%AF%95%E9%A2%98%E7%A7%AF%E7%B4%AF/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="拨备有一个重要的功能，就是“以丰补歉”，以平滑利润。">
+<meta property="og:description" content="java1、线程安全地使用listCollections.SynchronizedList能把所有 List 接口的实现类转换成线程安全的List，比 Vector 有更好的扩展性和兼容性java.util.concurrent.CopyOnWriteArrayList，读不加锁，写加锁、复制后写，读多写少的场景合适，写多的场景要复制，不合适。">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-02-17T14:34:15.000Z">
-<meta property="article:modified_time" content="2021-02-21T11:35:21.761Z">
+<meta property="article:published_time" content="2021-03-03T12:19:58.000Z">
+<meta property="article:modified_time" content="2021-03-04T09:52:20.060Z">
 <meta property="article:author" content="yuqing wang">
-<meta property="article:tag" content="货银">
-<meta property="article:tag" content="商业银行">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
@@ -85,7 +83,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">27.4k</span>
+    总字数 <span class="post-count">20.5k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -161,42 +159,86 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-银行拨备" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-面试题积累" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      银行拨备
+      面试题积累
     </h1>
   
 
         
-        <a href="/2021/02/17/%E9%93%B6%E8%A1%8C%E6%8B%A8%E5%A4%87/" class="archive-article-date">
-  	<time datetime="2021-02-17T14:34:15.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-17</time>
+        <a href="/2021/03/03/%E9%9D%A2%E8%AF%95%E9%A2%98%E7%A7%AF%E7%B4%AF/" class="archive-article-date">
+  	<time datetime="2021-03-03T12:19:58.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-03-03</time>
 </a>
             
         
       </header>
     
     <div align="center" class="post-count">
-    字数：764字 | 预计阅读时长：2分钟
+    字数：1.7k字 | 预计阅读时长：6分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p><br> <br></p>
-<p>拨备有一个重要的功能，就是“以丰补歉”，以平滑利润。</p>
+        <h4 id="java"><a href="#java" class="headerlink" title="java"></a>java</h4><p>1、线程安全地使用list<br>Collections.SynchronizedList能把所有 List 接口的实现类转换成线程安全的List，比 Vector 有更好的扩展性和兼容性<br>java.util.concurrent.CopyOnWriteArrayList，读不加锁，写加锁、复制后写，读多写少的场景合适，写多的场景要复制，不合适。</p>
 <a id="more"></a>
 
+<p>2、异常类<br>javap -verbose看athrow<br>Error\Exception都是Throwable，Exception又分为检查和非检查。<br>JVM 规定继承自 RuntimeException 的异常都是 UncheckedException.<br>JVM 规定，每个函数必须对自己要抛出的异常心中有数，在函数声明时通过 throws 语句将该函数可能会抛出的异常声明出来。<br>finally的return会把其他的return给覆盖。</p>
+<p>3、HashMap、ConcurrentHashMap</p>
+<ul>
+<li><p>Node对象内部的hash字段，这个hash值是怎么得到呢？hash字段为什么采用高低位异或？</p>
 <blockquote>
-<p>为什么要平滑利润？<br><br>如果银行全部股东一直没有变动，那么其实要不要以丰补歉都是一样的，反正赚和亏都是这些股东的。但是，因为股东每个交易日有进有出，所以得考虑利润跨期平滑问题。<br><br>假设有一家银行，过去每年盈利100元，非常稳定地持续了5年以上。突然有一年，发生了一笔不良资产，当年会亏损200元。如果这家银行没有以丰补歉，而是前5年把利润全分红了，然后有股票换手，有新股东进来，然后到了第6年亏损200元，那么新股东怎么都不会开心的。他们会觉得，前面的股东赚走了贷款的利息，而这笔贷款发生违约时，亏损让自己承担，这太不公平了。<br><br>这跟信用债交易有点类似。有些信用债在违约发生前发生交易，新买入的投资者成了接盘侠……</p>
+<p>当数组的长度很短时，只有低位数的hashcode值能参与运算。而让高16位参与运算可以更好的均匀散列，减少碰撞，进一步降低hash冲突的几率。并且使得高16位和低16位的信息都被保留了。</p>
 </blockquote>
-<p>如果按照要求计提拨备，也很做到平滑利润（不良太多，把超额拨备消耗完毕之后还不够）。那么，还有一个方法，就是在不良贷款的确认上动手脚。因为不良资产和非不良资产之间，并没有清晰、客观的边界，边界划分在哪，是有一定的主观性的。</p>
-<p>基于拨备覆盖率指标，我们可以有这样一个假设（确实存在例外的情况）：<code>银行不太可能一边宽松认定不良（甚至隐藏不良），一边又计提大量超额拨备，保持很高的拨备覆盖率。</code></p>
-<blockquote>
-<p>（1）如果一家银行拨备覆盖率远超监管标准（比如150%），并且还在持续提升，那么很明显是处于丰的阶段。很显然，市场上，这样的银行股，估值一般不低，而且主升浪是从它们拨备覆盖率开始显著上升开始的。<br><br>（2）如果一家银行拨备覆盖率在较长时期内仅维持在监管标准附近，那么有可能是：每年的营业收入用于消化存量不良之后，无能力留存额外的拨备。甚至，它是每年收入能消化多少不良就确认多少不良，并且还有存量不良还未消化完毕（存量不良有可能还未确认到报表中），还在补欠。<br><br>（3）如果一家银行拨备覆盖率高位回落，可能也是处于补欠的阶段，即每年收入已经不足以消化新发生不良，而是需要拿过去的超额拨备去消化新发生的不良。<br><br>（4）一家银行的拨备覆盖率从监管标准开始起飞，则有可能是存量不良处置完毕了，开始进入丰的阶段，积累超额拨备。</p>
-</blockquote>
+</li>
+<li><p>填入table的数组的脚标怎么算的？<br>hash ^ (hash&gt;&gt;&gt; 16) (&gt;&gt;&gt;:无符号右移、高位补0)<br>(len-1) &amp; hash</p>
+</li>
+<li><p>put数据的过程？<br>分四种情况。无数据则直接放入，有链且key同则替换，有链且key不同则尾插(再判断大小看是否树化)，红黑树则红黑树插入。</p>
+</li>
+<li><p>红黑树的写入操作，是怎么找到父节点的，找父节点流程？</p>
+</li>
+<li><p>TreeNode数据结构，简单说下。<br>key value next hash</p>
+</li>
+<li><p>红黑树的原则有哪些呢？<br>root、叶子为黑；黑高相同；红色孩子为黑</p>
+</li>
+<li><p>JDK8 hashmap为什么引入红黑树？解决什么问题？<br>hash冲突较多时，查询和插入、删除的性能。</p>
+</li>
+<li><p>hashmap扩容后，老表的数据怎么迁移到扩容后的表的呢？hashmap扩容后，迁移数据发现该slot是颗红黑树，怎么处理呢？<br>数组翻倍扩容，将旧数据每个key都按照脚标公式重新计算。红黑树则进行insert操作。</p>
+</li>
+<li><p>为什么hashmap大小要为2的幂次方数<br>一个key的hashCode是一个int整数，而int在内存中是以二进制数存储，位运算比运算符运算更高效。当长度为2的幂次方数时，hash &amp; (length -1) = hash % length</p>
+</li>
+</ul>
+<p>4、ConcurrentHashMap</p>
+<ul>
+<li><p>多线程下的hashmap替代<br>Collections.synchronizedMap(Map)创建线程安全的map集合；Hashtable；ConcurrentHashMap</p>
+</li>
+<li><p>Collections.synchronizedMap是怎么实现线程安全<br>在SynchronizedMap内部维护了一个普通对象Map，还有排斥锁mute。<code>Collections.synchronizedMap(new HashMap&lt;&gt;(16));</code>将对象排斥锁赋值为this。创建出synchronizedMap之后，再操作map的时候，就会对方法上锁。</p>
+</li>
+<li><p>HashTable？</p>
+</li>
+</ul>
+<p>1.实现：Hashtable 继承了 Dictionary类，而 HashMap 继承的是 AbstractMap 类。<br>2.并发：HashMap相比Hashtable是线程安全的，但是是synchronized效率不高。<br>3.异常：Hashtable 是不允许键或值为 null 的，HashMap 的键值则都可以为 null。即为Hashtable在我们put 空值的时候会直接抛空指针异常，但是HashMap做了特殊处理。<br>Hashtable使用的是安全失败机制（fail-safe），这种机制会使你此次读到的数据不一定是最新的数据。如果你使用null值，就会使得其无法判断对应的key是不存在还是为空，因为你无法再调用一次contain(key）来对key是否存在进行判断，ConcurrentHashMap同理。<br>4.初始化、扩容不同<br>5.迭代器不同：HashMap 中的 Iterator 迭代器是 fail-fast 的，而 Hashtable 的 Enumerator 不是 fail-fast 的。所以，当其他线程改变了HashMap 的结构，如：增加、删除元素，将会抛出ConcurrentModificationException 异常，而 Hashtable 则不会。</p>
+<ul>
+<li><p>concurrenthashmap并发度设计？<br>ConcurrentHashMap 采用了分段锁技术，其中 Segment 继承于 ReentrantLock。理论上 ConcurrentHashMap 支持 CurrencyLevel (Segment 数组数量)的线程并发。1.8采用了 CAS + synchronized 来保证并发安全性。</p>
+</li>
+<li><p>1.7如何解决HahsMap闭环问题<br>Segment 对象是一把锁，所以在 rehash 的过程中，其他线程无法对segment 的 hash 表做操作</p>
+</li>
+<li><p>put?</p>
+</li>
+</ul>
+<p>1.7时：<br>根据key的hash值，在Segment数组中找到相应的位置，如果相应位置的Segment还未初始化，则通过CAS进行赋值。首先第一步的时候会尝试获取锁，如果获取失败肯定就有其他线程存在竞争，则利用 scanAndLockForPut() 自旋获取锁。尝试自旋获取锁。如果重试的次数达到了 MAX_SCAN_RETRIES 则改为阻塞锁获取，保证能获取成功。如果已经初始化，则执行Segment对象的put方法通过加锁机制插入数据。</p>
+<p>1.8时：<br>根据 key 计算出 hashcode 。判断是否需要进行初始化。即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。如果当前位置的 hashcode == MOVED == -1,则需要进行扩容。如果都不满足，则利用 synchronized 锁写入数据。如果数量大于 TREEIFY_THRESHOLD 则要转换为红黑树。</p>
+<ul>
+<li>size？</li>
+</ul>
+<p>1.7：<br>先采用不加锁的方式，连续计算元素的个数，最多计算3次：如果前后两次计算结果相同，则说明计算出来的元素个数是准确的；如果前后两次计算结果都不同，则给每个Segment进行加锁，再计算一次元素的个数；</p>
+<p>1.8：</p>
+<p>5、fail-fast？<br>1.原理：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变modCount的值。每当迭代器使用hashNext()/next()遍历下一个元素之前，都会检测modCount变量是否为expectedmodCount值，是的话就返回遍历；否则抛出异常，终止遍历。如果集合发生变化时修改modCount值刚好又设置为了expectedmodCount值，则异常不会抛出。因此，不能依赖于这个异常是否抛出而进行并发操作的编程，这个异常只建议用于检测并发修改的bug。<br>2.java.util包下的集合类都是快速失败的，不能在多线程下发生并发修改<br>3.安全失败（fail—safe）：java.util.concurrent包下的容器都是安全失败，可以在多线程下并发使用，并发修改。</p>
+<p>6、volatile<br>保证了不同线程对这个变量进行操作时的可见性；禁止进行指令重排序（实现有序性）；volatile 只能保证对单次读/写的原子性。i++ 这种操作不能保证原子性。</p>
+<p>7、</p>
 
       
 
@@ -210,7 +252,7 @@
     
     <br>
     <strong>本文链接：</strong>
-    <a href="https://satyrswang.github.io/2021/02/17/银行拨备/" title="银行拨备" target="_blank">https://satyrswang.github.io/2021/02/17/银行拨备/</a>
+    <a href="https://satyrswang.github.io/2021/03/03/面试题积累/" title="面试题积累" target="_blank">https://satyrswang.github.io/2021/03/03/面试题积累/</a>
     <br>
     <strong>版权声明：</strong>
     本作品采用
@@ -257,37 +299,7 @@
     <div class="article-info article-info-index">
       
       
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">货银</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">商业银行</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
       
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/货银//" class="article-tag-list-link color3">货银</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/货银/商业银行//" class="article-tag-list-link color5">商业银行</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
 
       
 
@@ -337,7 +349,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=https://satyrswang.github.io/2021/02/17/%E9%93%B6%E8%A1%8C%E6%8B%A8%E5%A4%87/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://satyrswang.github.io/2021/03/03/%E9%9D%A2%E8%AF%95%E9%A2%98%E7%A7%AF%E7%B4%AF/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -351,18 +363,9 @@
   
 <nav id="article-nav">
   
-    <a href="/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/" id="article-nav-newer" class="article-nav-link-wrap">
-      <i class="icon-circle-left"></i>
-      <div class="article-nav-title">
-        
-          决策树
-        
-      </div>
-    </a>
   
-  
-    <a href="/2021/02/17/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">通货膨胀</div>
+    <a href="/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">通货膨胀-下</div>
       <i class="icon-circle-right"></i>
     </a>
   
@@ -492,6 +495,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">ml</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
               </li>
              
@@ -500,23 +507,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">ml</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">方法论</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">分布式</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">股市理论</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">历史</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -525,10 +516,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">货币政策</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
               </li>
             
             <div class="clearfix"></div>
