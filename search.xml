@@ -325,42 +325,6 @@
       </tags>
   </entry>
   <entry>
-    <title>redis</title>
-    <url>/2021/01/31/redis/</url>
-    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
-<a id="more"></a>
-<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
-<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
-<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
-<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
-<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
-<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
-<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
-<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
-<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
-<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
-<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
-<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
-<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
-<p>14、cluster<br>Cluster bus通信、gossip协议</p>
-<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
-<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
-<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
-<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
-<p>19、穿透<br>没查到则写一个空值到redis</p>
-<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
-<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
-<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
-<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
-]]></content>
-      <categories>
-        <category>redis</category>
-      </categories>
-      <tags>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>决策树</title>
     <url>/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/</url>
     <content><![CDATA[<br>
@@ -414,6 +378,42 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>redis</title>
+    <url>/2021/01/31/redis/</url>
+    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+<a id="more"></a>
+<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
+<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
+<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
+<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
+<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
+<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
+<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
+<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
+<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
+<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
+<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
+<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
+<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
+<p>14、cluster<br>Cluster bus通信、gossip协议</p>
+<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
+<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
+<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
+<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
+<p>19、穿透<br>没查到则写一个空值到redis</p>
+<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
+<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
+<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
+<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
+]]></content>
+      <categories>
+        <category>redis</category>
+      </categories>
+      <tags>
+        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
