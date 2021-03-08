@@ -6,17 +6,29 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
-  <title>国际金融 | satyrswang</title>
+  <title>graphsage | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="国际金融">
-<meta property="og:url" content="https://satyrswang.github.io/%E5%9B%BD%E9%99%85%E9%87%91%E8%9E%8D/index.html">
+  <meta name="description" content="GCN 卷积数学上卷积的两个例子：  一个对象（吃冰淇凌）对一个系统（体重）的作用效果满足线性原理、累加原理。该对象对这个系统连续作用了一段时间后，求该系统的状态。这个时候，一个卷积就可以求出来了！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="graphsage">
+<meta property="og:url" content="https://satyrswang.github.io/2021/03/08/graphsage/index.html">
 <meta property="og:site_name" content="satyrswang">
+<meta property="og:description" content="GCN 卷积数学上卷积的两个例子：  一个对象（吃冰淇凌）对一个系统（体重）的作用效果满足线性原理、累加原理。该对象对这个系统连续作用了一段时间后，求该系统的状态。这个时候，一个卷积就可以求出来了！">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-02-17T07:30:18.000Z">
-<meta property="article:modified_time" content="2021-02-17T07:30:18.041Z">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/卷积.jpg">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/laplacian.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/GCN%E5%AD%A6%E4%B9%A0%E7%AD%96%E7%95%A5.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/%E9%80%90%E5%B1%82%E4%BC%A0%E6%92%AD%E5%85%AC%E5%BC%8F.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/visual_graphsage.webp">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/graphsage.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/K解释.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/loss.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/loss解释.png">
+<meta property="article:published_time" content="2021-03-08T02:36:08.000Z">
+<meta property="article:modified_time" content="2021-03-08T06:24:44.842Z">
 <meta property="article:author" content="yuqing wang">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://satyrswang.github.io/2021/03/08/graphsage/卷积.jpg">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
   
@@ -157,31 +169,101 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="page-" class="article article-type-page " itemscope itemprop="blogPost">
+            <article id="post-graphsage" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      国际金融
+      graphsage
     </h1>
   
 
         
-        <a href="/%E5%9B%BD%E9%99%85%E9%87%91%E8%9E%8D/index.html" class="archive-article-date">
-  	<time datetime="2021-02-17T07:30:18.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-17</time>
+        <a href="/2021/03/08/graphsage/" class="archive-article-date">
+  	<time datetime="2021-03-08T02:36:08.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-03-08</time>
 </a>
             
         
       </header>
     
     <div align="center" class="post-count">
-    字数：0字 | 预计阅读时长：1分钟
+    字数：1.7k字 | 预计阅读时长：5分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <h4 id="GCN"><a href="#GCN" class="headerlink" title="GCN"></a>GCN</h4><ul>
+<li>卷积<br>数学上卷积的两个例子：</li>
+</ul>
+<p>一个对象（吃冰淇凌）对一个系统（体重）的作用效果满足线性原理、累加原理。该对象对这个系统连续作用了一段时间后，求该系统的状态。这个时候，一个卷积就可以求出来了！</p>
+<a id="more"></a>
+<!-- ![卷积](卷积.jpg) -->
+<br>
+第二个例子：
+<img src="/2021/03/08/graphsage/卷积.jpg" width="100%" height="700">
+
+<hr>
+<p>DL中的卷积：</p>
+<p>CNN卷积本质是，共享参数的filter过滤器，像素点加权构成feature map 实现特征提取。<br>a）平滑滤波 b）边缘提取，很容易通过设计特定的“卷积核”，然后将其与像素矩阵的对应元素（不进行旋转）相乘得到。<br>a）就是将中心像素值与周围临近的像素进行平均，自然就能“削峰填谷”，实现平滑处理<br>b) 中心像素复制n份，减去周围n个临近的像素值。相近的则减为0，边缘才被留下。<br>卷积神经网络中“卷积”，是为了提取图像的特征，其实只借鉴了数学卷积中“加权求和”的特点。</p>
+<ul>
+<li><p>为什么需要GCN<br>CNN LSTM等 对非欧几里得空间数据(eg：社交网络、信息网络等)进行处理上却存在一定的局限性。<br>用GCN：拓扑图中每个node相邻的个数不同，不能用同样大小的filter进行平移提取feature。任何数据在赋范空间内都可以建立拓扑关联，如谱聚类。GCN是区别于CV NLP的任务的模型。</p>
+</li>
+<li><p>图学习任务<br>1、图节点分类任务：图中每个节点都有对应的特征，当我们已知一些节点的类别的时候，可以设计分类任务针对未知节点进行分类。我们接下来要介绍的 GCN、GraphSAGE、GAT模型都是对图上的节点分类。<br>2、图边结构预测任务：图中的节点和节点之间的边关系可能在输入数据中能够采集到，而有些隐藏的边需要我们挖掘出来，这类任务就是对边的预测任务，也就是对节点和节点之间关系的预测。<br>3、图的分类：对于整个图来说，我们也可以对图分类，图分类又称为图的同构问题，基本思路是将图中节点的特征聚合起来作为图的特征，再进行分类。</p>
+</li>
+</ul>
+<p>如：<br>1、节点分类—反欺诈：因为图中每个节点都拥有自己的特征信息。通过该特征信息，我们可以构建一个风控系统，如果交易节点所关联的用户 IP 和收货地址与用户注册 IP 和注册地址不匹配，那么系统将有可能认为该用户存在欺诈风险。<br>2、边结构预测—商品推荐：图中每个节点都具有结构信息。如果用户频繁购买某种类别商品或对某种类别商品评分较高，那么系统就可以认定该用户对该类商品比较感兴趣，所以就可以向该用户推荐更多该类别的商品。</p>
+<ul>
+<li>拉普拉斯矩阵<br><img src="/2021/03/08/graphsage/laplacian.png" alt="laplacian"></li>
+</ul>
+<hr>
+<ul>
+<li><p>GCN主要贡献<br>这篇文章的主要贡献是为图半监督分类任务设计了一个简单并且效果好的神经网络模型，这个模型由谱图卷积(spectral graph convolution)的一阶近似推导而来，具有理论基础。</p>
+</li>
+<li><p>GCN学习策略</p>
+</li>
+</ul>
+<p><img src="/2021/03/08/graphsage/GCN%E5%AD%A6%E4%B9%A0%E7%AD%96%E7%95%A5.png" alt="GCN学习策略"></p>
+<ul>
+<li><p>多层图卷积网络(Graph Convolutional Network, GCN)的逐层传播公式<br><img src="/2021/03/08/graphsage/%E9%80%90%E5%B1%82%E4%BC%A0%E6%92%AD%E5%85%AC%E5%BC%8F.png" alt="逐层传播公式"></p>
+</li>
+<li><p>谱图卷积(Spectral Graph Convolutions)</p>
+</li>
+<li><p>逐层线性模型</p>
+</li>
+<li><p>半监督学习节点分类</p>
+</li>
+<li><p>传播公式解释</p>
+</li>
+</ul>
+<p>todo</p>
+<h4 id="graphsage"><a href="#graphsage" class="headerlink" title="graphsage"></a>graphsage</h4><p>1、比GCN进步之处<br>GCN的训练方式需要将邻接矩阵和特征矩阵一起放到内存或者显存里，在大规模图数据上是不可取的。其次，GCN在训练时需要知道整个图的结构信息(包括待预测的节点), 这在现实某些任务中也不能实现(比如用今天训练的图模型预测明天的数据，那么明天的节点是拿不到的)。GraphSAGE的出现就是为了解决这样的问题。</p>
+<p>GraphSAGE采用了采样的机制，使得图模型可以应用到大规模的图结构数据中，是目前几乎所有工业上图模型的雏形。<br>进一步：每个节点这么多邻居，采样能否考虑到邻居的相对重要性呢，或者我们在聚合计算中能否考虑到邻居的相对重要性? </p>
+<p>2、inductive 还是 transductive<br>如果训练时用到了测试集或验证集样本的信息(或者说，测试集和验证集在训练的时候是可见的), 我们把这种学习方式叫做transductive learning, 反之，称为inductive learning. 显然，我们所处理的大多数机器学习问题都是inductive learning, 因为我们刻意的将样本集分为训练/验证/测试，并且训练的时候只用训练样本。然而，在GCN中，训练节点收集邻居信息的时候，用到了测试或者验证样本，所以它是transductive的。</p>
+<p>3、简单过程<br>思路一个网络里，我们知道部分点的分类，我们希望通过各种方法，知道其他未知点的属性。解决对未知节点的泛化问题。</p>
+<p>GraphSAGE是一个inductive框架，在具体实现中，训练时它仅仅保留训练样本到训练样本的边。inductive learning 的优点是可以利用已知节点的信息为未知节点生成Embedding. GraphSAGE 取自 Graph SAmple and aggreGatE, SAmple指如何对邻居个数进行采样。aggreGatE指拿到邻居的embedding之后如何汇聚这些embedding以更新自己的embedding信息。<br><br></p>
+<img src="/2021/03/08/graphsage/visual_graphsage.webp" width="80%" height="300">
+
+<hr>
+<p>4、具体步骤及伪代码</p>
+<p>步骤：<br>1.对邻居采样<br>2.采样后的邻居embedding传到节点上来，并使用一个聚合函数聚合这些邻居信息以更新节点的embedding<br>3.根据更新后的embedding预测节点的标签</p>
+<!-- ![graphsage](graphsage.png) -->
+<img src="/2021/03/08/graphsage/graphsage.png" width="80%" height="300">
+<br>
+
+
+<p>描述：初始化各个节点emb，对每个节点emb采样邻居的emb，对邻居进行聚合，将自己的emb和聚合后的emb做一个非线性变换，更新为自己的emb。</p>
+<p>5、K的解释</p>
+<p>K：聚合器数量，权重矩阵数量，层数。</p>
+<!-- ![k](K解释.png) -->
+<img src="/2021/03/08/graphsage/K解释.png" width="70%" height="600">
+
+<br>
+
+<p>6、采样<br>定长抽样。定义邻居个数，进行有放回的重采样/负采样达到个数。每个node采样个数一致，为了把多个邻居拼成tensor放入gpu批量训练。</p>
+<p>7、聚合器<br>平均效果最好。<br>也有用lstm聚合器和pooling聚合器，</p>
+<p>8、学习过程<br>有监督：交叉熵<br>无监督：学习出来的相邻node的emb应该尽可能接近。此时的loss如下。<br><img src="/2021/03/08/graphsage/loss.png" width="70%" height="100"><br><img src="/2021/03/08/graphsage/loss解释.png" width="70%" height="400"></p>
+
       
 
        <!-- 添加版权声明 -->
@@ -194,7 +276,7 @@
     
     <br>
     <strong>本文链接：</strong>
-    <a href="https://satyrswang.github.io/国际金融/index.html" title="国际金融" target="_blank">https://satyrswang.github.io/国际金融/index.html</a>
+    <a href="https://satyrswang.github.io/2021/03/08/graphsage/" title="graphsage" target="_blank">https://satyrswang.github.io/2021/03/08/graphsage/</a>
     <br>
     <strong>版权声明：</strong>
     本作品采用
@@ -291,7 +373,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=https://satyrswang.github.io/%E5%9B%BD%E9%99%85%E9%87%91%E8%9E%8D/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://satyrswang.github.io/2021/03/08/graphsage/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -303,6 +385,16 @@
 </article>
 
   
+<nav id="article-nav">
+  
+  
+    <a href="/2021/03/03/%E9%9D%A2%E8%AF%95%E9%A2%98%E7%A7%AF%E7%B4%AF/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">面试题积累</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
 
 <aside class="wrap-side-operation">
     <div class="mod-side-operation">
@@ -353,7 +445,7 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
 		isTag: false,
 		isCategory: false,

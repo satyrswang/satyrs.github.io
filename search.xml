@@ -132,35 +132,6 @@
       </tags>
   </entry>
   <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<a id="more"></a>
-
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
-<p>todo</p>
-]]></content>
-      <categories>
-        <category>dubbo</category>
-      </categories>
-      <tags>
-        <tag>dubbo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>SVM</title>
     <url>/2021/02/04/SVM/</url>
     <content><![CDATA[<ul>
@@ -327,6 +298,110 @@
       <tags>
         <tag>ml</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<a id="more"></a>
+
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+<p>todo</p>
+]]></content>
+      <categories>
+        <category>dubbo</category>
+      </categories>
+      <tags>
+        <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>graphsage</title>
+    <url>/2021/03/08/graphsage/</url>
+    <content><![CDATA[<h4 id="GCN"><a href="#GCN" class="headerlink" title="GCN"></a>GCN</h4><ul>
+<li>卷积<br>数学上卷积的两个例子：</li>
+</ul>
+<p>一个对象（吃冰淇凌）对一个系统（体重）的作用效果满足线性原理、累加原理。该对象对这个系统连续作用了一段时间后，求该系统的状态。这个时候，一个卷积就可以求出来了！</p>
+<a id="more"></a>
+<!-- ![卷积](卷积.jpg) -->
+<br>
+第二个例子：
+<img src="/2021/03/08/graphsage/卷积.jpg" width="100%" height="700">
+
+<hr>
+<p>DL中的卷积：</p>
+<p>CNN卷积本质是，共享参数的filter过滤器，像素点加权构成feature map 实现特征提取。<br>a）平滑滤波 b）边缘提取，很容易通过设计特定的“卷积核”，然后将其与像素矩阵的对应元素（不进行旋转）相乘得到。<br>a）就是将中心像素值与周围临近的像素进行平均，自然就能“削峰填谷”，实现平滑处理<br>b) 中心像素复制n份，减去周围n个临近的像素值。相近的则减为0，边缘才被留下。<br>卷积神经网络中“卷积”，是为了提取图像的特征，其实只借鉴了数学卷积中“加权求和”的特点。</p>
+<ul>
+<li><p>为什么需要GCN<br>CNN LSTM等 对非欧几里得空间数据(eg：社交网络、信息网络等)进行处理上却存在一定的局限性。<br>用GCN：拓扑图中每个node相邻的个数不同，不能用同样大小的filter进行平移提取feature。任何数据在赋范空间内都可以建立拓扑关联，如谱聚类。GCN是区别于CV NLP的任务的模型。</p>
+</li>
+<li><p>图学习任务<br>1、图节点分类任务：图中每个节点都有对应的特征，当我们已知一些节点的类别的时候，可以设计分类任务针对未知节点进行分类。我们接下来要介绍的 GCN、GraphSAGE、GAT模型都是对图上的节点分类。<br>2、图边结构预测任务：图中的节点和节点之间的边关系可能在输入数据中能够采集到，而有些隐藏的边需要我们挖掘出来，这类任务就是对边的预测任务，也就是对节点和节点之间关系的预测。<br>3、图的分类：对于整个图来说，我们也可以对图分类，图分类又称为图的同构问题，基本思路是将图中节点的特征聚合起来作为图的特征，再进行分类。</p>
+</li>
+</ul>
+<p>如：<br>1、节点分类—反欺诈：因为图中每个节点都拥有自己的特征信息。通过该特征信息，我们可以构建一个风控系统，如果交易节点所关联的用户 IP 和收货地址与用户注册 IP 和注册地址不匹配，那么系统将有可能认为该用户存在欺诈风险。<br>2、边结构预测—商品推荐：图中每个节点都具有结构信息。如果用户频繁购买某种类别商品或对某种类别商品评分较高，那么系统就可以认定该用户对该类商品比较感兴趣，所以就可以向该用户推荐更多该类别的商品。</p>
+<ul>
+<li>拉普拉斯矩阵<br><img src="/2021/03/08/graphsage/laplacian.png" alt="laplacian"></li>
+</ul>
+<hr>
+<ul>
+<li><p>GCN主要贡献<br>这篇文章的主要贡献是为图半监督分类任务设计了一个简单并且效果好的神经网络模型，这个模型由谱图卷积(spectral graph convolution)的一阶近似推导而来，具有理论基础。</p>
+</li>
+<li><p>GCN学习策略</p>
+</li>
+</ul>
+<p><img src="/2021/03/08/graphsage/GCN%E5%AD%A6%E4%B9%A0%E7%AD%96%E7%95%A5.png" alt="GCN学习策略"></p>
+<ul>
+<li><p>多层图卷积网络(Graph Convolutional Network, GCN)的逐层传播公式<br><img src="/2021/03/08/graphsage/%E9%80%90%E5%B1%82%E4%BC%A0%E6%92%AD%E5%85%AC%E5%BC%8F.png" alt="逐层传播公式"></p>
+</li>
+<li><p>谱图卷积(Spectral Graph Convolutions)</p>
+</li>
+<li><p>逐层线性模型</p>
+</li>
+<li><p>半监督学习节点分类</p>
+</li>
+<li><p>传播公式解释</p>
+</li>
+</ul>
+<p>todo</p>
+<h4 id="graphsage"><a href="#graphsage" class="headerlink" title="graphsage"></a>graphsage</h4><p>1、比GCN进步之处<br>GCN的训练方式需要将邻接矩阵和特征矩阵一起放到内存或者显存里，在大规模图数据上是不可取的。其次，GCN在训练时需要知道整个图的结构信息(包括待预测的节点), 这在现实某些任务中也不能实现(比如用今天训练的图模型预测明天的数据，那么明天的节点是拿不到的)。GraphSAGE的出现就是为了解决这样的问题。</p>
+<p>GraphSAGE采用了采样的机制，使得图模型可以应用到大规模的图结构数据中，是目前几乎所有工业上图模型的雏形。<br>进一步：每个节点这么多邻居，采样能否考虑到邻居的相对重要性呢，或者我们在聚合计算中能否考虑到邻居的相对重要性? </p>
+<p>2、inductive 还是 transductive<br>如果训练时用到了测试集或验证集样本的信息(或者说，测试集和验证集在训练的时候是可见的), 我们把这种学习方式叫做transductive learning, 反之，称为inductive learning. 显然，我们所处理的大多数机器学习问题都是inductive learning, 因为我们刻意的将样本集分为训练/验证/测试，并且训练的时候只用训练样本。然而，在GCN中，训练节点收集邻居信息的时候，用到了测试或者验证样本，所以它是transductive的。</p>
+<p>3、简单过程<br>思路一个网络里，我们知道部分点的分类，我们希望通过各种方法，知道其他未知点的属性。解决对未知节点的泛化问题。</p>
+<p>GraphSAGE是一个inductive框架，在具体实现中，训练时它仅仅保留训练样本到训练样本的边。inductive learning 的优点是可以利用已知节点的信息为未知节点生成Embedding. GraphSAGE 取自 Graph SAmple and aggreGatE, SAmple指如何对邻居个数进行采样。aggreGatE指拿到邻居的embedding之后如何汇聚这些embedding以更新自己的embedding信息。<br><br></p>
+<img src="/2021/03/08/graphsage/visual_graphsage.webp" width="80%" height="300">
+
+<hr>
+<p>4、具体步骤及伪代码</p>
+<p>步骤：<br>1.对邻居采样<br>2.采样后的邻居embedding传到节点上来，并使用一个聚合函数聚合这些邻居信息以更新节点的embedding<br>3.根据更新后的embedding预测节点的标签</p>
+<!-- ![graphsage](graphsage.png) -->
+<img src="/2021/03/08/graphsage/graphsage.png" width="80%" height="300">
+<br>
+
+
+<p>描述：初始化各个节点emb，对每个节点emb采样邻居的emb，对邻居进行聚合，将自己的emb和聚合后的emb做一个非线性变换，更新为自己的emb。</p>
+<p>5、K的解释</p>
+<p>K：聚合器数量，权重矩阵数量，层数。</p>
+<!-- ![k](K解释.png) -->
+<img src="/2021/03/08/graphsage/K解释.png" width="70%" height="600">
+
+<br>
+
+<p>6、采样<br>定长抽样。定义邻居个数，进行有放回的重采样/负采样达到个数。每个node采样个数一致，为了把多个邻居拼成tensor放入gpu批量训练。</p>
+<p>7、聚合器<br>平均效果最好。<br>也有用lstm聚合器和pooling聚合器，</p>
+<p>8、学习过程<br>有监督：交叉熵<br>无监督：学习出来的相邻node的emb应该尽可能接近。此时的loss如下。<br><img src="/2021/03/08/graphsage/loss.png" width="70%" height="100"><br><img src="/2021/03/08/graphsage/loss解释.png" width="70%" height="400"></p>
+]]></content>
   </entry>
   <entry>
     <title>redis</title>
@@ -1025,6 +1100,7 @@
 <a id="more"></a>
 
 <p>2、异常类<br>javap -verbose看athrow<br>Error\Exception都是Throwable，Exception又分为检查和非检查。<br>JVM 规定继承自 RuntimeException 的异常都是 UncheckedException.<br>JVM 规定，每个函数必须对自己要抛出的异常心中有数，在函数声明时通过 throws 语句将该函数可能会抛出的异常声明出来。<br>finally的return会把其他的return给覆盖。</p>
+<hr>
 <p>3、HashMap、ConcurrentHashMap</p>
 <ul>
 <li><p>Node对象内部的hash字段，这个hash值是怎么得到呢？hash字段为什么采用高低位异或？</p>
@@ -1042,13 +1118,14 @@
 </li>
 <li><p>红黑树的原则有哪些呢？<br>root、叶子为黑；黑高相同；红色孩子为黑</p>
 </li>
-<li><p>JDK8 hashmap为什么引入红黑树？解决什么问题？<br>hash冲突较多时，查询和插入、删除的性能。</p>
+<li><p>JDK8 hashmap为什么引入红黑树？解决什么问题？<br>hash冲突较多时，查询和插入、删除的性能。保证查询效率（O(logn)）</p>
 </li>
 <li><p>hashmap扩容后，老表的数据怎么迁移到扩容后的表的呢？hashmap扩容后，迁移数据发现该slot是颗红黑树，怎么处理呢？<br>数组翻倍扩容，将旧数据每个key都按照脚标公式重新计算。红黑树则进行insert操作。</p>
 </li>
 <li><p>为什么hashmap大小要为2的幂次方数<br>一个key的hashCode是一个int整数，而int在内存中是以二进制数存储，位运算比运算符运算更高效。当长度为2的幂次方数时，hash &amp; (length -1) = hash % length</p>
 </li>
 </ul>
+<hr>
 <p>4、ConcurrentHashMap</p>
 <ul>
 <li><p>多线程下的hashmap替代<br>Collections.synchronizedMap(Map)创建线程安全的map集合；Hashtable；ConcurrentHashMap</p>
@@ -1068,15 +1145,34 @@
 </li>
 </ul>
 <p>1.7时：<br>根据key的hash值，在Segment数组中找到相应的位置，如果相应位置的Segment还未初始化，则通过CAS进行赋值。首先第一步的时候会尝试获取锁，如果获取失败肯定就有其他线程存在竞争，则利用 scanAndLockForPut() 自旋获取锁。尝试自旋获取锁。如果重试的次数达到了 MAX_SCAN_RETRIES 则改为阻塞锁获取，保证能获取成功。如果已经初始化，则执行Segment对象的put方法通过加锁机制插入数据。</p>
-<p>1.8时：<br>根据 key 计算出 hashcode 。判断是否需要进行初始化。即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。如果当前位置的 hashcode == MOVED == -1,则需要进行扩容。如果都不满足，则利用 synchronized 锁写入数据。如果数量大于 TREEIFY_THRESHOLD 则要转换为红黑树。</p>
+<p>1.8时：<br>key val必须不为空。根据 key 计算出 hashcode 。判断是否需要进行初始化–initTable 方法初始化。<br>初始化流程：使用了 CAS ，1、判断 sizeCtl 值是否小于 0，如果小于 0 则表示 ConcurrentHashMap 正在执行初始化操作，所以需要先等待一会，如果其它线程初始化失败还可以顶替上去。2、如果 sizeCtl 值大于等于 0，则基于 CAS 策略抢占标记 sizeCtl 为 -1，表示ConcurrentHashMap 正在执行初始化，然后构造 table，并更新 sizeCtl 的值<br>即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。如果当前位置的 hashcode == MOVED == -1,则需要进行扩容。如果都不满足，则利用 synchronized 锁把头节点被锁住了，保证了同时只有一个线程修改链表，防止出现链表成环。写入数据后，如果数量大于 TREEIFY_THRESHOLD 则要转换为红黑树。</p>
 <ul>
 <li>size？</li>
 </ul>
 <p>1.7：<br>先采用不加锁的方式，连续计算元素的个数，最多计算3次：如果前后两次计算结果相同，则说明计算出来的元素个数是准确的；如果前后两次计算结果都不同，则给每个Segment进行加锁，再计算一次元素的个数；</p>
-<p>1.8：</p>
+<p>1.8：<br>1.8中使用一个volatile类型的变量baseCount记录元素的个数，当插入新数据或则删除数据时，会通过addCount()方法更新baseCount1.8中的size实现比1.7简单多，因为元素个数保存baseCount中，部分元素的变化个数保存在CounterCell数组。累加baseCount和CounterCell数组中的数量，即可得到元素的总个数</p>
+<ul>
+<li>transfer、helper（并发扩容）</li>
+</ul>
+<hr>
 <p>5、fail-fast？<br>1.原理：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变modCount的值。每当迭代器使用hashNext()/next()遍历下一个元素之前，都会检测modCount变量是否为expectedmodCount值，是的话就返回遍历；否则抛出异常，终止遍历。如果集合发生变化时修改modCount值刚好又设置为了expectedmodCount值，则异常不会抛出。因此，不能依赖于这个异常是否抛出而进行并发操作的编程，这个异常只建议用于检测并发修改的bug。<br>2.java.util包下的集合类都是快速失败的，不能在多线程下发生并发修改<br>3.安全失败（fail—safe）：java.util.concurrent包下的容器都是安全失败，可以在多线程下并发使用，并发修改。</p>
 <p>6、volatile<br>保证了不同线程对这个变量进行操作时的可见性；禁止进行指令重排序（实现有序性）；volatile 只能保证对单次读/写的原子性。i++ 这种操作不能保证原子性。</p>
-<p>7、</p>
+<p>7、cas<br>CAS 只能保证一个共享变量的原子操作。<br>是乐观锁的一种实现方式，是一种轻量级锁。在准备写回数据时，比较原值是否修改，若未被其他线程修改则写回，若已被修改，则重新执行读取流程。这是一种乐观策略，认为并发操作并不总会发生。<br>ABA问题，CAS就无法判断了。用版本号 时间戳去保证。<br>自旋，cpu消耗大，不适合高并发。</p>
+<p>8、锁升级<br>针对 synchronized 获取锁的方式，JVM 使用了锁升级的优化方式，就是先使用偏向锁优先同一线程然后再次获取锁，如果失败，就升级为 CAS 轻量级锁，如果失败就会短暂自旋，防止线程被系统挂起。最后如果以上都失败就升级为重量级锁。</p>
+<hr>
+<p>9、synchronized<br>monitorenter和monitorexit – 挂起或者唤醒一个线程都需要操作系统 –用户和内核切换<br>对象锁锁的计算器-阻塞<br>自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁等技术来减少锁操作的开销。<br>修饰实例方法–对象实例的锁<br>修饰静态方法–当前类对象的锁<br>不要使用 synchronized(String a) – 字符串常量池 缓冲功能<br>JVM 通过该 ACC_SYNCHRONIZED 访问标志来辨别一个方法是否声明为同步方法，从而执行相应的同步调用。</p>
+<p>10、ReentrantLock<br>放弃等待，避免出现死锁<br>申请锁的时间顺序获得，默认非公平。<br>内部类Sync管理锁， 有两个实现，分别为 NonfairSync（非公平锁）和 FairSync（公平锁）<br>基于AQS<br>同时绑定对个对象</p>
+<p>11、java 中断机制</p>
+<p>12、condition状态</p>
+<p>13、AQS<br>每个线程被封装成一个Node，包含waitstatus(该线程的status)：不抢了、唤醒下一个、停在某个condition上、propagate<br>AQS中包含state(锁的status)：0代表没有被占用，大于 0 代表有线程持有当前锁，这个值可以大于 1，是因为锁可以重入，每次重入都加上 1</p>
+<p>公平锁：<code>if (!tryAcquire(arg) &amp;&amp;  &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) </code>先try，没有成功，这个时候需要把当前线程挂起，放到阻塞队列中。</p>
+<p>tryAcquire(arg)</p>
+<blockquote>
+<p>1如果队列每人，cas获取，没获取到，说明刚有人获取了，获取到的人标记下自己获取了。<br>2如果是重入的情况，计数+1。<br>3都不是则获取失败<br>返回true：1.没有线程在等待锁且CAS获取成功；2.重入锁，线程本来就持有锁，也就可以理所当然可以直接获取</p>
+</blockquote>
+<p>acquireQueued(addWaiter(Node.EXCLUSIVE), arg)</p>
+<blockquote>
+</blockquote>
 ]]></content>
       <categories>
         <category>面试</category>

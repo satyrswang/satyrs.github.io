@@ -16,7 +16,7 @@
 <meta property="og:description" content="java1、线程安全地使用listCollections.SynchronizedList能把所有 List 接口的实现类转换成线程安全的List，比 Vector 有更好的扩展性和兼容性java.util.concurrent.CopyOnWriteArrayList，读不加锁，写加锁、复制后写，读多写少的场景合适，写多的场景要复制，不合适。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-03-03T12:19:58.000Z">
-<meta property="article:modified_time" content="2021-03-04T10:47:14.644Z">
+<meta property="article:modified_time" content="2021-03-04T13:17:03.611Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="面试">
 <meta name="twitter:card" content="summary">
@@ -84,7 +84,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">29.1k</span>
+    总字数 <span class="post-count">31.8k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -180,7 +180,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：1.7k字 | 预计阅读时长：6分钟
+    字数：2.6k字 | 预计阅读时长：9分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -188,6 +188,7 @@
 <a id="more"></a>
 
 <p>2、异常类<br>javap -verbose看athrow<br>Error\Exception都是Throwable，Exception又分为检查和非检查。<br>JVM 规定继承自 RuntimeException 的异常都是 UncheckedException.<br>JVM 规定，每个函数必须对自己要抛出的异常心中有数，在函数声明时通过 throws 语句将该函数可能会抛出的异常声明出来。<br>finally的return会把其他的return给覆盖。</p>
+<hr>
 <p>3、HashMap、ConcurrentHashMap</p>
 <ul>
 <li><p>Node对象内部的hash字段，这个hash值是怎么得到呢？hash字段为什么采用高低位异或？</p>
@@ -205,13 +206,14 @@
 </li>
 <li><p>红黑树的原则有哪些呢？<br>root、叶子为黑；黑高相同；红色孩子为黑</p>
 </li>
-<li><p>JDK8 hashmap为什么引入红黑树？解决什么问题？<br>hash冲突较多时，查询和插入、删除的性能。</p>
+<li><p>JDK8 hashmap为什么引入红黑树？解决什么问题？<br>hash冲突较多时，查询和插入、删除的性能。保证查询效率（O(logn)）</p>
 </li>
 <li><p>hashmap扩容后，老表的数据怎么迁移到扩容后的表的呢？hashmap扩容后，迁移数据发现该slot是颗红黑树，怎么处理呢？<br>数组翻倍扩容，将旧数据每个key都按照脚标公式重新计算。红黑树则进行insert操作。</p>
 </li>
 <li><p>为什么hashmap大小要为2的幂次方数<br>一个key的hashCode是一个int整数，而int在内存中是以二进制数存储，位运算比运算符运算更高效。当长度为2的幂次方数时，hash &amp; (length -1) = hash % length</p>
 </li>
 </ul>
+<hr>
 <p>4、ConcurrentHashMap</p>
 <ul>
 <li><p>多线程下的hashmap替代<br>Collections.synchronizedMap(Map)创建线程安全的map集合；Hashtable；ConcurrentHashMap</p>
@@ -231,15 +233,34 @@
 </li>
 </ul>
 <p>1.7时：<br>根据key的hash值，在Segment数组中找到相应的位置，如果相应位置的Segment还未初始化，则通过CAS进行赋值。首先第一步的时候会尝试获取锁，如果获取失败肯定就有其他线程存在竞争，则利用 scanAndLockForPut() 自旋获取锁。尝试自旋获取锁。如果重试的次数达到了 MAX_SCAN_RETRIES 则改为阻塞锁获取，保证能获取成功。如果已经初始化，则执行Segment对象的put方法通过加锁机制插入数据。</p>
-<p>1.8时：<br>根据 key 计算出 hashcode 。判断是否需要进行初始化。即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。如果当前位置的 hashcode == MOVED == -1,则需要进行扩容。如果都不满足，则利用 synchronized 锁写入数据。如果数量大于 TREEIFY_THRESHOLD 则要转换为红黑树。</p>
+<p>1.8时：<br>key val必须不为空。根据 key 计算出 hashcode 。判断是否需要进行初始化–initTable 方法初始化。<br>初始化流程：使用了 CAS ，1、判断 sizeCtl 值是否小于 0，如果小于 0 则表示 ConcurrentHashMap 正在执行初始化操作，所以需要先等待一会，如果其它线程初始化失败还可以顶替上去。2、如果 sizeCtl 值大于等于 0，则基于 CAS 策略抢占标记 sizeCtl 为 -1，表示ConcurrentHashMap 正在执行初始化，然后构造 table，并更新 sizeCtl 的值<br>即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。如果当前位置的 hashcode == MOVED == -1,则需要进行扩容。如果都不满足，则利用 synchronized 锁把头节点被锁住了，保证了同时只有一个线程修改链表，防止出现链表成环。写入数据后，如果数量大于 TREEIFY_THRESHOLD 则要转换为红黑树。</p>
 <ul>
 <li>size？</li>
 </ul>
 <p>1.7：<br>先采用不加锁的方式，连续计算元素的个数，最多计算3次：如果前后两次计算结果相同，则说明计算出来的元素个数是准确的；如果前后两次计算结果都不同，则给每个Segment进行加锁，再计算一次元素的个数；</p>
-<p>1.8：</p>
+<p>1.8：<br>1.8中使用一个volatile类型的变量baseCount记录元素的个数，当插入新数据或则删除数据时，会通过addCount()方法更新baseCount1.8中的size实现比1.7简单多，因为元素个数保存baseCount中，部分元素的变化个数保存在CounterCell数组。累加baseCount和CounterCell数组中的数量，即可得到元素的总个数</p>
+<ul>
+<li>transfer、helper（并发扩容）</li>
+</ul>
+<hr>
 <p>5、fail-fast？<br>1.原理：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变modCount的值。每当迭代器使用hashNext()/next()遍历下一个元素之前，都会检测modCount变量是否为expectedmodCount值，是的话就返回遍历；否则抛出异常，终止遍历。如果集合发生变化时修改modCount值刚好又设置为了expectedmodCount值，则异常不会抛出。因此，不能依赖于这个异常是否抛出而进行并发操作的编程，这个异常只建议用于检测并发修改的bug。<br>2.java.util包下的集合类都是快速失败的，不能在多线程下发生并发修改<br>3.安全失败（fail—safe）：java.util.concurrent包下的容器都是安全失败，可以在多线程下并发使用，并发修改。</p>
 <p>6、volatile<br>保证了不同线程对这个变量进行操作时的可见性；禁止进行指令重排序（实现有序性）；volatile 只能保证对单次读/写的原子性。i++ 这种操作不能保证原子性。</p>
-<p>7、</p>
+<p>7、cas<br>CAS 只能保证一个共享变量的原子操作。<br>是乐观锁的一种实现方式，是一种轻量级锁。在准备写回数据时，比较原值是否修改，若未被其他线程修改则写回，若已被修改，则重新执行读取流程。这是一种乐观策略，认为并发操作并不总会发生。<br>ABA问题，CAS就无法判断了。用版本号 时间戳去保证。<br>自旋，cpu消耗大，不适合高并发。</p>
+<p>8、锁升级<br>针对 synchronized 获取锁的方式，JVM 使用了锁升级的优化方式，就是先使用偏向锁优先同一线程然后再次获取锁，如果失败，就升级为 CAS 轻量级锁，如果失败就会短暂自旋，防止线程被系统挂起。最后如果以上都失败就升级为重量级锁。</p>
+<hr>
+<p>9、synchronized<br>monitorenter和monitorexit – 挂起或者唤醒一个线程都需要操作系统 –用户和内核切换<br>对象锁锁的计算器-阻塞<br>自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁等技术来减少锁操作的开销。<br>修饰实例方法–对象实例的锁<br>修饰静态方法–当前类对象的锁<br>不要使用 synchronized(String a) – 字符串常量池 缓冲功能<br>JVM 通过该 ACC_SYNCHRONIZED 访问标志来辨别一个方法是否声明为同步方法，从而执行相应的同步调用。</p>
+<p>10、ReentrantLock<br>放弃等待，避免出现死锁<br>申请锁的时间顺序获得，默认非公平。<br>内部类Sync管理锁， 有两个实现，分别为 NonfairSync（非公平锁）和 FairSync（公平锁）<br>基于AQS<br>同时绑定对个对象</p>
+<p>11、java 中断机制</p>
+<p>12、condition状态</p>
+<p>13、AQS<br>每个线程被封装成一个Node，包含waitstatus(该线程的status)：不抢了、唤醒下一个、停在某个condition上、propagate<br>AQS中包含state(锁的status)：0代表没有被占用，大于 0 代表有线程持有当前锁，这个值可以大于 1，是因为锁可以重入，每次重入都加上 1</p>
+<p>公平锁：<code>if (!tryAcquire(arg) &amp;&amp;  &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) </code>先try，没有成功，这个时候需要把当前线程挂起，放到阻塞队列中。</p>
+<p>tryAcquire(arg)</p>
+<blockquote>
+<p>1如果队列每人，cas获取，没获取到，说明刚有人获取了，获取到的人标记下自己获取了。<br>2如果是重入的情况，计数+1。<br>3都不是则获取失败<br>返回true：1.没有线程在等待锁且CAS获取成功；2.重入锁，线程本来就持有锁，也就可以理所当然可以直接获取</p>
+</blockquote>
+<p>acquireQueued(addWaiter(Node.EXCLUSIVE), arg)</p>
+<blockquote>
+</blockquote>
 
       
 
@@ -386,6 +407,15 @@
   
 <nav id="article-nav">
   
+    <a href="/2021/03/08/graphsage/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          graphsage
+        
+      </div>
+    </a>
+  
   
     <a href="/2021/02/22/%E6%80%9D%E6%83%B3%E6%B7%B1%E5%BA%A6/" id="article-nav-older" class="article-nav-link-wrap">
       <div class="article-nav-title">思想深度</div>
@@ -518,11 +548,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+                <a href="javascript:void(0)" class="js-tag color3">ml</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">ml</a>
+                <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
               </li>
              
               <li class="article-tag-list-item">
