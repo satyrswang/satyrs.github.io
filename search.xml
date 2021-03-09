@@ -1,6 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>CRF</title>
+    <url>/2021/03/09/CRF/</url>
+    <content><![CDATA[<br>
+
+<p>本文主要介绍 线性链的CRF。应用于标注问题。<br>介绍：概率图模型、CRF的定义和表示方法，以及三个基本问题：概率计算、学习和预测。</p>
+<a id="more"></a>
+
+<br>
+
+<h3 id="概率无向图模型"><a href="#概率无向图模型" class="headerlink" title="概率无向图模型"></a>概率无向图模型</h3><p>1、无向图表示的随机变量之间：成对马尔科夫性、局部马尔科夫性、全局马尔科夫性。</p>
+<p>2、概率无向图模型定义：<br>联合概率满足上面的三个马尔科夫性，则称此联合概率分布为概率无向图模型或者马尔科夫随机出。</p>
+<p>3、团与最大团</p>
+<p>4、因子分解<br>联合分布表示为 最大团上的随机变量的函数的乘积形式的操作，称为概率无向图模型的因子分解。</p>
+<p>这个函数，就是 势函数。要求是正的。一般为指数函数。</p>
+<p>5、条件随机场</p>
+<p>给定随机变量x的条件下，随机变量y的马尔科夫随机场。</p>
+<p>学习时，学习条件概率模型。预测时利用条件概率，求得最大输出序列y。</p>
+<p>定义：</p>
+<p><img src="/2021/03/09/CRF/crf.png" alt="crf"></p>
+<!-- <img src=crf.png width=80% height=300> -->
+
+<p><img src="/2021/03/09/CRF/lccrf.png" alt="lccrf"></p>
+<!-- <img src=lccrf.png width=80% height=300> -->
+
+
+<br>
+
+<br>
+
+<h3 id="三种表达形式"><a href="#三种表达形式" class="headerlink" title="三种表达形式"></a>三种表达形式</h3><p>1、参数化形式</p>
+<p>公式：<br><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F.png" alt="参数化公式"></p>
+<!-- <img src=参数化公式.png width=70% height=200> -->
+
+
+<p>解释如下：<br><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A2_1.png" alt="参数化公式解释2_1"></p>
+<!-- <img src=参数化公式解释2_1.png width=70% height=200> -->
+
+<p><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A2_2.png" alt="参数化公式解释2_2"></p>
+<!-- <img src=参数化公式解释2_2.png width=70% height=200> -->
+
+
+<p>即：<br><img src="/2021/03/09/CRF/%E8%A7%92%E5%BA%A6.png" alt="角度"></p>
+<!-- <img src=角度.png width=70% height=200> -->
+
+
+<p>2、参数化简化的形式推导<br>略</p>
+<p>3、矩阵形式<br>例子更清楚：<br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%901.png" alt="矩阵形式例子1"><br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%902.png" alt="矩阵形式例子2"></p>
+<!-- <img src=矩阵形式例子1.png width=70% height=100>
+<img src=矩阵形式例子2.png width=70% height=700> -->
+
+
+<p>矩阵形式推导：<br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E6%8E%A8%E5%AF%BC.png" alt="矩阵推导"></p>
+<!-- <img src=矩阵推导.png width=70% height=500> -->
+
+
+<br>
+<br>
+
+
+<h3 id="三个问题"><a href="#三个问题" class="headerlink" title="三个问题"></a>三个问题</h3><h4 id="模型基本问题"><a href="#模型基本问题" class="headerlink" title="模型基本问题"></a>模型基本问题</h4><p>模型问题包含 learning 和 inference。<br>learning即 parameter estimation。求 θ。<br>inference：<br>(以下 y 为隐变量)<br>1 marginal prob ： 当建模对象为joint dist，求p(xt)即求边缘概率问题。<br>2 conditional prob ： 求 p(x|y)<br>3 MAP inference ： decoding ， 求  y = argmax p(y|x)</p>
+<h4 id="CRF-learning"><a href="#CRF-learning" class="headerlink" title="CRF learning"></a>CRF learning</h4><p>1、问题定义<br><img src="/2021/03/09/CRF/learning%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89.png" alt="learning问题定义"></p>
+<p>2、</p>
+<h4 id="CRF-marginal-prob"><a href="#CRF-marginal-prob" class="headerlink" title="CRF marginal prob"></a>CRF marginal prob</h4><p>1、即求 P(yt = i | x)<br>给定x条件下的 隐变量yt 的边缘概率。<br>即 词性标注中，给定一句话，判断出 y1(第一个词)是动词(i)的概率是多少。</p>
+<p>2、</p>
+<h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>1、求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。</p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DeepFm</title>
     <url>/2021/03/08/DeepFm/</url>
     <content><![CDATA[<br>
@@ -567,32 +641,6 @@
       </tags>
   </entry>
   <entry>
-    <title>xgb</title>
-    <url>/2021/03/08/xgb/</url>
-    <content><![CDATA[<br>
-
-<h4 id="bagging和boosting"><a href="#bagging和boosting" class="headerlink" title="bagging和boosting"></a>bagging和boosting</h4><p>1、区别？<br>采样：随机采样(Bootstrap sampling–有放回)、加大错误样本权重<br>特征的采样</p>
-<a id="more"></a>
-<p>并行计算上<br>弱学习器的权重</p>
-<p>2、从偏差和方差的角度解释bagging和boosting的原理？<br>bagging：<br>重采样、权重也相同–模型的区别性不大，bias小。<br>但如果假设各个子模型独立，则显著降低variance。如果完全相同的子模型，则var和单个模型一样。bagging属于两者之间，一定程度降低了var。RF特征上随机选择，进一步降低了模型的相关性，从而进一步降低了var。</p>
-<p>boosting:<br>前向分步学习算法，是sequencial地减少损失函数，loss是逐步地下降的，bias也随之逐步下降。但由于是这种sequence、adaptive地，模型相关性较高，不能显著减少var。</p>
-<h4 id="结合策略"><a href="#结合策略" class="headerlink" title="结合策略"></a>结合策略</h4><p>1平均法；2投票法：多数投票、绝对多数投票、加权投票；3学习法。<br>学习法，代表方法是stacking。stacking是再加上一层学习器，我们将训练集弱学习器的学习结果作为输入，将训练集的输出作为输出，重新训练一个学习器来得到最终结果。</p>
-<h4 id="Adaboost"><a href="#Adaboost" class="headerlink" title="Adaboost"></a>Adaboost</h4><p>1、Adaboost是模型为加法模型，学习算法为前向分步学习算法，损失函数为指数函数的分类问题。<br>2、分类器结合时的权重？<br>由于Adaboost中若干个分类器的关系是第N个分类器更可能分对第N-1个分类器没分对的数据，而不能保证以前分对的数据也能同时分对。所以在Adaboost中，每个弱分类器都有各自最关注的点，每个弱分类器都只关注整个数据集的中一部分数据，所以它们必然是共同组合在一起才能发挥出作用。所以最终投票表决时，需要根据弱分类器的权重来进行加权投票，权重大小是根据弱分类器的分类错误率计算得出的，总的规律就是弱分类器错误率越低，其权重就越高。</p>
-<p>计算公式：</p>
-<p>1 误差<br><img src="/2021/03/08/xgb/误差.png" width="70%" height="100"></p>
-<p>2 权重系数<br><img src="/2021/03/08/xgb/弱分类器权重系数.png" width="80%" height="150"></p>
-<p>3 样本权重<br><img src="/2021/03/08/xgb/样本权重.png" width="80%" height="300"></p>
-<p>4 分类器结合及最终分类器<br><img src="/2021/03/08/xgb/分类器结合.png" width="80%" height="200"></p>
-<p>3、</p>
-]]></content>
-      <categories>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>决策树</title>
     <url>/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/</url>
     <content><![CDATA[<br>
@@ -1078,7 +1126,33 @@
   <entry>
     <title>提升方法</title>
     <url>/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<br>
+
+<h4 id="bagging和boosting"><a href="#bagging和boosting" class="headerlink" title="bagging和boosting"></a>bagging和boosting</h4><p>1、区别？<br>采样：随机采样(Bootstrap sampling–有放回)、加大错误样本权重<br>特征的采样</p>
+<a id="more"></a>
+<p>并行计算上<br>弱学习器的权重</p>
+<p>2、从偏差和方差的角度解释bagging和boosting的原理？<br>bagging：<br>重采样、权重也相同–模型的区别性不大，bias小。<br>但如果假设各个子模型独立，则显著降低variance。如果完全相同的子模型，则var和单个模型一样。bagging属于两者之间，一定程度降低了var。RF特征上随机选择，进一步降低了模型的相关性，从而进一步降低了var。</p>
+<p>boosting:<br>前向分步学习算法，是sequencial地减少损失函数，loss是逐步地下降的，bias也随之逐步下降。但由于是这种sequence、adaptive地，模型相关性较高，不能显著减少var。</p>
+<h4 id="结合策略"><a href="#结合策略" class="headerlink" title="结合策略"></a>结合策略</h4><p>1平均法；2投票法：多数投票、绝对多数投票、加权投票；3学习法。<br>学习法，代表方法是stacking。stacking是再加上一层学习器，我们将训练集弱学习器的学习结果作为输入，将训练集的输出作为输出，重新训练一个学习器来得到最终结果。</p>
+<h4 id="Adaboost"><a href="#Adaboost" class="headerlink" title="Adaboost"></a>Adaboost</h4><p>1、Adaboost是模型为加法模型，学习算法为前向分步学习算法，损失函数为指数函数的分类问题。<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/加法前向.png" width="80%" height="350"></p>
+<p><strong>为什么loss是指数函数？证明如下：</strong></p>
+<p>————————————————————————————————————————————————————————————<br><br><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp证明1.png" width="80%" height="450"><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp证明2.png" width="80%" height="700"><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp证明3.png" width="80%" height="300"><br><br><br>——————————————————————————————————————————————————————————–</p>
+<p>2、分类器结合时的权重？<br>由于Adaboost中若干个分类器的关系是第N个分类器更可能分对第N-1个分类器没分对的数据，而不能保证以前分对的数据也能同时分对。所以在Adaboost中，每个弱分类器都有各自最关注的点，每个弱分类器都只关注整个数据集的中一部分数据，所以它们必然是共同组合在一起才能发挥出作用。所以最终投票表决时，需要根据弱分类器的权重来进行加权投票，权重大小是根据弱分类器的分类错误率计算得出的，总的规律就是弱分类器错误率越低，其权重就越高。</p>
+<p>计算公式：</p>
+<p>1 误差<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/误差.png" width="60%" height="150"></p>
+<p>2 权重系数<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/弱分类器权重系数.png" width="60%" height="100"></p>
+<p>3 样本权重<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/样本权重.png" width="80%" height="300"></p>
+<p>4 分类器结合及最终分类器<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/分类器结合.png" width="80%" height="230"></p>
+<p>由上面的公式，可得到：<br>每次新增加一个弱分类器的时候，前面的弱分类器分错的样本的权重占总样本权重的0.5，前面弱分类器分对的样本等权重也占总样本权重的0.5。</p>
+<p>3、正则化</p>
+<p>fn = fn-1 + θ * a * G<br>θ 为正则化项</p>
+<p>4、评价</p>
+<p>可解释性<br>参数个数<br>performance<br>异常点敏感<br>弱分类器选择<br>可用于特征选择</p>
+<h4 id="GBDT"><a href="#GBDT" class="headerlink" title="GBDT"></a>GBDT</h4><p>1、区别于adaboost</p>
+<p>Adaboost是通过提高错分样本的权重来定位模型的不足，GBDT是通过负梯度来定位模型的不足，因此GBDT可以使用更多种类的损失函数。</p>
+<p>adaboost存在异常点敏感的问题,gbdt一定程度上优化了adaboost异常点敏感的问题。</p>
+<p>2、</p>
+]]></content>
       <categories>
         <category>ml</category>
       </categories>
