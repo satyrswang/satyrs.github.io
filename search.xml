@@ -1,6 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>DeepFm</title>
+    <url>/2021/03/08/DeepFm/</url>
+    <content><![CDATA[<br>
+
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在推荐领域较流行的深度模型方案：</p>
+<p>实战：阿里MLR、阿里DIN、阿里ESSM、京东强化学习推荐、facebook个性化推荐dlrm、Deep Neural Networks for YouTube Recommendations、华为DeepFM、google2016 wide&amp;deep learning、googleDeep&amp;Cross Network等。</p>
+<a id="more"></a>
+<p>DeepFm模型及进化：XDeepFM(deep进化)、AFM(加入attention)、FFM(field-aware)、PNN、FNN、NFM等。</p>
+<p>其中，DeepFM在论文中通过大量实验证明，DeepFM的AUC和Logloss都优于目前的最好效果。效率上，DeepFM和目前最优的效果的深度模型相当。在Benchmark数据集和商业数据集上，DeepFM效果超过目前所有模型。</p>
+<h3 id="Q1：FM解决什么问题？"><a href="#Q1：FM解决什么问题？" class="headerlink" title="Q1：FM解决什么问题？"></a>Q1：FM解决什么问题？</h3><p>1、普通的线性模型，我们都是将各个特征独立考虑的，并没有考虑到特征与特征之间的相互关系。<br>为了表述特征间的相关性，我们采用多项式模型。</p>
+<p>在多项式模型中，特征xi与xj的组合用xixj表示。为了简单起见，我们讨论二阶多项式模型。<br>2、与线性模型相比，FM的模型就多了后面特征组合的部分。<br><img src="/2021/03/08/DeepFm/%E4%BA%8C%E9%A1%B9%E5%BC%8F.png" alt="二项式"></p>
+<h3 id="Q2：FM参数求解？"><a href="#Q2：FM参数求解？" class="headerlink" title="Q2：FM参数求解？"></a>Q2：FM参数求解？</h3><p>1、公式中，组合部分的特征相关参数共有n(n−1)/2个。在数据很稀疏的情况下xi,xj都不为0的情况非常少，这样将导致ωij无法通过训练得出。</p>
+<p>为了求出ωij，我们对每一个特征分量xi引入辅助向量Vi=(vi1,vi2,⋯,vik)。然后，利用vivj^T对ωij进行求解。</p>
+<img src="/2021/03/08/DeepFm/引入V.png" width="70%" height="200">
+
+<p>2、如何求解V？</p>
+<p>推导公式网上到处都有。</p>
+<p>3、得到公式推导结果后，对w求导，梯度下降进行训练。</p>
+<h4 id="Q3：FFM？"><a href="#Q3：FFM？" class="headerlink" title="Q3：FFM？"></a>Q3：FFM？</h4><p>公式：</p>
+<img src="/2021/03/08/DeepFm/ffm_gs.png" width="70%" height="150">
+
+
+<p>举例：</p>
+<img src="/2021/03/08/DeepFm/ffm.png" width="50%" height="400">
+
+
+<h4 id="Q4：why-DeepFm？"><a href="#Q4：why-DeepFm？" class="headerlink" title="Q4：why DeepFm？"></a>Q4：why DeepFm？</h4><p>1、因子分解机(Factorization Machines, FM)通过对于每一维特征的隐变量内积来提取特征组合。最终的结果也非常好。<br>但是，虽然理论上来讲FM可以对高阶特征组合进行建模，但实际上因为计算复杂度的原因一般都只用到了二阶特征组合。<br>那么对于高阶的特征组合来说，通过多层的神经网络即DNN去解决。</p>
+<p>2、One-hot类型的特征输入到DNN中，会导致网络参数太多。<br>如何解决这个问题呢，类似于FFM中的思想，将特征分为不同的field：让Dense Vector进行组合，来表示高阶特征。</p>
+<img src="/2021/03/08/DeepFm/field.png" width="70%" height="400">
+
+<p>3、但是低阶和高阶特征组合隐含地体现在隐藏层中，如果我们希望把低阶特征组合单独建模，然后融合高阶特征组合。<br>=&gt;就得到了DeepFm。</p>
+<h4 id="Q5：what-DeepFm？"><a href="#Q5：what-DeepFm？" class="headerlink" title="Q5：what DeepFm？"></a>Q5：what DeepFm？</h4><p>1、有两种融合方式，分别为串行和并行的结构。<br>这里介绍并行结构。</p>
+<img src="/2021/03/08/DeepFm/structure.png" width="80%" height="500">
+<img src="/2021/03/08/DeepFm/deepfm.png" width="70%" height="700">
+
+
+<p>2、emb部分</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">#embeddings</span><br><span class="line">#weights[&#39;feature_embeddings&#39;] 存放的每一个值其实就是FM中的vik</span><br><span class="line">weights[&#39;feature_embeddings&#39;] &#x3D; tf.Variable(</span><br><span class="line">    tf.random_normal([self.feature_size,self.embedding_size],0.0,0.01),</span><br><span class="line">    name&#x3D;&#39;feature_embeddings&#39;)</span><br><span class="line"></span><br><span class="line">weights[&#39;feature_bias&#39;] &#x3D; tf.Variable(tf.random_normal([self.feature_size,1],0.0,1.0),name&#x3D;&#39;feature_bias&#39;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># model</span><br><span class="line">self.embeddings &#x3D; tf.nn.embedding_lookup(self.weights[&#39;feature_embeddings&#39;],self.feat_index) # N * F * K</span><br><span class="line">feat_value &#x3D; tf.reshape(self.feat_value,shape&#x3D;[-1,self.field_size,1])</span><br><span class="line">self.embeddings &#x3D; tf.multiply(self.embeddings,feat_value)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>如果是离散值，则embedding lookup之后，每个维度✖️1，连续值则✖️连续值。<br>✖️后的结果就是公式里的 Vi,f · Xi</p>
+<p>3、dnn部分<br>为了更好的发挥DNN模型学习high-order特征的能力，文中设计了一套子网络结构，将原始的稀疏表示特征映射为稠密的特征向量。<br>子网络设计时的两个要点：</p>
+<p>不同field特征长度不同，但是子网络输出的向量需具有相同维度；<br>利用FM模型的隐特征向量V作为网络权重初始化来获得子网络输出向量。文中将FM的预训练V向量作为网络权重初始化替换为直接将FM和DNN进行整体联合训练，从而实现了一个端到端的模型。 （即lookup）</p>
+<p>4、fm</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># second order term</span><br><span class="line"># sum-square-part</span><br><span class="line">self.summed_features_emb &#x3D; tf.reduce_sum(self.embeddings,1) # None * k</span><br><span class="line">self.summed_features_emb_square &#x3D; tf.square(self.summed_features_emb) # None * K</span><br><span class="line"></span><br><span class="line"># squre-sum-part</span><br><span class="line">self.squared_features_emb &#x3D; tf.square(self.embeddings)</span><br><span class="line">self.squared_sum_features_emb &#x3D; tf.reduce_sum(self.squared_features_emb, 1)  # None * K</span><br><span class="line"></span><br><span class="line">#second order</span><br><span class="line">self.y_second_order &#x3D; 0.5 * tf.subtract(self.summed_features_emb_square,self.squared_sum_features_emb)</span><br><span class="line">self.y_second_order &#x3D; tf.nn.dropout(self.y_second_order,self.dropout_keep_fm[1])</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="Q6：扩展，自定义算子？"><a href="#Q6：扩展，自定义算子？" class="headerlink" title="Q6：扩展，自定义算子？"></a>Q6：扩展，自定义算子？</h4><p>我们需要找到所有的特征，one-hot后的可能性取值。然后才能构建用来lookup的table。<br>这里就可以对tensorflow里的hashtable算子进行扩展。</p>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>LSTM</title>
     <url>/2021/01/31/LSTM/</url>
     <content><![CDATA[<ul>
@@ -300,6 +354,51 @@
       </tags>
   </entry>
   <entry>
+    <title>dssm</title>
+    <url>/2021/03/08/dssm/</url>
+    <content><![CDATA[<h4 id="DSSM"><a href="#DSSM" class="headerlink" title="DSSM"></a>DSSM</h4><ul>
+<li><p>任务<br>用来预测两个句子的语义相似度，又可以获得某句子的低维语义Embedding向量。</p>
+<a id="more"></a></li>
+<li><p>场景<br>DSSM 模型的最大特点就是 Query 和 Document 是两个独立的子网络，后来这一特色被移植到推荐算法的召回环节，即对用户端（User）和物品端（Item）分别构建独立的子网络塔式结构。<br>两个子网络产生的 Embedding 向量可以独自获取及缓存。</p>
+</li>
+</ul>
+<p>当模型训练完成时，物品的 Embedding 是可以保存成词表的，线上应用的时候只需要查找对应的 Embedding 即可。因此线上只需要计算 （用户，上下文） 一侧的 Embedding，基于 Annoy 或 Faiss 技术索引得到用户偏好的候选集。</p>
+<ul>
+<li>word hashing<br>word hashing方法是用来减少输入向量的维度，该方法基于字母的n-gram。给定一个单词（good），我们首先增加词的开始和结束部分（#good#），然后将该词转换为字母 [公式] -gram的形式（假设为trigrams：#go，goo，ood，od#）。最后该词使用字母 n-gram的向量来表示。</li>
+</ul>
+<p>这种方法的问题在于有可能造成冲突，因为两个不同的词可能有相同的n-gram向量来表示。与原始的ont-hot向量表示的词典大小相比，word hashing明显降低了向量表示的维度。</p>
+<ul>
+<li>优点</li>
+</ul>
+<p>1、解决了LSA、LDA、Autoencoder等方法存在的一个最大的问题：字典爆炸（导致计算复杂度非常高），因为在英文单词中，词的数量可能是没有限制的，但是字母n-gram的数量通常是有限的.<br>2、基于词的特征表示比较难处理新词，字母的 n-gram可以有效表示，鲁棒性较强<br>3、使用有监督方法，优化语义embedding的映射问题<br>4、省去了人工的特征工程</p>
+<ul>
+<li>缺点</li>
+</ul>
+<p>1、word hashing可能造成冲突<br>2、DSSM采用了词袋模型，损失了上下文信息<br>3、在排序中，搜索引擎的排序由多种因素决定，由于用户点击时doc的排名越靠前，点击的概率就越大，如果仅仅用点击来判断是否为正负样本，噪声比较大，难以收敛<br>4、对于中文而言，处理方式与英文有很多不一样的地方。中文往往需要进行分词，但是我们可以仿照英文的处理方式，将中文的最小粒度看作是单字（在某些文献里看到过用偏旁部首，笔画，拼音等方法）</p>
+<ul>
+<li><p>扩展<br>对DSSM的优化出现了很多的变种，有CNN-DSSM，LSTM-DSSM，MV-DSSM等。</p>
+</li>
+<li><p>trick</p>
+</li>
+</ul>
+<img src="/2021/03/08/dssm/trick.png" width="80%" height="400">
+
+<hr>
+<ul>
+<li>架构</li>
+</ul>
+<img src="/2021/03/08/dssm/dssm.png" width="70%" height="900">
+
+
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>dubbo-spi</title>
     <url>/2021/01/31/dubbo-spi/</url>
     <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
@@ -326,6 +425,17 @@
       </categories>
       <tags>
         <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>flink</title>
+    <url>/2021/03/08/flink/</url>
+    <content><![CDATA[<h4 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h4><h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4>]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>流处理</tag>
       </tags>
   </entry>
   <entry>
@@ -402,6 +512,23 @@
 <p>7、聚合器<br>平均效果最好。<br>也有用lstm聚合器和pooling聚合器，</p>
 <p>8、学习过程<br>有监督：交叉熵<br>无监督：学习出来的相邻node的emb应该尽可能接近。此时的loss如下。<br><img src="/2021/03/08/graphsage/loss.png" width="70%" height="100"><br><img src="/2021/03/08/graphsage/loss解释.png" width="70%" height="400"></p>
 ]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>listwise</title>
+    <url>/2021/03/08/listwise/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
   </entry>
   <entry>
     <title>redis</title>
@@ -437,6 +564,32 @@
       </categories>
       <tags>
         <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>xgb</title>
+    <url>/2021/03/08/xgb/</url>
+    <content><![CDATA[<br>
+
+<h4 id="bagging和boosting"><a href="#bagging和boosting" class="headerlink" title="bagging和boosting"></a>bagging和boosting</h4><p>1、区别？<br>采样：随机采样(Bootstrap sampling–有放回)、加大错误样本权重<br>特征的采样</p>
+<a id="more"></a>
+<p>并行计算上<br>弱学习器的权重</p>
+<p>2、从偏差和方差的角度解释bagging和boosting的原理？<br>bagging：<br>重采样、权重也相同–模型的区别性不大，bias小。<br>但如果假设各个子模型独立，则显著降低variance。如果完全相同的子模型，则var和单个模型一样。bagging属于两者之间，一定程度降低了var。RF特征上随机选择，进一步降低了模型的相关性，从而进一步降低了var。</p>
+<p>boosting:<br>前向分步学习算法，是sequencial地减少损失函数，loss是逐步地下降的，bias也随之逐步下降。但由于是这种sequence、adaptive地，模型相关性较高，不能显著减少var。</p>
+<h4 id="结合策略"><a href="#结合策略" class="headerlink" title="结合策略"></a>结合策略</h4><p>1平均法；2投票法：多数投票、绝对多数投票、加权投票；3学习法。<br>学习法，代表方法是stacking。stacking是再加上一层学习器，我们将训练集弱学习器的学习结果作为输入，将训练集的输出作为输出，重新训练一个学习器来得到最终结果。</p>
+<h4 id="Adaboost"><a href="#Adaboost" class="headerlink" title="Adaboost"></a>Adaboost</h4><p>1、Adaboost是模型为加法模型，学习算法为前向分步学习算法，损失函数为指数函数的分类问题。<br>2、分类器结合时的权重？<br>由于Adaboost中若干个分类器的关系是第N个分类器更可能分对第N-1个分类器没分对的数据，而不能保证以前分对的数据也能同时分对。所以在Adaboost中，每个弱分类器都有各自最关注的点，每个弱分类器都只关注整个数据集的中一部分数据，所以它们必然是共同组合在一起才能发挥出作用。所以最终投票表决时，需要根据弱分类器的权重来进行加权投票，权重大小是根据弱分类器的分类错误率计算得出的，总的规律就是弱分类器错误率越低，其权重就越高。</p>
+<p>计算公式：</p>
+<p>1 误差<br><img src="/2021/03/08/xgb/误差.png" width="70%" height="100"></p>
+<p>2 权重系数<br><img src="/2021/03/08/xgb/弱分类器权重系数.png" width="80%" height="150"></p>
+<p>3 样本权重<br><img src="/2021/03/08/xgb/样本权重.png" width="80%" height="300"></p>
+<p>4 分类器结合及最终分类器<br><img src="/2021/03/08/xgb/分类器结合.png" width="80%" height="200"></p>
+<p>3、</p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -809,6 +962,67 @@
       </tags>
   </entry>
   <entry>
+    <title>微信的GraphTR模型</title>
+    <url>/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/</url>
+    <content><![CDATA[<h4 id="提出背景"><a href="#提出背景" class="headerlink" title="提出背景"></a>提出背景</h4><p>“迁移学习+多任务”的场景<br>通过将不同领域的节点、关系都建模在一幅图中，通过图卷积，完成知识从数据丰富的领域向数据稀疏领域的迁移，并兼顾两个领域的指标。</p>
+<a id="more"></a>
+
+<p>多 域信息的异构图上完成图卷积，每个节点要聚合来自多个领域的异构消息。之前传统的聚合方式，如mean/max pooling，矩阵相乘，可能带来异构消息相互抵销而引入信息损失。</p>
+<p>为此微信团队采用了GraphSAGE+FM+Transformer多种手段，从不同粒度来交叉、聚合消息，极大提升了模型的表示能力，这种新的消息聚合方式值得借鉴。</p>
+<h4 id="场景及难点"><a href="#场景及难点" class="headerlink" title="场景及难点"></a>场景及难点</h4><p>1、微信团队面临的场景是：</p>
+<p>每个视频都打有若干tag（人工标注或由内容理解算法打上的）<br>用户观看视频时，需要有算法从这个视频自带的tag中挑选出与当前用户最相关的若干个tag，展示在视频的下方。<br>用户点击某个tag，会进入一个沉浸式频道，其中展现的全部是与该tag相关的视频</p>
+<p>2、难点在于：用户点击视频的行为比较丰富，但是用户点击tag的行为比较稀疏，训练数据不足。</p>
+<h4 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h4><p>方案一：<br>训练一个模型，输入视频的多模态信息(标题、封面图、关键帧)，输出是与这个视频最match的tag。训练时，拿人工打标的结果作为label。线上serving时，将预测出来的top-K个标签，展示在视频的下方。</p>
+<p>这个方案可行，但是其只利用了视频的静态属性，没有用户的信息，所以推荐出来的tag只有与视频在语义上的相关性，完全没有针对当前用户的个性化，不满足业务需求。</p>
+<p>方案二：<br>1、tag embedding用tag的word embedding。<br>2、用户的embedding是其过去有过”正交互”的tag embedding的pooling<br>所谓“正交互”，可以是用户过去一段时间内点击过的tag<br>但是考虑到user-tag的交互太稀疏，因此可以选用户过去点击过视频所携带的tag<br>pooling时，也可以考虑进播放完成度、时间衰减等因素，进行加权平均。<br>3、线上serving时，拿user embedding在当前视频所携带的tag embedding中寻找Top-K近邻，展示在视频下方。</p>
+<p>怎么评价这一方案：</p>
+<p>1、该方案，考虑了用户的历史，有更强的个性化。<br>2、但是拿word embedding做tag embedding，仍然只考虑了tag的语义信息。用户行为蕴含的信息，要比语义信息更加重要。<br>3、用户与tag的交互行为太少了，很难在“用户点击tag的序列”上套用word2vec来学习到tag embedding</p>
+<p>方案三：微信的GraphTR模型</p>
+<hr>
+<h4 id="优化点"><a href="#优化点" class="headerlink" title="优化点"></a>优化点</h4><p>GraphTR是为了要<em>学习优质tag embedding</em>，为此要注重利用用户的行为信息<br>但是由于user-tag的行为太稀疏，因此GraphTR需要<em>通过user-video的行为学习到tag embedding</em><br>要达成以上目标，也有多种作法。而GraphTR的做法是：</p>
+<p>1、将user, video, tag（还加上video的来源media）都放入一个大的异构图<br>通过图卷积，学习到video embedding</p>
+<p>2、再建模video与video之间的相关性（比如在同一个session中播放过）</p>
+<p>3、因为video embedding融合了tag embedding，因此在优化目标达成之后，一个优质的副产品就是得到tag embedding</p>
+<h4 id="GraphTR是如何构建这个异构图的？"><a href="#GraphTR是如何构建这个异构图的？" class="headerlink" title="GraphTR是如何构建这个异构图的？"></a>GraphTR是如何构建这个异构图的？</h4><p>1、node：</p>
+<p>图上要包括：user, video, tag, media (视频来源)这 4类节点。<br>因为用户数目太多，而每个用户的行为相对稀疏，GraphTR将用户按照gender-age-location分成84000组，用user group替代user，在图中建模。</p>
+<p>2、edge：<br>video-video：同属一个观看session中的两video之间有边<br>user-video：某视频被某user group一周观看超过3次<br>video-tag：video和其携带的tag<br>video-media：video和其来源<br>tag-tag：两个 tag属于同一个视频</p>
+<h4 id="如何传递、融合图上异构节点的信息？"><a href="#如何传递、融合图上异构节点的信息？" class="headerlink" title="如何传递、融合图上异构节点的信息？"></a>如何传递、融合图上异构节点的信息？</h4><p>1、为了完成user, video, tag, media这四类节点的信息融合，GraphTR设计了3层卷积结构，称为Heterogeneous field interaction network (HFIN)。</p>
+<p>2、最底层Heterogeneous Feature Layer：<br>3-hop的embdding是lookup获得的，分别有四个域(user/video/tag/media域的特征)，相加得到2-hop邻居的embedding。</p>
+<p>3、中间层：Multi-field Interaction Layer：<br>这一层的任务是由2-hop邻居的embedding，聚合生成1-hop邻居的embedding。<br>而HFIN采用了GraphSAGE+FM+Transformer三种方式，粒度上从由粗到细，完成聚合。</p>
+<h4 id="三种聚合方式"><a href="#三种聚合方式" class="headerlink" title="三种聚合方式"></a>三种聚合方式</h4><p>1、GraphSAGE聚合<br>graphsage聚合<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage聚合.png" width="60%" height="370"></p>
+<p>这里的hGraph就是1-hop的最终embding。</p>
+<p>2、FM 聚合<br>FM聚合，区分各域，因此粒度更细一些。<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/fm聚合.png" width="60%" height="300"></p>
+<p>hFM2就是1-hop的最终embding。</p>
+<p>3、Multi-field transformer aggregator</p>
+<p>GraphTR觉得FM聚合时，各域节点（即各域特征）交叉得还不够：1:FM聚合，只有在第2步才做域与域之间的交叉。2:在一个域内部，这n+1个特征之间，只有简单pooling，不存在交叉。3:FM聚合的第1步，每个域average pooling的是，这1+n个节点的原始特征。</p>
+<p>Transformer聚合，希望增强各域节点（即各域特征）的交叉。步骤如下：</p>
+<p>S1:Transformer决定在第1步引入交叉。具体方式就是，在一个域的1+n个节点之间进行Transformer变换，重新生成1+n个向量，每个新向量是老向量的加权平均，权重是当前老向量相对于其他老向量的attention score。(一套attention恐怕没有代表性，还引入多头机制)</p>
+<img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/transformer聚合.png" width="60%" height="500">
+
+<p>S2:再拿生成的1+n个新向量，做average pooling。</p>
+<p>S3:最后将“域间交叉结果”与”域内交叉结果”拼接在一起返回，作为由Transformer聚合得到的1-hop邻居的embedding。论文的实验结果证明，这个最复杂、最细粒度的聚合，对于模型性能的提升也最大。</p>
+<p>4、通过三种聚合方式，我们就可以得到1-hop邻居的最终embedding，是这三种聚合结果的concat。</p>
+<p>5、最上层：The Second Aggregation Layer<br>这一层负责由1-hop邻居节点（1个target node自身，m个邻居节点，一共1+m个）的embedding(下边公式中的矩阵H)，生成target node上的embedding。聚合方式也是基于Transformer的。</p>
+<p>根据1+m个原向量，生成1+m个新向量，每个新向量是所有老向量的加权平均，权重是当前原向量与其他原向量的attention score<br>再拿这1+m个新向量，取平均，得到target node上的最终向量表示。</p>
+<h4 id="如何定义loss"><a href="#如何定义loss" class="headerlink" title="如何定义loss?"></a>如何定义loss?</h4><p>通过以上三层卷积，就能够给图上所有类型的所有节点，都产生一个embedding。接下来的问题就是，如何定义优化目标，使这些节点的embedding得到优化？</p>
+<p>这一部分的解决方案比较常规，无非就是建模节点之间的相关性，可以有选择是:</p>
+<p>建模user-tag之间的相关性，user与点击过的tag之间的距离要尽可能小。但是user-tag之间交互的数据太少；建模user-video之间的相关性，user与点击过的视频之间，距离应该较近。但是图上建模的不是单个user而是user group，一个user group包含的用户兴趣太复杂，拿user-goup与video训练，可能噪声比较大；建模video-video之间的相关性，在同一个session被观看的视频之间，距离要尽可能小。因为video的点击行为比较多，这方面的数据比较丰富，文中采用的是这种方案。</p>
+<img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/loss.png" width="60%" height="250">
+
+<h4 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h4><p>将这些tag emedding代入上文的”第二个方案”，即拿用户观看过视频携带的tag的embedding加权平均得到user embedding，再拿这个user embedding在当前视频所携带的tag的embedding中寻找出距离最近的top-k个tag，作为推荐结果显示在视频的下方。因为这些tag embedding蕴含了丰富的user-video行为信息，不仅有助于提升用户对tag的点击率，也有助于提升进入沉浸式tag频道后的观看时长。</p>
+<h4 id="借鉴"><a href="#借鉴" class="headerlink" title="借鉴"></a>借鉴</h4><p>1、数据少的领域如何借力于数据多的领域，同时要兼顾两个领域的优化目标：<br>通过将不同领域的不同节点、关系建立在一张异构图上，通过图卷积，使得每个节点的embedding都浓缩了多个领域的知识，达成了“知识迁移+目标兼顾”。</p>
+<p>2、GraphTR采用了GraphSAGE+FM+Transformer多种手段，粒度上从粗到细，交叉、聚合来自不同领域的异构消息，相比于mean/max pooling、浅层FC等传统聚合方式，极大提升了模型的表达能力。</p>
+]]></content>
+      <categories>
+        <category>模型框架</category>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+        <tag>模型框架</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>思想深度</title>
     <url>/2021/02/22/%E6%80%9D%E6%83%B3%E6%B7%B1%E5%BA%A6/</url>
     <content><![CDATA[<br>
@@ -1164,7 +1378,9 @@
 <p>10、ReentrantLock<br>放弃等待，避免出现死锁<br>申请锁的时间顺序获得，默认非公平。<br>内部类Sync管理锁， 有两个实现，分别为 NonfairSync（非公平锁）和 FairSync（公平锁）<br>基于AQS<br>同时绑定对个对象</p>
 <p>11、java 中断机制</p>
 <p>12、condition状态</p>
-<p>13、AQS<br>每个线程被封装成一个Node，包含waitstatus(该线程的status)：不抢了、唤醒下一个、停在某个condition上、propagate<br>AQS中包含state(锁的status)：0代表没有被占用，大于 0 代表有线程持有当前锁，这个值可以大于 1，是因为锁可以重入，每次重入都加上 1</p>
+<p>13、AQS<br>AQS 中采用了 LockSupport.park(thread) 来挂起线程，用 unpark 来唤醒线程</p>
+<p>每个线程被封装成一个Node，包含waitstatus(该线程的status)：不抢了、唤醒下一个、停在某个condition上、propagate。每个 node 在入队的时候，都会把前驱节点的状态改为 SIGNAL，然后阻塞，等待被前驱唤醒。这里涉及的是两个问题：有线程取消了排队、唤醒操作。</p>
+<p>AQS中包含state(锁的status)：0代表没有被占用，大于 0 代表有线程持有当前锁，这个值可以大于 1，是因为锁可以重入，每次重入都加上 1</p>
 <p>公平锁：<code>if (!tryAcquire(arg) &amp;&amp;  &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) </code>先try，没有成功，这个时候需要把当前线程挂起，放到阻塞队列中。</p>
 <p>tryAcquire(arg)</p>
 <blockquote>
@@ -1172,7 +1388,13 @@
 </blockquote>
 <p>acquireQueued(addWaiter(Node.EXCLUSIVE), arg)</p>
 <blockquote>
+<p>1队列不空则CAS加入队尾2队列空或者CAS失败，则进入enq(node);<br>通过上面的操作已经入队了。在判断，自己是否是队头，再tryAcquire，获得了返回false。<br>否则不是队头、也没try成功，就shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt()。</p>
 </blockquote>
+<p>enq(node)</p>
+<blockquote>
+<p>for (;;) 自旋入队，CAS竞争一次竞争不到，就多次竞争，总会排到的</p>
+</blockquote>
+<p>14、</p>
 ]]></content>
       <categories>
         <category>面试</category>

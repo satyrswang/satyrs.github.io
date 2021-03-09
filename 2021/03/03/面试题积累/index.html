@@ -16,7 +16,7 @@
 <meta property="og:description" content="java1、线程安全地使用listCollections.SynchronizedList能把所有 List 接口的实现类转换成线程安全的List，比 Vector 有更好的扩展性和兼容性java.util.concurrent.CopyOnWriteArrayList，读不加锁，写加锁、复制后写，读多写少的场景合适，写多的场景要复制，不合适。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-03-03T12:19:58.000Z">
-<meta property="article:modified_time" content="2021-03-04T13:17:03.611Z">
+<meta property="article:modified_time" content="2021-03-08T07:26:43.076Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="面试">
 <meta name="twitter:card" content="summary">
@@ -64,6 +64,8 @@
 	        
 				<li><a target="_blank" rel="noopener" href="https://leetcode-cn.com/u/satyrs/">leetcode</a></li>
 	        
+				<li><a target="_blank" rel="noopener" href="https://space.bilibili.com/488823980">bilibili</a></li>
+	        
 				<li><a href="/categories">categories</a></li>
 	        
 			</ul>
@@ -84,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">31.8k</span>
+    总字数 <span class="post-count">36.6k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -125,6 +127,8 @@
 			
 				
 			
+				
+			
 			
 			
 			<nav class="header-nav">
@@ -141,11 +145,13 @@
 				<ul style="width: 70%">
 				
 				
-					<li style="width: 33.333333333333336%"><a href="/">home</a></li>
+					<li style="width: 25%"><a href="/">home</a></li>
 		        
-					<li style="width: 33.333333333333336%"><a target="_blank" rel="noopener" href="https://leetcode-cn.com/u/satyrs/">leetcode</a></li>
+					<li style="width: 25%"><a target="_blank" rel="noopener" href="https://leetcode-cn.com/u/satyrs/">leetcode</a></li>
 		        
-					<li style="width: 33.333333333333336%"><a href="/categories">categories</a></li>
+					<li style="width: 25%"><a target="_blank" rel="noopener" href="https://space.bilibili.com/488823980">bilibili</a></li>
+		        
+					<li style="width: 25%"><a href="/categories">categories</a></li>
 		        
 				</ul>
 			</nav>
@@ -180,7 +186,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：2.6k字 | 预计阅读时长：9分钟
+    字数：2.8k字 | 预计阅读时长：10分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -252,7 +258,9 @@
 <p>10、ReentrantLock<br>放弃等待，避免出现死锁<br>申请锁的时间顺序获得，默认非公平。<br>内部类Sync管理锁， 有两个实现，分别为 NonfairSync（非公平锁）和 FairSync（公平锁）<br>基于AQS<br>同时绑定对个对象</p>
 <p>11、java 中断机制</p>
 <p>12、condition状态</p>
-<p>13、AQS<br>每个线程被封装成一个Node，包含waitstatus(该线程的status)：不抢了、唤醒下一个、停在某个condition上、propagate<br>AQS中包含state(锁的status)：0代表没有被占用，大于 0 代表有线程持有当前锁，这个值可以大于 1，是因为锁可以重入，每次重入都加上 1</p>
+<p>13、AQS<br>AQS 中采用了 LockSupport.park(thread) 来挂起线程，用 unpark 来唤醒线程</p>
+<p>每个线程被封装成一个Node，包含waitstatus(该线程的status)：不抢了、唤醒下一个、停在某个condition上、propagate。每个 node 在入队的时候，都会把前驱节点的状态改为 SIGNAL，然后阻塞，等待被前驱唤醒。这里涉及的是两个问题：有线程取消了排队、唤醒操作。</p>
+<p>AQS中包含state(锁的status)：0代表没有被占用，大于 0 代表有线程持有当前锁，这个值可以大于 1，是因为锁可以重入，每次重入都加上 1</p>
 <p>公平锁：<code>if (!tryAcquire(arg) &amp;&amp;  &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) </code>先try，没有成功，这个时候需要把当前线程挂起，放到阻塞队列中。</p>
 <p>tryAcquire(arg)</p>
 <blockquote>
@@ -260,7 +268,13 @@
 </blockquote>
 <p>acquireQueued(addWaiter(Node.EXCLUSIVE), arg)</p>
 <blockquote>
+<p>1队列不空则CAS加入队尾2队列空或者CAS失败，则进入enq(node);<br>通过上面的操作已经入队了。在判断，自己是否是队头，再tryAcquire，获得了返回false。<br>否则不是队头、也没try成功，就shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt()。</p>
 </blockquote>
+<p>enq(node)</p>
+<blockquote>
+<p>for (;;) 自旋入队，CAS竞争一次竞争不到，就多次竞争，总会排到的</p>
+</blockquote>
+<p>14、</p>
 
       
 
@@ -556,6 +570,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
               </li>
              
@@ -569,6 +587,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">股市理论</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">模型框架</a>
               </li>
              
               <li class="article-tag-list-item">
