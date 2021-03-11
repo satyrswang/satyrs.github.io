@@ -15,8 +15,8 @@
 <meta property="og:site_name" content="satyrswang">
 <meta property="og:description" content="reference：[非常好的两本书。再加上libsvm的源码与调参的论文。][1]http:&#x2F;&#x2F;files2.syncfusion.com&#x2F;Downloads&#x2F;Ebooks&#x2F;support_vector_machines_succinctly.pdf[2]An Introduction to Support Vector Machines and Other Kernel-based Lear">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://satyrswang.github.io/2021/02/04/SVM/theorem1">
-<meta property="og:image" content="https://satyrswang.github.io/2021/02/04/SVM/theorem2">
+<meta property="og:image" content="https://satyrswang.github.io/2021/02/04/SVM/theorem1.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/02/04/SVM/theorem2.png">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-fd9cfea722d77a1d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-744d4e22dac7d5aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-59b1f2660a4869b6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
@@ -28,11 +28,11 @@
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-67cdfbf09b820630.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/8716089-62f19539ba8a88bc.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="article:published_time" content="2021-02-04T11:57:25.000Z">
-<meta property="article:modified_time" content="2021-03-01T05:54:27.233Z">
+<meta property="article:modified_time" content="2021-03-11T09:50:07.380Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="ml">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://satyrswang.github.io/2021/02/04/SVM/theorem1">
+<meta name="twitter:image" content="https://satyrswang.github.io/2021/02/04/SVM/theorem1.png">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
   
@@ -99,7 +99,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">37.3k</span>
+    总字数 <span class="post-count">41.2k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -224,10 +224,7 @@
 <li>Why do we use the hyperplane equation W<em>X instead of   Y=a</em>x+b? –&gt; the vector W will always be normal to the hyperplane</li>
 </ul>
 </li>
-<li><p>澄清下要做的步骤：</p>
-<ul>
-<li>1 数据集 2 选择两个超平面能够分类数据并在两平面间没有其他点<br>3 最大化超平面间隔</li>
-</ul>
+<li><p>澄清下要做的步骤：<br>  1 数据集<br>  2 选择两个超平面能够分类数据并在两平面间没有其他点<br>  3 最大化超平面间隔</p>
 </li>
 <li><p>将步骤整理成数学过程</p>
 <ul>
@@ -243,27 +240,29 @@
 </li>
 <li><p>得到的公式意味着：如果||w||没有限制，那么m我们可以取得任意大的值。</p>
 </li>
-<li><p>现在自然就面临optimization problem。所有的点subject to  y*(w*x+b)&gt;=1, 在此条件下如何minimize ||w||?先引入<strong>理论1</strong>，该理论为两个条件，在两个条件满足的情况下，可以说我们得到了一个scalar function的local minimum。<br><img src="/2021/02/04/SVM/theorem1" alt="theorem1"></p>
+<li><p>现在自然就面临optimization problem。所有的点subject to  y*(w*x+b)&gt;=1, 在此条件下如何minimize ||w||?先引入<strong>理论1</strong>，该理论为两个条件，在两个条件满足的情况下，可以说我们得到了一个scalar function的local minimum。</p>
 </li>
-<li><p>f为从集合σ(其元素为vector)到实数集(其元素为值)的映射，且在x处 连续、可二阶导。这里涉及到两个的概念：</p>
-<ol>
+</ul>
+</li>
+</ul>
+<p><img src="/2021/02/04/SVM/theorem1.png" alt="theorem1"></p>
+<ul>
+<li>f为从集合σ(其元素为vector)到实数集(其元素为值)的映射，且在x处 连续、可二阶导。这里涉及到两个的概念：<ol>
 <li>**gradient ：a generalization of the usual concept of derivative of  a function in one dimension to a function in several dimensions  ( the gradient of a function is a vector containing each of its partial derivatives.)**注意符号为 nabla,图中倒三角。 </li>
 <li><strong>scalar function：A scalar valued function is a function that takes one or more values but returns a single value. In our case f is a scalar valued function.</strong></li>
 </ol>
 </li>
-<li><p>positive definite：<br>A symmetric matrix A  is called positive definite if x.T<em>A</em>x&gt;0 , for all n维的实数向量x。</p>
-</li>
-<li><p><strong>theorem 2</strong>中的四个条件是等价的。因此可以通过其他三种情况来判断是否为正定。这里选择主子式来判断Hessian正定，涉及到三个概念：<br><img src="/2021/02/04/SVM/theorem2" alt="theorem2"></p>
-<ol>
-<li>Minors： 删除某行和某列的所有值再计算行列式。remove the ith line and the jth column</li>
-<li>Principal minors ：删除的行、列号一致。remove the ith line and the jth column and i=j</li>
-<li>Leading principal minor ：The leading principal minor of A of order k is the minor of order k obtained by <strong>deleting the last n−k rows and columns</strong>.（这里包含一个正三角符号，标注删除哪些行列）栗子看图Leading principal minor<br>![leading principal minor.jpg](leading principal minor.jpg)</li>
-</ol>
-</li>
-<li><p>得到了local minimum，How can we find a global minimum?两步走， 1. Find all the local minima 2. Take the smallest one; it is the global minimum. 另一个思路是看我们的f是否是<strong>convex</strong> ,是then we are sure its local minimum is a global minimum.</p>
-</li>
+<li>positive definite：<br>A symmetric matrix A  is called positive definite if x.T<em>A</em>x&gt;0 , for all n维的实数向量x。</li>
+<li><strong>theorem 2</strong>中的四个条件是等价的。因此可以通过其他三种情况来判断是否为正定。这里选择主子式来判断Hessian正定，涉及到三个概念：</li>
 </ul>
-</li>
+<p><img src="/2021/02/04/SVM/theorem2.png" alt="theorem2"></p>
+<pre><code>1. Minors： 删除某行和某列的所有值再计算行列式。remove the ith line and the jth column
+2. Principal minors ：删除的行、列号一致。remove the ith line and the jth column and i=j
+3. Leading principal minor ：The leading principal minor of A of order k is the minor of order k obtained by **deleting the last n−k rows and columns**.（这里包含一个正三角符号，标注删除哪些行列）栗子看图Leading principal minor
+</code></pre>
+<p>![leading principal minor.jpg](leading principal minor.jpg)</p>
+<ul>
+<li>得到了local minimum，How can we find a global minimum?两步走， 1. Find all the local minima 2. Take the smallest one; it is the global minimum. 另一个思路是看我们的f是否是<strong>convex</strong> ,是then we are sure its local minimum is a global minimum.</li>
 </ul>
 <p><strong>Theorem: A local minimum of a convex function is a global minimum</strong> 这里又涉及到convex function, convex set的定义。</p>
 <ul>

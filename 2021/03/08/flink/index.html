@@ -8,15 +8,15 @@
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
   <title>flink | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="部署概念">
+  <meta name="description" content="flinkstate 场景  有状态的逻辑是因为数据之间存在关联，单条数据是没有办法把所有的信息给表现出来。  去重 窗口计算 机器学习参数 访问历史数据     为什么要管理状态  内存 流式作业：24 小时的数据都放到内存，可能会出现内存不足。   高可用 机器若出现故障或者宕机，需要考虑如何备份及从备份中去恢复，   扩展性 单节点无法处理全部访问数据，增加几个节点进行横向扩展，这时数">
 <meta property="og:type" content="article">
 <meta property="og:title" content="flink">
 <meta property="og:url" content="https://satyrswang.github.io/2021/03/08/flink/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="部署概念">
+<meta property="og:description" content="flinkstate 场景  有状态的逻辑是因为数据之间存在关联，单条数据是没有办法把所有的信息给表现出来。  去重 窗口计算 机器学习参数 访问历史数据     为什么要管理状态  内存 流式作业：24 小时的数据都放到内存，可能会出现内存不足。   高可用 机器若出现故障或者宕机，需要考虑如何备份及从备份中去恢复，   扩展性 单节点无法处理全部访问数据，增加几个节点进行横向扩展，这时数">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-03-08T07:29:56.000Z">
-<meta property="article:modified_time" content="2021-03-08T14:21:16.558Z">
+<meta property="article:modified_time" content="2021-03-11T04:50:55.947Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="流处理">
 <meta name="twitter:card" content="summary">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">37.3k</span>
+    总字数 <span class="post-count">41.2k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,11 +186,190 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：4字 | 预计阅读时长：1分钟
+    字数：1.2k字 | 预计阅读时长：4分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h4 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h4><h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4>
+        <br>
+
+
+<h1 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h1><h2 id="state"><a href="#state" class="headerlink" title="state"></a>state</h2><ul>
+<li><p>场景</p>
+<ul>
+<li><p>有状态的逻辑是因为数据之间存在关联，单条数据是没有办法把所有的信息给表现出来。</p>
+<ul>
+<li>去重</li>
+<li>窗口计算</li>
+<li>机器学习参数</li>
+<li>访问历史数据</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>为什么要管理状态</p>
+<ul>
+<li>内存<ul>
+<li>流式作业：24 小时的数据都放到内存，可能会出现内存不足。</li>
+</ul>
+</li>
+<li>高可用<ul>
+<li>机器若出现故障或者宕机，需要考虑如何备份及从备份中去恢复，</li>
+</ul>
+</li>
+<li>扩展性<ul>
+<li>单节点无法处理全部访问数据，增加几个节点进行横向扩展，这时数据的状态如何平均分配到新增加的节点。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>方案</p>
+<ul>
+<li><p>Managed State &amp; Raw State</p>
+<ul>
+<li>自定义operator用 raw</li>
+<li>raw 必须能够转成字节数组</li>
+<li>managed，flink自动存储和恢复，并进行内存优化<br>支持已知的数据结构，如 Value、List、Map</li>
+</ul>
+</li>
+<li><p>Managed State</p>
+<ul>
+<li><p>Keyed State </p>
+<ul>
+<li><p>每个 Key 对应一个 State</p>
+</li>
+<li><p>整个程序中没有 keyBy 的过程就没有办法使用KeyedStream。</p>
+</li>
+<li><p>并发改变时状态重新分配：内置了 2 种分配方式</p>
+</li>
+<li><p>Keyed State 通过 RuntimeContext 访问，这需要 Operator 是一个 Rich Function。</p>
+</li>
+<li><p>几种 Keyed State 的差异</p>
+<ul>
+<li><p>ReducingState 和 AggregatingState 与 ListState 都是同一个父类，但状态数据类型上是单个值</p>
+</li>
+<li><p> AggregatingState 输入的 IN，输出的是 OUT。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Operator State </p>
+<ul>
+<li>可以用于所有算子，常用于 Source</li>
+<li>一个 Operator 实例对应一个 State</li>
+<li>Operator  State 需要自己实现 CheckpointedFunction 或 ListCheckpointed 接口。</li>
+<li>支持的数据结构相对较少 </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>使用示例</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/apache/flink/blob/master/flink-examples/flink-examples-streaming/src/main/java/org/apache/flink/streaming/examples/statemachine/StateMachineExample.java">写状态机是如何实现</a></p>
+</li>
+<li><p>实现的是：首先下订单，订单生成后状态为待付款，当再来一个事件状态付款成功，则事件的状态将会从待付款变为已付款，待发货…</p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>状态的保存和恢复</p>
+<ul>
+<li><p>保存</p>
+<ul>
+<li>Checkpoint 会定时制作分布式快照</li>
+</ul>
+</li>
+<li><p>恢复</p>
+<ul>
+<li><p>checkpoint</p>
+<ul>
+<li>数据源需要支持数据重新发送</li>
+<li>两种一致性语义，一种是恰好一次，一种是至少一次</li>
+<li>1、把进程或者线程移到 active 的 其他台机器上<br>2、整个作业的所有 Task 都回滚到最后一次成功 Checkpoint 中的状态</li>
+</ul>
+</li>
+<li><p>savepoint</p>
+<ul>
+<li>手动调整并发，必须要重启作业并会提示 Checkpoint 已经不存在–&gt; 此时savepoint</li>
+<li>比较持久，以标准格式存储</li>
+<li>允许代码或配置发生改变，恢复需要启动作业手动指定一个路径恢复</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>checkpoint实现</p>
+<ul>
+<li>运行环境 env.enableCheckpointing 传入间隔时间。越频繁，恢复时追数据就会相对减少，IO 消耗增加。</li>
+<li>设置了 Exactly_Once 语义，并且需要 Barries 对齐，这样可以保证消息不会丢失也不会重复。</li>
+<li>setMinPauseBetweenCheckpoints 防止 Checkpoint 太过于频繁</li>
+<li>setCheckpointTimeout 表示做 Checkpoint 多久超时</li>
+<li>setMaxConcurrentCheckpoints</li>
+<li>enableExternalizedCheckpoints。默认 Checkpoint 会在整个作业 Cancel 时被删除。Checkpoint 是作业级别的保存点。</li>
+</ul>
+</li>
+<li><p>checkpoint可选的状态存储方式</p>
+<ul>
+<li><p>MemoryStateBackend</p>
+<ul>
+<li>构造方法是设置最大的 StateSize，选择是否做异步快照</li>
+<li>且需要注意 maxStateSize &lt;= akka.framesize 默认 10 M</li>
+<li>Checkpoint 存储在 JobManager 内存中，因此总大小不超过 JobManager 的内存。- 本地测试、几乎无状态的作业，比如 ETL、JobManager 不容易挂，或挂掉影响不大的情况。不推荐在生产场景使用。</li>
+</ul>
+</li>
+<li><p>FsStateBackend</p>
+<ul>
+<li>需要传一个文件路径和是否异步快照</li>
+<li>State 依然在 TaskManager 内存中- Checkpoint 存储在外部文件系统（本地或 HDFS）</li>
+<li>常规使用状态的作业、例如分钟级窗口聚合或 join、需要开启 HA 的作业。</li>
+</ul>
+</li>
+<li><p>RocksDBStateBackend</p>
+<ul>
+<li>key/value 的内存存储系统</li>
+<li>不支持同步的 Checkpoint</li>
+<li>支持增量的 Checkpoint</li>
+<li>存储在外部文件系统（本地或 HDFS）</li>
+<li>单个 TaskManager 上 State 总量不超过它的内存+磁盘，单 Key 最大 2G，总大小不超过配置的文件系统容量即可</li>
+<li>超大状态的作业，例如天级窗口聚合、需要开启 HA 的作业、最好是对状态读写性能要求不高的作业。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="窗口"><a href="#窗口" class="headerlink" title="窗口"></a>窗口</h2><ul>
+<li>todo</li>
+</ul>
+<h2 id="watermark"><a href="#watermark" class="headerlink" title="watermark"></a>watermark</h2><ul>
+<li>todo</li>
+</ul>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><ul>
+<li>todo</li>
+</ul>
+<h2 id="概念-amp-角色"><a href="#概念-amp-角色" class="headerlink" title="概念&amp;角色"></a>概念&amp;角色</h2><ul>
+<li>TaskManager &amp; slot<ul>
+<li>每一个 TaskManager 都是一个JVM进程</li>
+<li>每个task slot表示TaskManager拥有资源的一个固定大小的子集</li>
+<li>将其管理的内存均分给各个slot</li>
+<li>一个TaskManager一个slot时，那么每个task group运行在独立的JVM中</li>
+<li>多个slot时，多个subtask可以共同享有一个JVM</li>
+<li>在同一个JVM进程中的task将共享TCP连接和心跳消息，也可能共享数据集和数据结构，从而减少每个task的负载。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>todo</li>
+</ul>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/vgkza-s9fmbgabp71pgh">状态管理及容错机制</a></li>
+</ul>
+
       
 
        <!-- 添加版权声明 -->

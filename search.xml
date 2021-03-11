@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>AB分流</title>
+    <url>/2021/03/11/AB%E5%88%86%E6%B5%81/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>CRF</title>
     <url>/2021/03/09/CRF/</url>
     <content><![CDATA[<br>
@@ -62,10 +67,12 @@
 
 <h3 id="三个问题"><a href="#三个问题" class="headerlink" title="三个问题"></a>三个问题</h3><h4 id="模型基本问题"><a href="#模型基本问题" class="headerlink" title="模型基本问题"></a>模型基本问题</h4><p>模型问题包含 learning 和 inference。<br>learning即 parameter estimation。求 θ。<br>inference：<br>(以下 y 为隐变量)<br>1 marginal prob ： 当建模对象为joint dist，求p(xt)即求边缘概率问题。<br>2 conditional prob ： 求 p(x|y)<br>3 MAP inference ： decoding ， 求  y = argmax p(y|x)</p>
 <h4 id="CRF-learning"><a href="#CRF-learning" class="headerlink" title="CRF learning"></a>CRF learning</h4><p>1、问题定义<br><img src="/2021/03/09/CRF/learning%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89.png" alt="learning问题定义"></p>
-<p>2、</p>
+<p>2、todo – 数学推导</p>
 <h4 id="CRF-marginal-prob"><a href="#CRF-marginal-prob" class="headerlink" title="CRF marginal prob"></a>CRF marginal prob</h4><p>1、即求 P(yt = i | x)<br>给定x条件下的 隐变量yt 的边缘概率。<br>即 词性标注中，给定一句话，判断出 y1(第一个词)是动词(i)的概率是多少。</p>
-<p>2、</p>
-<h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>1、求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。</p>
+<p>2、硬算，复杂度高。指数级计算不可行。<br>简化：</p>
+<p>数学转化。<br>用到了变量消除法， sum+product，又叫信念传播，belief propagate。<br>HMM的前向 后向传播也就是belief propagate。</p>
+<p><img src="/2021/03/09/CRF/sumproduct.png" alt="sumproduct"><br><img src="/2021/03/09/CRF/sumproduct2.png" alt="sumproduct2"></p>
+<h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。</p>
 ]]></content>
       <categories>
         <category>ml</category>
@@ -283,10 +290,7 @@
 <li>Why do we use the hyperplane equation W<em>X instead of   Y=a</em>x+b? –&gt; the vector W will always be normal to the hyperplane</li>
 </ul>
 </li>
-<li><p>澄清下要做的步骤：</p>
-<ul>
-<li>1 数据集 2 选择两个超平面能够分类数据并在两平面间没有其他点<br>3 最大化超平面间隔</li>
-</ul>
+<li><p>澄清下要做的步骤：<br>  1 数据集<br>  2 选择两个超平面能够分类数据并在两平面间没有其他点<br>  3 最大化超平面间隔</p>
 </li>
 <li><p>将步骤整理成数学过程</p>
 <ul>
@@ -302,27 +306,29 @@
 </li>
 <li><p>得到的公式意味着：如果||w||没有限制，那么m我们可以取得任意大的值。</p>
 </li>
-<li><p>现在自然就面临optimization problem。所有的点subject to  y*(w*x+b)&gt;=1, 在此条件下如何minimize ||w||?先引入<strong>理论1</strong>，该理论为两个条件，在两个条件满足的情况下，可以说我们得到了一个scalar function的local minimum。<br><img src="/2021/02/04/SVM/theorem1" alt="theorem1"></p>
+<li><p>现在自然就面临optimization problem。所有的点subject to  y*(w*x+b)&gt;=1, 在此条件下如何minimize ||w||?先引入<strong>理论1</strong>，该理论为两个条件，在两个条件满足的情况下，可以说我们得到了一个scalar function的local minimum。</p>
 </li>
-<li><p>f为从集合σ(其元素为vector)到实数集(其元素为值)的映射，且在x处 连续、可二阶导。这里涉及到两个的概念：</p>
-<ol>
+</ul>
+</li>
+</ul>
+<p><img src="/2021/02/04/SVM/theorem1.png" alt="theorem1"></p>
+<ul>
+<li>f为从集合σ(其元素为vector)到实数集(其元素为值)的映射，且在x处 连续、可二阶导。这里涉及到两个的概念：<ol>
 <li>**gradient ：a generalization of the usual concept of derivative of  a function in one dimension to a function in several dimensions  ( the gradient of a function is a vector containing each of its partial derivatives.)**注意符号为 nabla,图中倒三角。 </li>
 <li><strong>scalar function：A scalar valued function is a function that takes one or more values but returns a single value. In our case f is a scalar valued function.</strong></li>
 </ol>
 </li>
-<li><p>positive definite：<br>A symmetric matrix A  is called positive definite if x.T<em>A</em>x&gt;0 , for all n维的实数向量x。</p>
-</li>
-<li><p><strong>theorem 2</strong>中的四个条件是等价的。因此可以通过其他三种情况来判断是否为正定。这里选择主子式来判断Hessian正定，涉及到三个概念：<br><img src="/2021/02/04/SVM/theorem2" alt="theorem2"></p>
-<ol>
-<li>Minors： 删除某行和某列的所有值再计算行列式。remove the ith line and the jth column</li>
-<li>Principal minors ：删除的行、列号一致。remove the ith line and the jth column and i=j</li>
-<li>Leading principal minor ：The leading principal minor of A of order k is the minor of order k obtained by <strong>deleting the last n−k rows and columns</strong>.（这里包含一个正三角符号，标注删除哪些行列）栗子看图Leading principal minor<br>![leading principal minor.jpg](leading principal minor.jpg)</li>
-</ol>
-</li>
-<li><p>得到了local minimum，How can we find a global minimum?两步走， 1. Find all the local minima 2. Take the smallest one; it is the global minimum. 另一个思路是看我们的f是否是<strong>convex</strong> ,是then we are sure its local minimum is a global minimum.</p>
-</li>
+<li>positive definite：<br>A symmetric matrix A  is called positive definite if x.T<em>A</em>x&gt;0 , for all n维的实数向量x。</li>
+<li><strong>theorem 2</strong>中的四个条件是等价的。因此可以通过其他三种情况来判断是否为正定。这里选择主子式来判断Hessian正定，涉及到三个概念：</li>
 </ul>
-</li>
+<p><img src="/2021/02/04/SVM/theorem2.png" alt="theorem2"></p>
+<pre><code>1. Minors： 删除某行和某列的所有值再计算行列式。remove the ith line and the jth column
+2. Principal minors ：删除的行、列号一致。remove the ith line and the jth column and i=j
+3. Leading principal minor ：The leading principal minor of A of order k is the minor of order k obtained by **deleting the last n−k rows and columns**.（这里包含一个正三角符号，标注删除哪些行列）栗子看图Leading principal minor
+</code></pre>
+<p>![leading principal minor.jpg](leading principal minor.jpg)</p>
+<ul>
+<li>得到了local minimum，How can we find a global minimum?两步走， 1. Find all the local minima 2. Take the smallest one; it is the global minimum. 另一个思路是看我们的f是否是<strong>convex</strong> ,是then we are sure its local minimum is a global minimum.</li>
 </ul>
 <p><strong>Theorem: A local minimum of a convex function is a global minimum</strong> 这里又涉及到convex function, convex set的定义。</p>
 <ul>
@@ -504,7 +510,186 @@
   <entry>
     <title>flink</title>
     <url>/2021/03/08/flink/</url>
-    <content><![CDATA[<h4 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h4><h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4>]]></content>
+    <content><![CDATA[<br>
+
+
+<h1 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h1><h2 id="state"><a href="#state" class="headerlink" title="state"></a>state</h2><ul>
+<li><p>场景</p>
+<ul>
+<li><p>有状态的逻辑是因为数据之间存在关联，单条数据是没有办法把所有的信息给表现出来。</p>
+<ul>
+<li>去重</li>
+<li>窗口计算</li>
+<li>机器学习参数</li>
+<li>访问历史数据</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>为什么要管理状态</p>
+<ul>
+<li>内存<ul>
+<li>流式作业：24 小时的数据都放到内存，可能会出现内存不足。</li>
+</ul>
+</li>
+<li>高可用<ul>
+<li>机器若出现故障或者宕机，需要考虑如何备份及从备份中去恢复，</li>
+</ul>
+</li>
+<li>扩展性<ul>
+<li>单节点无法处理全部访问数据，增加几个节点进行横向扩展，这时数据的状态如何平均分配到新增加的节点。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>方案</p>
+<ul>
+<li><p>Managed State &amp; Raw State</p>
+<ul>
+<li>自定义operator用 raw</li>
+<li>raw 必须能够转成字节数组</li>
+<li>managed，flink自动存储和恢复，并进行内存优化<br>支持已知的数据结构，如 Value、List、Map</li>
+</ul>
+</li>
+<li><p>Managed State</p>
+<ul>
+<li><p>Keyed State </p>
+<ul>
+<li><p>每个 Key 对应一个 State</p>
+</li>
+<li><p>整个程序中没有 keyBy 的过程就没有办法使用KeyedStream。</p>
+</li>
+<li><p>并发改变时状态重新分配：内置了 2 种分配方式</p>
+</li>
+<li><p>Keyed State 通过 RuntimeContext 访问，这需要 Operator 是一个 Rich Function。</p>
+</li>
+<li><p>几种 Keyed State 的差异</p>
+<ul>
+<li><p>ReducingState 和 AggregatingState 与 ListState 都是同一个父类，但状态数据类型上是单个值</p>
+</li>
+<li><p> AggregatingState 输入的 IN，输出的是 OUT。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Operator State </p>
+<ul>
+<li>可以用于所有算子，常用于 Source</li>
+<li>一个 Operator 实例对应一个 State</li>
+<li>Operator  State 需要自己实现 CheckpointedFunction 或 ListCheckpointed 接口。</li>
+<li>支持的数据结构相对较少 </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>使用示例</p>
+<ul>
+<li><p><a href="https://github.com/apache/flink/blob/master/flink-examples/flink-examples-streaming/src/main/java/org/apache/flink/streaming/examples/statemachine/StateMachineExample.java">写状态机是如何实现</a></p>
+</li>
+<li><p>实现的是：首先下订单，订单生成后状态为待付款，当再来一个事件状态付款成功，则事件的状态将会从待付款变为已付款，待发货…</p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>状态的保存和恢复</p>
+<ul>
+<li><p>保存</p>
+<ul>
+<li>Checkpoint 会定时制作分布式快照</li>
+</ul>
+</li>
+<li><p>恢复</p>
+<ul>
+<li><p>checkpoint</p>
+<ul>
+<li>数据源需要支持数据重新发送</li>
+<li>两种一致性语义，一种是恰好一次，一种是至少一次</li>
+<li>1、把进程或者线程移到 active 的 其他台机器上<br>2、整个作业的所有 Task 都回滚到最后一次成功 Checkpoint 中的状态</li>
+</ul>
+</li>
+<li><p>savepoint</p>
+<ul>
+<li>手动调整并发，必须要重启作业并会提示 Checkpoint 已经不存在–&gt; 此时savepoint</li>
+<li>比较持久，以标准格式存储</li>
+<li>允许代码或配置发生改变，恢复需要启动作业手动指定一个路径恢复</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>checkpoint实现</p>
+<ul>
+<li>运行环境 env.enableCheckpointing 传入间隔时间。越频繁，恢复时追数据就会相对减少，IO 消耗增加。</li>
+<li>设置了 Exactly_Once 语义，并且需要 Barries 对齐，这样可以保证消息不会丢失也不会重复。</li>
+<li>setMinPauseBetweenCheckpoints 防止 Checkpoint 太过于频繁</li>
+<li>setCheckpointTimeout 表示做 Checkpoint 多久超时</li>
+<li>setMaxConcurrentCheckpoints</li>
+<li>enableExternalizedCheckpoints。默认 Checkpoint 会在整个作业 Cancel 时被删除。Checkpoint 是作业级别的保存点。</li>
+</ul>
+</li>
+<li><p>checkpoint可选的状态存储方式</p>
+<ul>
+<li><p>MemoryStateBackend</p>
+<ul>
+<li>构造方法是设置最大的 StateSize，选择是否做异步快照</li>
+<li>且需要注意 maxStateSize &lt;= akka.framesize 默认 10 M</li>
+<li>Checkpoint 存储在 JobManager 内存中，因此总大小不超过 JobManager 的内存。- 本地测试、几乎无状态的作业，比如 ETL、JobManager 不容易挂，或挂掉影响不大的情况。不推荐在生产场景使用。</li>
+</ul>
+</li>
+<li><p>FsStateBackend</p>
+<ul>
+<li>需要传一个文件路径和是否异步快照</li>
+<li>State 依然在 TaskManager 内存中- Checkpoint 存储在外部文件系统（本地或 HDFS）</li>
+<li>常规使用状态的作业、例如分钟级窗口聚合或 join、需要开启 HA 的作业。</li>
+</ul>
+</li>
+<li><p>RocksDBStateBackend</p>
+<ul>
+<li>key/value 的内存存储系统</li>
+<li>不支持同步的 Checkpoint</li>
+<li>支持增量的 Checkpoint</li>
+<li>存储在外部文件系统（本地或 HDFS）</li>
+<li>单个 TaskManager 上 State 总量不超过它的内存+磁盘，单 Key 最大 2G，总大小不超过配置的文件系统容量即可</li>
+<li>超大状态的作业，例如天级窗口聚合、需要开启 HA 的作业、最好是对状态读写性能要求不高的作业。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="窗口"><a href="#窗口" class="headerlink" title="窗口"></a>窗口</h2><ul>
+<li>todo</li>
+</ul>
+<h2 id="watermark"><a href="#watermark" class="headerlink" title="watermark"></a>watermark</h2><ul>
+<li>todo</li>
+</ul>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><ul>
+<li>todo</li>
+</ul>
+<h2 id="概念-amp-角色"><a href="#概念-amp-角色" class="headerlink" title="概念&amp;角色"></a>概念&amp;角色</h2><ul>
+<li>TaskManager &amp; slot<ul>
+<li>每一个 TaskManager 都是一个JVM进程</li>
+<li>每个task slot表示TaskManager拥有资源的一个固定大小的子集</li>
+<li>将其管理的内存均分给各个slot</li>
+<li>一个TaskManager一个slot时，那么每个task group运行在独立的JVM中</li>
+<li>多个slot时，多个subtask可以共同享有一个JVM</li>
+<li>在同一个JVM进程中的task将共享TCP连接和心跳消息，也可能共享数据集和数据结构，从而减少每个task的负载。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>todo</li>
+</ul>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ul>
+<li><a href="https://www.infoq.cn/article/vgkza-s9fmbgabp71pgh">状态管理及容错机制</a></li>
+</ul>
+]]></content>
       <categories>
         <category>大数据</category>
       </categories>
@@ -641,6 +826,86 @@
       </tags>
   </entry>
   <entry>
+    <title>xgboost</title>
+    <url>/2021/03/11/xgboost/</url>
+    <content><![CDATA[<br>
+
+<h1 id="xgboost"><a href="#xgboost" class="headerlink" title="xgboost"></a>xgboost</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>xgboost是Gradient Boosting的一种高效系统实现</li>
+</ul>
+<h2 id="基学习器"><a href="#基学习器" class="headerlink" title="基学习器"></a>基学习器</h2><ul>
+<li>tree(gbtree)，也可用线性分类器(gblinear)。GBDT则特指梯度提升决策树算法</li>
+</ul>
+<h2 id="loss"><a href="#loss" class="headerlink" title="loss"></a>loss</h2><ul>
+<li><p>xgboost则对代价函数进行了二阶泰勒展开，同时用到了一阶和二阶导数</p>
+</li>
+<li><p>xgboost工具支持自定义代价函数</p>
+</li>
+<li><p>代价函数里加入了正则项</p>
+<ul>
+<li>树的叶子节点个数</li>
+<li>每个叶子节点上输出的score的L2模的平方和</li>
+<li>正则项降低了模型的variance</li>
+</ul>
+</li>
+<li><p>Shrinkage（xgboost中的eta）</p>
+<ul>
+<li>xgboost在进行完一次迭代后，会将叶子节点的权重乘上该系数，主要是为了削弱每棵树的影响，让后面有更大的学习空间。</li>
+<li>一般把eta设置得小一点，然后迭代次数设置得大一点</li>
+</ul>
+</li>
+<li><p>gamma </p>
+<ul>
+<li>当增益大于阈值时才让节点分裂，gamma即阈值</li>
+<li>它是正则项里叶子节点数T的系数，所以xgboost在优化目标函数的同时相当于做了预剪枝。</li>
+</ul>
+</li>
+<li><p>lambda</p>
+<ul>
+<li>正则项里leaf score的L2模平方的系数，对leaf score做了平滑，也起到了防止过拟合的作用，这个是传统GBDT里不具备的特性。</li>
+</ul>
+</li>
+</ul>
+<h2 id="样本"><a href="#样本" class="headerlink" title="样本"></a>样本</h2><ul>
+<li>缺失值<ul>
+<li>对于特征的值有缺失的样本，xgboost可以自动学习出它的分裂方向</li>
+</ul>
+</li>
+<li>列抽样<ul>
+<li>xgboost借鉴了随机森林的做法，支持列抽样，不仅能降低过拟合，还能减少计算</li>
+</ul>
+</li>
+</ul>
+<h2 id="计算"><a href="#计算" class="headerlink" title="计算"></a>计算</h2><ul>
+<li><p>在特征粒度上</p>
+</li>
+<li><p>最耗时的一个步骤就是对特征的值进行排序（因为要确定最佳分割点）</p>
+</li>
+<li><p>预先对数据进行了排序，然后保存为block结构，后面的迭代中重复地使用这个结构</p>
+</li>
+<li><p>在进行节点的分裂时，需要计算每个特征的增益，最终选增益最大的那个特征去做分裂，那么各个特征的增益计算就可以开多线程进行。</p>
+</li>
+<li><p>可并行的近似直方图算法</p>
+<ul>
+<li>用贪心法枚举所有可能的分割点，当数据无法一次载入内存或者在分布式情况下，贪心算法效率就会变得很低</li>
+</ul>
+</li>
+</ul>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ul>
+<li><a href="https://www.zhihu.com/question/41354392">GBDT 和 XGBOOST 的区别有哪些</a></li>
+</ul>
+<hr>
+<p>mind:</p>
+<p><img src="/2021/03/11/xgboost/xgboost.png" alt="xgboost"></p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>决策树</title>
     <url>/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/</url>
     <content><![CDATA[<br>
@@ -683,7 +948,7 @@
 <h4 id="扩展问题"><a href="#扩展问题" class="headerlink" title="扩展问题"></a>扩展问题</h4><p>Q4：信息增益比的缺点？<br>偏好取值少的特征。<br>C4.5不是直接选择增益比最大的特征，而是之前先把信息增益低于均值的属性剔除，然后在剩下的特征中选择而信息增益比最大的。得到兼顾。</p>
 <p>Q5：预剪枝？<br>1、对当前节点在划分时，进行估计，如果不能够提升泛化能力则不进行划分。<br>2、本质是基于贪心，对当前节点进行判断是否划分。<br>3、坏处：当前虽然不能提升泛化能力，但可能划分后子树能够提升泛化能力。导致模型欠拟合。</p>
 <p>Q6：对比LR和决策树？<br>1、y的结果上，决策树是固定的几个值。<br>2、LR比决策树慢，时间复杂度高。<br>3、LR无法处理缺失值，需要赋值。并且对极端值更敏感<br>4、LR对线性关系、全局拟合较好。决策树则是局部最优、局部数据探查更细致，不能更好地对多个特征同时考量。</p>
-<p>Q7：CART做了哪些简化？<br>1、log函数的计算量大，而gini有图形可知，是对熵模型的很好的近似。<br>2、CART是二叉树，对每个特征进行二分而非多分，减少了特征选择时的计算。</p>
+<p>Q7：CART做了哪些简化？<br>1、log函数的计算量大，而gini由图形可知，是对熵模型的很好的近似。<br>2、CART是二叉树，对每个特征进行二分而非多分，减少了特征选择时的计算。</p>
 <p>Q8：测试集上缺失值的处理？<br>1、赋平均值或出现频次最高的值<br>2、走特征的常用分支<br>3、特征值专门处理的分支<br>C4.5的方式是，探查所有的分支，然后得到每个类别的概率，取最大的赋给该样本。</p>
 <p>Q9：CART对于离散特征处理、连续特征处理的不同之处？<br>1、ID3&amp;C4.5都是多叉，特征只出现在一个中间节点；CART是对离散特征不断地二分。<br>2、连续特征：遍历每个特征，对某特征找到最小化均方误差(loss)的thre点，该点作为该特征的切分点。在所有特征中找到最小的loss，得到最优的(特征，特征切分点)作为中间节点。二分后，对每个孩子继续进行最优的(特征，特征切分点)的查找。同离散特征一样，连续特征可以重复出现，作为中间节点。直到达到停止条件。<br>3、CART连续特征：换种表述：对于任意划分特征A，对应的任意划分点s两边划分成的数据集D1和D2，求出使D1和D2各自集合的均方差最小，同时D1和D2的均方差之和最小所对应的特征和特征值划分点。<br>4、ID3不支持连续特征划分。C4.5的做法是，将连续值进行排序，取两个值的中间值作为划分点，然后算信息增益比，(连续和离散的)最大的信息增益比为该中间节点。当连续值较多时，计算量的大。并且和CART一样，该连续特征同样可以继续作为中间节点，而非和离线一样一次性地生成多个孩子分叉。</p>
 <p>Q10：缺点或者优化？<br>1、分类决策不应该是由某一个特征决定的，而是应该由一组特征决定的。这样决策得到的决策树更加准确。这个决策树叫做多变量决策树(multi-variate decision tree)。在选择最优特征的时候，多变量决策树不是选择某一个最优特征，而是选择最优的一个特征线性组合来做决策。这个算法的代表是OC1。<br>2、如果样本发生一点点的改动，就会导致树结构的剧烈改变。这个可以通过集成学习里面的随机森林之类的方法解决。</p>
@@ -1134,24 +1399,77 @@
 <p>2、从偏差和方差的角度解释bagging和boosting的原理？<br>bagging：<br>重采样、权重也相同–模型的区别性不大，bias小。<br>但如果假设各个子模型独立，则显著降低variance。如果完全相同的子模型，则var和单个模型一样。bagging属于两者之间，一定程度降低了var。RF特征上随机选择，进一步降低了模型的相关性，从而进一步降低了var。</p>
 <p>boosting:<br>前向分步学习算法，是sequencial地减少损失函数，loss是逐步地下降的，bias也随之逐步下降。但由于是这种sequence、adaptive地，模型相关性较高，不能显著减少var。</p>
 <h4 id="结合策略"><a href="#结合策略" class="headerlink" title="结合策略"></a>结合策略</h4><p>1平均法；2投票法：多数投票、绝对多数投票、加权投票；3学习法。<br>学习法，代表方法是stacking。stacking是再加上一层学习器，我们将训练集弱学习器的学习结果作为输入，将训练集的输出作为输出，重新训练一个学习器来得到最终结果。</p>
-<h4 id="Adaboost"><a href="#Adaboost" class="headerlink" title="Adaboost"></a>Adaboost</h4><p>1、Adaboost是模型为加法模型，学习算法为前向分步学习算法，损失函数为指数函数的分类问题。<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/加法前向.png" width="80%" height="350"></p>
+<h4 id="Adaboost"><a href="#Adaboost" class="headerlink" title="Adaboost"></a>Adaboost</h4><p>1、Adaboost是模型为加法模型，学习算法为前向分步学习算法，损失函数为指数函数的分类问题。</p>
+<p><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/%E5%8A%A0%E6%B3%95%E5%89%8D%E5%90%91.png" alt="加法前向"></p>
 <p><strong>为什么loss是指数函数？证明如下：</strong></p>
-<p>————————————————————————————————————————————————————————————<br><br><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp证明1.png" width="80%" height="450"><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp证明2.png" width="80%" height="700"><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp证明3.png" width="80%" height="300"><br><br><br>——————————————————————————————————————————————————————————–</p>
+<p>————————————————————————————————————————————————————————————<br><br><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp%E8%AF%81%E6%98%8E1.png" alt="exp证明1"><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp%E8%AF%81%E6%98%8E2.png" alt="exp证明2"><br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/exp%E8%AF%81%E6%98%8E3.png" alt="exp证明3"></p>
+<!-- <img src=exp证明1.png width=80% height=450>
+<img src=exp证明2.png width=80% height=700>
+<img src=exp证明3.png width=80% height=300> -->
+<br>
+——————————————————————————————————————————————————————————--
+
 <p>2、分类器结合时的权重？<br>由于Adaboost中若干个分类器的关系是第N个分类器更可能分对第N-1个分类器没分对的数据，而不能保证以前分对的数据也能同时分对。所以在Adaboost中，每个弱分类器都有各自最关注的点，每个弱分类器都只关注整个数据集的中一部分数据，所以它们必然是共同组合在一起才能发挥出作用。所以最终投票表决时，需要根据弱分类器的权重来进行加权投票，权重大小是根据弱分类器的分类错误率计算得出的，总的规律就是弱分类器错误率越低，其权重就越高。</p>
 <p>计算公式：</p>
-<p>1 误差<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/误差.png" width="60%" height="150"></p>
-<p>2 权重系数<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/弱分类器权重系数.png" width="60%" height="100"></p>
-<p>3 样本权重<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/样本权重.png" width="80%" height="300"></p>
-<p>4 分类器结合及最终分类器<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/分类器结合.png" width="80%" height="230"></p>
+<p>1 误差<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/%E8%AF%AF%E5%B7%AE.png" alt="误差"></p>
+<!-- <img src=误差.png width=60% height=150>
+ -->
+<p>2 权重系数<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/%E5%BC%B1%E5%88%86%E7%B1%BB%E5%99%A8%E6%9D%83%E9%87%8D%E7%B3%BB%E6%95%B0.png" alt="弱分类器权重系数"></p>
+<!-- <img src=弱分类器权重系数.png width=60% height=100> -->
+
+<p>3 样本权重<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/%E6%A0%B7%E6%9C%AC%E6%9D%83%E9%87%8D.png" alt="样本权重"></p>
+<!-- <img src=样本权重.png width=80% height=300> -->
+
+<p>4 分类器结合及最终分类器<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/%E5%88%86%E7%B1%BB%E5%99%A8%E7%BB%93%E5%90%88.png" alt="分类器结合"></p>
+<!-- <img src=分类器结合.png width=80% height=230> -->
+
+
 <p>由上面的公式，可得到：<br>每次新增加一个弱分类器的时候，前面的弱分类器分错的样本的权重占总样本权重的0.5，前面弱分类器分对的样本等权重也占总样本权重的0.5。</p>
 <p>3、正则化</p>
 <p>fn = fn-1 + θ * a * G<br>θ 为正则化项</p>
 <p>4、评价</p>
 <p>可解释性<br>参数个数<br>performance<br>异常点敏感<br>弱分类器选择<br>可用于特征选择</p>
 <h4 id="GBDT"><a href="#GBDT" class="headerlink" title="GBDT"></a>GBDT</h4><p>1、区别于adaboost</p>
-<p>Adaboost是通过提高错分样本的权重来定位模型的不足，GBDT是通过负梯度来定位模型的不足，因此GBDT可以使用更多种类的损失函数。</p>
-<p>adaboost存在异常点敏感的问题,gbdt一定程度上优化了adaboost异常点敏感的问题。</p>
-<p>2、</p>
+<p>Adaboost是通过提高错分样本的权重来定位模型的不足，GBDT是通过负梯度来定位模型的不足，因此GBDT可以使用更多种类的损失函数。由于loss可以选择更鲁棒的，对于adaboost存在异常点敏感的问题,gbdt更健壮。</p>
+<p>可以灵活处理离散和连续值。</p>
+<p>分类的GBDT：是用指数损失函数，此时GBDT退化为Adaboost算法。<br>另一种方法是用类似于逻辑回归的对数似然损失函数的方法。</p>
+<p>使用了前向分布算法，但是弱学习器限定了只能使用CART回归树模型，同时迭代思路和Adaboost也有所不同。有很多人对GBDT算法进行了开源代码的开发，比较火的是陈天奇的XGBoost和微软的LightGBM。</p>
+<p>2、为什么只能分类树</p>
+<p>GBDT的核心在于累加所有树的结果作为最终结果，而分类树的结果显然是没办法累加的，所以GBDT中的树都是回归树，不是分类树。</p>
+<p>3、损失函数有哪些？</p>
+<p>1指数损失；2对数损失；3均方差(如果我们选择平方损失函数，那么这个差值其实就是我们平常所说的残差。)；4绝对损失；5Huber损失(它是均方差和绝对损失的折衷产物，对于远离中心的异常点，采用绝对损失，而中心附近的点采用均方差。这个界限一般用分位数点度量。)；6分位数损失。56主要用于健壮回归，也就是减少异常点对损失函数的影响。</p>
+<p>4、例子</p>
+<p><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/gbdt%E4%BE%8B%E5%AD%90.png" alt="gbdt例子"></p>
+<p>5、SGBDT</p>
+<p>子采样比例（subsample）。取值为(0,1]。注意这里的子采样和随机森林不一样，随机森林使用的是放回抽样，而这里是不放回抽样。如果取值为1，则全部样本都使用，等于没有使用子采样。如果取值小于1，则只有一部分样本会去做GBDT的决策树拟合。选择小于1的比例可以减少方差，即防止过拟合，但是会增加样本拟合的偏差，因此取值不能太低。推荐在[0.5, 0.8]之间。使用了子采样的GBDT有时也称作随机梯度提升树(Stochastic Gradient Boosting Tree, SGBT)。由于使用了子采样，程序可以通过采样分发到不同的任务去做boosting的迭代过程，最后形成新树，从而减少弱学习器难以并行学习的弱点。</p>
+<p>6、构造特征输入LR<br>如果我们想让逻辑回归处理非线性的数据，其中一种方式便是组合不同特征，增强逻辑回归对非线性分布的拟合能力。Facebook 在2014年 发表的一篇论文便是这种尝试下的产物，利用gbdt去产生有效的特征组合，以便用于逻辑回归的训练，提升模型最终的效果。如我们 使用 GBDT 生成了两棵树，两颗树一共有五个叶子节点。我们将样本 X 输入到两颗树当中去，样本X 落在了第一棵树的第二个叶子节点，第二颗树的第一个叶子节点，于是我们便可以依次构建一个五纬的特征向量，每一个纬度代表了一个叶子节点，样本落在这个叶子节点上面的话那么值为1，没有落在该叶子节点的话，那么值为 0。于是对于该样本，我们可以得到一个向量[0,1,0,1,0] 作为该样本的组合特征，和原来的特征一起输入到逻辑回归当中进行训练。实验证明这样会得到比较显著的效果提升。</p>
+<p>7、CART分类树过程<br><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/cart%E5%88%86%E7%B1%BB%E8%BF%87%E7%A8%8B.png" alt="cart分类过程"></p>
+<p>8、相比于传统的LR，SVM效果为什么好一些</p>
+<ul>
+<li><p>GBDT基于树模型，继承了树模型的优点 [对异常点鲁棒、不相关的特征干扰性低（LR需要加正则）、可以很好地处理缺失值、受噪音的干扰小]</p>
+</li>
+<li><p>处理 missing feature</p>
+</li>
+<li><p>数据规模影响不大，因为我们对弱分类器的要求不高，作为弱分类器的决策树的深 度一般设的比较小，即使是大数据量，也可以方便处理。像 SVM 这种数据规模大的时候训练会比较麻烦。</p>
+</li>
+<li><p> 通常在给定的不带噪音的问题上，他能达到的最佳分类效果还是不如 SVM，逻辑回归之类的。<br>实际问题中，往往有很大的噪音，使得 Decision Tree 这个弱势就不那么明显了。</p>
+</li>
+</ul>
+<p>9、加速训练？<br>是否预排序,预排序可以加速查找最佳分裂点（不确定）.在样本规模上的并行计算。</p>
+<p>10、参数</p>
+<ul>
+<li><p>第一类Miscellaneous Parameters </p>
+</li>
+<li><p>第二类：Boosting Parameters:<br>n_estimators 最大弱学习器的个数，太小欠拟合，太大过拟合<br>learning_rate 学习率，太大过拟合，一般很小0.1，和n_estimators一起调<br>subsample 子采样，防止过拟合，太小欠拟合。GBDT中是不放回采样</p>
+</li>
+<li><p>第三类：Tree-Specific Parameters<br>max_features 最大特征数<br>max_depth 最大树深，太大过拟合<br>min_samples_split 内部节点再划分所需最小样本数，越大越防过拟合<br>min_weight_fraction_leaf 叶子节点最小的样本权重和。如果存在较多样本有缺失值，或者分类树样本的分布类别偏差很大，就会引入样本权重，这时我们就要注意这个值了。越大越防过拟合<br>max_leaf_nodes:最大叶子节点数 ，太大过拟合<br>min_impurity_split:节点划分最小不纯度<br>presort:是否对数据进行预分类，以加快拟合中最佳分裂点的发现。默认False。非稀疏数据则预排序，若稀疏数据则不预排序。小规模数据预排序。</p>
+</li>
+</ul>
+<p>11、调参思路</p>
+<p>1、首先使用默认的参数，进行数据拟合；<br>2、从步长(learning rate)和迭代次数(n_estimators)入手；一般来说,开始选择一个较小的步长来网格搜索最好的迭代次数。这里，可以将步长初始值设置为0.1。对于迭代次数进行网格搜索；<br>3、接下来对决策树的参数进行寻优<br>4、首先我们对决策树最大深度max_depth和内部节点再划分所需最小样本数min_samples_split进行网格搜索。【min_samples_split暂时不能一起定下来，因为这个还和决策树其他的参数存在关联】<br>5、接着再对内部节点再划分所需最小样本数min_samples_split和叶子节点最少样本数min_samples_leaf一起调参；做到这里，min_samples_split要做两次网格寻优，一次是树的最大深度max_depth，一次是叶子节点最少样本数min_samples_leaf。<br>【具体观察min_samples_split的值是否落在边界上，如果是可以进一步寻优】<br>6、继续对最大特征数max_features进行网格搜索。做完这一步可以看看寻找出的最优参数组合给出的分类器的效果。<br>7、可以进一步考虑对子采样的比例进行网格搜索，得到subsample的寻优参数<br>8、回归到第2步调整设定的步长(learning rate)和迭代次数(n_estimators)，注意两者的乘积保持不变，这里可以分析得到：通过减小步长可以提高泛化能力，但是步长设定过小，也会导致拟合效果反而变差，也就是说，步长不能设置的过小。</p>
+<hr>
+<p>mind:</p>
+<p><img src="/2021/02/21/%E6%8F%90%E5%8D%87%E6%96%B9%E6%B3%95/%E6%8F%90%E5%8D%87.png" alt="提升"></p>
 ]]></content>
       <categories>
         <category>ml</category>
@@ -1189,6 +1507,9 @@
 </ul>
 </li>
 </ul>
+<h4 id="LSTM为什么有助于解决梯度消失和爆炸问题？"><a href="#LSTM为什么有助于解决梯度消失和爆炸问题？" class="headerlink" title="LSTM为什么有助于解决梯度消失和爆炸问题？"></a>LSTM为什么有助于解决梯度消失和爆炸问题？</h4><p><a href="https://www.zhihu.com/question/34878706">https://www.zhihu.com/question/34878706</a></p>
+<p>RNN 中总的梯度是不会消失的。即便梯度越传越弱，那也只是远距离的梯度消失，由于近距离的梯度不会消失，所有梯度之和便不会消失。RNN 所谓梯度消失的真正含义是，梯度被近距离梯度主导，导致模型难以学到远距离的依赖关系。</p>
+<p>其一是遗忘门接近 1（例如模型初始化时会把 forget bias 设置成较大的正数，让遗忘门饱和），这时候远距离梯度不消失；其二是遗忘门接近 0，但这时模型是故意阻断梯度流的，这不是 bug 而是 feature（例如情感分析任务中有一条样本 “A，但是 B”，模型读到“但是”后选择把遗忘门设置成 0，遗忘掉内容 A，这是合理的）。当然，常常也存在 f 介于 [0, 1] 之间的情况，在这种情况下只能说 LSTM 改善（而非解决）了梯度消失的状况。</p>
 ]]></content>
       <categories>
         <category>dl</category>

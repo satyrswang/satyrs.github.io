@@ -25,8 +25,10 @@
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%902.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E6%8E%A8%E5%AF%BC.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/learning%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/sumproduct.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/sumproduct2.png">
 <meta property="article:published_time" content="2021-03-09T04:46:00.000Z">
-<meta property="article:modified_time" content="2021-03-09T06:51:32.315Z">
+<meta property="article:modified_time" content="2021-03-09T08:38:17.059Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="ml">
 <meta name="twitter:card" content="summary">
@@ -97,7 +99,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">37.3k</span>
+    总字数 <span class="post-count">41.2k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -197,7 +199,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：478字 | 预计阅读时长：1分钟
+    字数：534字 | 预计阅读时长：1分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -260,10 +262,12 @@
 
 <h3 id="三个问题"><a href="#三个问题" class="headerlink" title="三个问题"></a>三个问题</h3><h4 id="模型基本问题"><a href="#模型基本问题" class="headerlink" title="模型基本问题"></a>模型基本问题</h4><p>模型问题包含 learning 和 inference。<br>learning即 parameter estimation。求 θ。<br>inference：<br>(以下 y 为隐变量)<br>1 marginal prob ： 当建模对象为joint dist，求p(xt)即求边缘概率问题。<br>2 conditional prob ： 求 p(x|y)<br>3 MAP inference ： decoding ， 求  y = argmax p(y|x)</p>
 <h4 id="CRF-learning"><a href="#CRF-learning" class="headerlink" title="CRF learning"></a>CRF learning</h4><p>1、问题定义<br><img src="/2021/03/09/CRF/learning%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89.png" alt="learning问题定义"></p>
-<p>2、</p>
+<p>2、todo – 数学推导</p>
 <h4 id="CRF-marginal-prob"><a href="#CRF-marginal-prob" class="headerlink" title="CRF marginal prob"></a>CRF marginal prob</h4><p>1、即求 P(yt = i | x)<br>给定x条件下的 隐变量yt 的边缘概率。<br>即 词性标注中，给定一句话，判断出 y1(第一个词)是动词(i)的概率是多少。</p>
-<p>2、</p>
-<h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>1、求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。</p>
+<p>2、硬算，复杂度高。指数级计算不可行。<br>简化：</p>
+<p>数学转化。<br>用到了变量消除法， sum+product，又叫信念传播，belief propagate。<br>HMM的前向 后向传播也就是belief propagate。</p>
+<p><img src="/2021/03/09/CRF/sumproduct.png" alt="sumproduct"><br><img src="/2021/03/09/CRF/sumproduct2.png" alt="sumproduct2"></p>
+<h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。</p>
 
       
 
@@ -409,6 +413,15 @@
 
   
 <nav id="article-nav">
+  
+    <a href="/2021/03/11/xgboost/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          xgboost
+        
+      </div>
+    </a>
   
   
     <a href="/2021/03/08/dssm/" id="article-nav-older" class="article-nav-link-wrap">
