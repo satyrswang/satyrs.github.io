@@ -516,7 +516,7 @@
 <h1 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h1><h2 id="state"><a href="#state" class="headerlink" title="state"></a>state</h2><ul>
 <li><p>场景</p>
 <ul>
-<li><p>有状态的逻辑是因为数据之间存在关联，单条数据是没有办法把所有的信息给表现出来。</p>
+<li>有状态的逻辑是因为数据之间存在关联，单条数据是没有办法把所有的信息给表现出来。<a id="more"></a>
 <ul>
 <li>去重</li>
 <li>窗口计算</li>
