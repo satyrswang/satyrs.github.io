@@ -6,6 +6,61 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
+    <title>Apriori_fptree</title>
+    <url>/2021/03/11/Apriori-fptree/</url>
+    <content><![CDATA[<ul>
+<li><p>Apriori {</p>
+</li>
+<li><p>input<br>{ID1:[item1,item2…],ID2:[item3,item2…],…}</p>
+</li>
+<li><p>output<br>item1-&gt;item2,item3…</p>
+</li>
+<li><p>math<br>频率及条件概率的简单应用<br>支持度: 频数/样本总量<br>置信度: 条件概率<br>如果子集不为频繁集则超集一定不为；反之如果超集是频繁集则子集均为频繁集。</p>
+</li>
+<li><p>parameters<br><code>minSupport</code><br><code>minConf</code></p>
+</li>
+<li><p>过程<br>1-4完成了频繁集的搜寻，5及之后产生规则。</p>
+</li>
+</ul>
+<ol>
+<li><p><code>list</code>存放每个用户的  <code>itemset</code>，生成[[],[]]存放所有item并排序，<code>map(frozenset, C1)</code></p>
+</li>
+<li><p>第一轮遍历，生成一个<code>list</code>存放所有支持度大于<code>minSupport</code>，大于则<code>insert(0,key)</code>。遍历的函数<code>scanD</code>所生成<code>list</code>的元素是<code>frozenset</code>。如果<code>can.issubset(tid)</code>且<code>！ssCnt.has_key(can)</code>则加入到<code>supportData</code>。</p>
+</li>
+<li><p>list存放所有频繁物品集，<code>supportData</code>存放所有计算过的物品集的支持度，以<code>frozenset</code>作为<code>key</code>。两者更新的过程是在<code>apriori</code>中循环调用<code>aprioriGen</code>和<code>scanD </code>，再更新。直到<code>scanD</code>得到的频繁物品集为空。</p>
+</li>
+<li><p><code>aprioriGen</code>的过程，两层循环，遍历上一个(即物品集中个数为目前需要产生的个数-1)频繁物品集，<code>L1 = list(Lk[i])[:k-2];L2 = list(Lk[j])[:k-2]</code>取前k-2项比较，若相同则<code>retList.append(Lk[i] | Lk[j])</code>将物品集union。是一个merging过程。</p>
+</li>
+<li><p>如果频繁集<code>frozenset</code>中item多于2，先<code>rulesFromConseq</code>再<code>calcConf</code>。<code>rulesFromConseq</code>是个递归过程，</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        if (len(Hmp1) &gt; 1):   #至少需要两个元素才能够merge</span><br><span class="line">            rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
+<p>这里一个问题是，如果<code>len(Hmp1) =1</code>，但是<code>len(freqSet) &gt; (len(Hmp1[0]) + 1)</code>仍然成立，因此修改为：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        if(len(H) &gt; 1):</span><br><span class="line">            Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
+<p>}</p>
+</li>
+</ol>
+<ul>
+<li><p>fptree {</p>
+</li>
+<li><p>概念<br>闭项：超集的支持度为s，子集的支持度都不超过s。<br>条件模式基： 即一个item追溯到root的所有路径<br>条件fp树 ： 即根据条件模式基创建的tree<br><code>myCondTree, myHead = createTree(condPattBases, minSup)</code></p>
+</li>
+<li><p>准备<br><code>headertable</code> : <code>dict</code>，<code>value</code>为<code>[count,treeNode]</code><br><code>treeNode</code> : <code>class</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def __init__(self, nameValue, numOccur, parentNode):</span><br><span class="line">     self.name &#x3D; nameValue</span><br><span class="line">     self.count &#x3D; numOccur</span><br><span class="line">     self.nodeLink &#x3D; None</span><br><span class="line">     self.parent &#x3D; parentNode      </span><br><span class="line">     self.children &#x3D; &#123;&#125; </span><br></pre></td></tr></table></figure>
+<p>主要方法：<code>createTree</code> <code>updateTree</code>  <code>mineTree</code><br>辅助方法：<code>updateHeader</code> <code>findPrefixPath</code> <code>ascendTree</code></p>
+</li>
+<li><p>过程</p>
+</li>
+</ul>
+<ol>
+<li><code>createTree</code>首先第一次遍历计算<code>count</code>，<code>headerTable[item] = headerTable.get(item, 0) + dataSet[trans]</code>将<code>count</code>简单赋值为1。注意到这里的dataSet类型。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def createInitSet(dataSet):</span><br><span class="line">    retDict &#x3D; &#123;&#125;</span><br><span class="line">    for trans in dataSet:</span><br><span class="line">        retDict[frozenset(trans)] &#x3D; 1</span><br><span class="line">    return retDict</span><br></pre></td></tr></table></figure>
+获得<code>freqItemSet = set(headerTable.keys())</code>后第二次遍历。先对item排序，<code>orderedItems = [v[0] for v in sorted(localD.items(), key=lambda p: p[1], reverse=True)] </code>，再<code>updateTree(orderedItems, retTree, headerTable, count)</code>。</li>
+<li><code>updateTree</code>，这里就是普通的对树的操作，也是递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if len(items) &gt; 1:#call updateTree() with remaining ordered items</span><br><span class="line">        updateTree(items[1::], inTree.children[items[0]], headerTable, count)</span><br></pre></td></tr></table></figure>
+唯一注意之处，需要<code>updateHeader</code>。</li>
+<li><code>mineTree</code>和<code>Apriori</code>中的<code>rulesFromConseq </code>一样较复杂，包含递归。先生成条件模式基，再生成conditional-fptree，再递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if myHead !&#x3D; None:                  </span><br><span class="line">   mineTree(myCondTree, myHead, minSup, newFreqSet, freqItemList)</span><br></pre></td></tr></table></figure>
+循环递归mineTree的过程即生成规则过程，直到频繁2项集都得到。<br>}</li>
+</ol>
+]]></content>
+  </entry>
+  <entry>
     <title>CRF</title>
     <url>/2021/03/09/CRF/</url>
     <content><![CDATA[<br>
@@ -79,6 +134,43 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Decorator</title>
+    <url>/2021/02/04/Decorator/</url>
+    <content><![CDATA[<h2 id="functional-programming-concepts"><a href="#functional-programming-concepts" class="headerlink" title="functional programming concepts"></a><strong>functional programming concepts</strong></h2><p>分两类：</p>
+<ul>
+<li>Function decorators</li>
+<li>Class decorators<a id="more"></a></li>
+</ul>
+<blockquote>
+<p>A decorator in Python is any callable Python object that is used to <strong>modify a function or a class</strong>. A reference to a function “func” or a class “C” is passed to a decorator and the decorator returns a modified function or class. The modified functions or classes usually contain calls to the original function “func” or class “C”. </p>
+</blockquote>
+<h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a><strong>show me the code</strong></h2><ul>
+<li><em>参数检查</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def argument_test_natural_number(f):</span><br><span class="line">    def helper(x):</span><br><span class="line">        if type(x) &#x3D;&#x3D; int and x &gt; 0:</span><br><span class="line">            return f(x)</span><br><span class="line">        else:</span><br><span class="line">            raise Exception(&quot;Argument is not an integer&quot;)</span><br><span class="line">    return helper</span><br><span class="line">    </span><br><span class="line">@argument_test_natural_number</span><br><span class="line">def factorial(n):</span><br><span class="line">    if n &#x3D;&#x3D; 1:</span><br><span class="line">        return 1</span><br><span class="line">    else:</span><br><span class="line">        return n * factorial(n-1)</span><br><span class="line"></span><br><span class="line">for i in range(1,10):</span><br><span class="line">	print(i, factorial(i))</span><br><span class="line"></span><br><span class="line">print(factorial(-1))</span><br></pre></td></tr></table></figure></li>
+<li><em>统计次数</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def call_counter(func):</span><br><span class="line">    def helper(*args, **kwargs):</span><br><span class="line">        helper.calls +&#x3D; 1</span><br><span class="line">        return func(*args, **kwargs)</span><br><span class="line">    helper.calls &#x3D; 0</span><br><span class="line"></span><br><span class="line">    return helper</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def succ(x):</span><br><span class="line">    return x + 1</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def mul1(x, y&#x3D;1):</span><br><span class="line">    return x*y + 1</span><br><span class="line"></span><br><span class="line">print(succ.calls)</span><br><span class="line">for i in range(10):</span><br><span class="line">    succ(i)</span><br><span class="line">mul1(3, 4)</span><br><span class="line">mul1(4)</span><br><span class="line">mul1(y&#x3D;3, x&#x3D;2)</span><br><span class="line">    </span><br><span class="line">print(succ.calls)</span><br><span class="line">print(mul1.calls)</span><br></pre></td></tr></table></figure></li>
+<li><em>含参数的decorator</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(expr):</span><br><span class="line">    def greeting_decorator(func):</span><br><span class="line">        def function_wrapper(x):</span><br><span class="line">            print(expr + &quot;, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">            func(x)</span><br><span class="line">        return function_wrapper</span><br><span class="line">    return greeting_decorator</span><br><span class="line"></span><br><span class="line">@greeting(&quot;-wyq-&quot;)</span><br><span class="line">def foo(x):</span><br><span class="line">    print(42)</span><br><span class="line"></span><br><span class="line">foo(&quot;Hi&quot;)</span><br></pre></td></tr></table></figure></li>
+<li><em>using import 要注意变量的域</em></li>
+</ul>
+<p>greeting_decorator.py  没用functools的版本</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(func):</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    function_wrapper.__name__ &#x3D; func.__name__</span><br><span class="line">    function_wrapper.__doc__ &#x3D; func.__doc__</span><br><span class="line">    function_wrapper.__module__ &#x3D; func.__module__</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
+<p>anotherfile.py:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from greeting_decorator import greeting</span><br><span class="line"></span><br><span class="line">@greeting</span><br><span class="line">def f(x):</span><br><span class="line">    &quot;&quot;&quot; just some silly function &quot;&quot;&quot;</span><br><span class="line">    return x + 4</span><br><span class="line"></span><br><span class="line">f(10)</span><br><span class="line">print(&quot;function name: &quot; + f.__name__)</span><br><span class="line">print(&quot;docstring: &quot; + f.__doc__)</span><br><span class="line">print(&quot;module name: &quot; + f.__module__)</span><br></pre></td></tr></table></figure>
+<p>greeting_decorator.py</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from functools import wraps</span><br><span class="line"></span><br><span class="line">def greeting(func):</span><br><span class="line">    @wraps(func)</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
+<p>否则将返回</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function name: function_wrapper</span><br><span class="line">docstring:  function_wrapper of greeting </span><br><span class="line">module name: greeting_decorator</span><br></pre></td></tr></table></figure>
+<ul>
+<li><em><code>__call__</code></em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Fibonacci:</span><br><span class="line">    def __init__(self):</span><br><span class="line">        self.cache &#x3D; &#123;&#125;</span><br><span class="line">    def __call__(self, n):</span><br><span class="line">        if n not in self.cache:</span><br><span class="line">            if n &#x3D;&#x3D; 0:</span><br><span class="line">                self.cache[0] &#x3D; 0</span><br><span class="line">            elif n &#x3D;&#x3D; 1:</span><br><span class="line">                self.cache[1] &#x3D; 1</span><br><span class="line">            else:</span><br><span class="line">                self.cache[n] &#x3D; self.__call__(n-1) + self.__call__(n-2)</span><br><span class="line">        return self.cache[n]</span><br><span class="line"></span><br><span class="line">fib &#x3D; Fibonacci()</span><br><span class="line"></span><br><span class="line">for i in range(15):</span><br><span class="line">    print(fib(i), end&#x3D;&quot;, &quot;)</span><br></pre></td></tr></table></figure></li>
+<li><em>using class</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class decorator2:</span><br><span class="line">    </span><br><span class="line">    def __init__(self, f):</span><br><span class="line">        self.f &#x3D; f</span><br><span class="line">        </span><br><span class="line">    def __call__(self):</span><br><span class="line">        print(&quot;Decorating&quot;, self.f.__name__)</span><br><span class="line">        self.f()</span><br><span class="line"></span><br><span class="line">@decorator2</span><br><span class="line">def foo():</span><br><span class="line">    print(&quot;inside foo()&quot;)</span><br><span class="line"></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure></li>
+</ul>
+]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
       </tags>
   </entry>
   <entry>
@@ -267,170 +359,28 @@
       </tags>
   </entry>
   <entry>
-    <title>SVM</title>
-    <url>/2021/02/04/SVM/</url>
-    <content><![CDATA[<ul>
-<li><p>reference：[非常好的两本书。再加上libsvm的源码与调参的论文。]<br>[1]<a href="http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf">http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf</a><br>[2]An Introduction to Support Vector Machines and Other Kernel-based Learning Methods<br>[3]<a href="https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793">https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793</a></p>
-</li>
-<li><p>干货</p>
-</li>
-<li><p>首先，SVM是解决supervised learning 中classification问题。有两种情况，看是否linearly separable。线性不可分则引入kernel，想法为先做transformation到其他空间进而转为可分问题。</p>
-</li>
-<li><p>对于线性可分的监督分类问题，SVM的目标是什么呢? find  the optimal separating hyperplane which maximizes the margin of the training data</p>
-</li>
-<li><p>为什么以最大化间隔为目标？因为it correctly classifies the training data and because it is the one which will generalize better with unseen data</p>
-</li>
-</ul>
+    <title>bean解析及注册源码</title>
+    <url>/2021/03/11/bean%E8%A7%A3%E6%9E%90%E5%8F%8A%E6%B3%A8%E5%86%8C%E6%BA%90%E7%A0%81/</url>
+    <content><![CDATA[<br>
+
+<p>S1<code>xml文件等资源类 </code> – 对各种资源类的封装+encode</p>
 <a id="more"></a>
-<ul>
-<li><p>这里的 间隔 指？关于间隔涉及到两种分类，一种分类为几何间隔与函数间隔；一种为软、硬间隔。几何间隔在二维则为点线距离，三维空间就是我们学习的点面距离。函数间隔二维中可以理解为<em>几个</em>点没有在线上，三维则为<em>几个</em>点没有在面上；或者结合几何间隔可理解为，是将几何间隔求解的分母去掉了，没有归一化(也因此SVM中不能选择以函数间隔衡量，否则maximizes是没有意义的)。关于软硬，是看噪声，There will never be any data point inside the margin.  If data is noisy, we need soft margin classifier.</p>
-</li>
-<li><p>继上面的目标，假设该超平面的公式为W*X=0，这里会有疑惑：</p>
-<ul>
-<li>Why do we use the hyperplane equation W<em>X instead of   Y=a</em>x+b? –&gt; the vector W will always be normal to the hyperplane</li>
-</ul>
-</li>
-<li><p>澄清下要做的步骤：<br>  1 数据集<br>  2 选择两个超平面能够分类数据并在两平面间没有其他点<br>  3 最大化超平面间隔</p>
-</li>
-<li><p>将步骤整理成数学过程</p>
-<ul>
-<li><p>设两个超平面， W<em>X+b = -θ  和  W</em>X+b = +θ。这里，为什么我们需要两个超平面？我们设想的是，假定最佳的超平面在这两个超平面的中间。我们求得两个超平面即可求得最佳分类超平面。</p>
-</li>
-<li><p>θ取值无关，直接设为1。 即得W<em>X+b = -1  和  W</em>X+b = +1。这里要想明白W与b到底是什么关系？b依赖还是独立于W？显然，是独立的，可以想象为，我们需要求得W与b两个变量，能够最大化间隔。</p>
-</li>
-<li><p>需要满足两个约束: 1. 任何&gt;=1的为class 1 2.任何&lt;=-1的为class -1 –&gt;这个限制使在两平面间没有其他点</p>
-</li>
-<li><p>将两个约束写为一个式子即： y*(w*x+b)&gt;=1</p>
-</li>
-<li><p>最大化间隔 ？对于这个问题，目前我们已知条件是两个。一个是两个平面 W<em>X+b = -1  和  W</em>X+b = +1。一个是有一个点x在平面  W<em>X+b = -1 上</em>。得：<br><code>w*(x + m*w/||w||)+b=1</code><br>化简得 <code> m = 2/||w||</code></p>
-</li>
-<li><p>得到的公式意味着：如果||w||没有限制，那么m我们可以取得任意大的值。</p>
-</li>
-<li><p>现在自然就面临optimization problem。所有的点subject to  y*(w*x+b)&gt;=1, 在此条件下如何minimize ||w||?先引入<strong>理论1</strong>，该理论为两个条件，在两个条件满足的情况下，可以说我们得到了一个scalar function的local minimum。</p>
-</li>
-</ul>
-</li>
-</ul>
-<p><img src="/2021/02/04/SVM/theorem1.png" alt="theorem1"></p>
-<ul>
-<li>f为从集合σ(其元素为vector)到实数集(其元素为值)的映射，且在x处 连续、可二阶导。这里涉及到两个的概念：<ol>
-<li>**gradient ：a generalization of the usual concept of derivative of  a function in one dimension to a function in several dimensions  ( the gradient of a function is a vector containing each of its partial derivatives.)**注意符号为 nabla,图中倒三角。 </li>
-<li><strong>scalar function：A scalar valued function is a function that takes one or more values but returns a single value. In our case f is a scalar valued function.</strong></li>
-</ol>
-</li>
-<li>positive definite：<br>A symmetric matrix A  is called positive definite if x.T<em>A</em>x&gt;0 , for all n维的实数向量x。</li>
-<li><strong>theorem 2</strong>中的四个条件是等价的。因此可以通过其他三种情况来判断是否为正定。这里选择主子式来判断Hessian正定，涉及到三个概念：</li>
-</ul>
-<p><img src="/2021/02/04/SVM/theorem2.png" alt="theorem2"></p>
-<pre><code>1. Minors： 删除某行和某列的所有值再计算行列式。remove the ith line and the jth column
-2. Principal minors ：删除的行、列号一致。remove the ith line and the jth column and i=j
-3. Leading principal minor ：The leading principal minor of A of order k is the minor of order k obtained by **deleting the last n−k rows and columns**.（这里包含一个正三角符号，标注删除哪些行列）栗子看图Leading principal minor
-</code></pre>
-<p>![leading principal minor.jpg](leading principal minor.jpg)</p>
-<ul>
-<li>得到了local minimum，How can we find a global minimum?两步走， 1. Find all the local minima 2. Take the smallest one; it is the global minimum. 另一个思路是看我们的f是否是<strong>convex</strong> ,是then we are sure its local minimum is a global minimum.</li>
-</ul>
-<p><strong>Theorem: A local minimum of a convex function is a global minimum</strong> 这里又涉及到convex function, convex set的定义。</p>
-<ul>
-<li><p>What is a <a href="http://mathworld.wolfram.com/ConvexFunction.html">convex function</a>? A function is convex if you can trace a line between two of its points without crossing the function line.<br><img src="http://upload-images.jianshu.io/upload_images/8716089-fd9cfea722d77a1d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="convex  0&lt;λ&lt;1.jpg"></p>
+<p><img src="https://upload-images.jianshu.io/upload_images/8716089-f03da4d523f26bbb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="resource.jpg"></p>
+<p>S2<code>读取xml文件</code> – 对xml文件的校验、load、read(这里的read调用BeanDefinitionDocumentReader)<br>主要在<code>XmlBeanDefinitionReader</code>中</p>
+<p>S3<code>解析属性(xml中标签)</code> –从xml到Bean<br>实现在<code>DefaultBeanDefinitionDocumentReader</code><br><code>doRegisterBeanDefinitions()</code> 中解析了<code>profile</code>属性，并且其中的<code>parseBeanDefinitions()</code>是解析xml的开始。</p>
+<p>根据不同的<code>namespace</code>和<code>nodename</code>，分别不同处理</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) &#123;</span><br><span class="line">	importBeanDefinitionResource(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) &#123;</span><br><span class="line">	processAliasRegistration(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) &#123;</span><br><span class="line">	processBeanDefinition(ele, delegate);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) &#123;</span><br><span class="line">	&#x2F;&#x2F; recurse</span><br><span class="line">	doRegisterBeanDefinitions(ele);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>处理过程涉及到<code>BeanDefinitionParserDelegate BeanDefinitionHolder BeanDefinitionReaderUtils XmlReaderContext</code></p>
 <blockquote>
-<p>A function is convex if its epigraph (the set of points on or above the graph of the function) is a convex set. In Euclidean space, a convex set is the region such that, for every pair of points within the region, every point on the straight line segment that joins the pair of points is also within the region. </p>
+<p>delegate中对元素(属性)进行解析，结果放入holder中，此时holder已经包含了各种属性。再由Utils中将holder进行注册。最后由context将注册结果通知监听器。</p>
 </blockquote>
-<p>栗子看图convex set</p>
-</li>
-</ul>
-<pre><code>![convex set.jpg](http://upload-images.jianshu.io/upload_images/8716089-b484ebf0cfdf222d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-</code></pre>
-<ul>
-<li>同样根据Hessian判断是否convex，这里需要看是否是<strong>positive semidefinite</strong>,而semi有对应三个条件是与之等价。看 theorem 3<blockquote>
-<p>**More generally, a continuous, twice differentiable function of several variables is convex on a convex set if and only if its Hessian matrix is positive semidefinite on the interior of the convex set.**The difference here is that we need to check all the principal minors, not only the leading principal minors. </p>
-</blockquote>
-</li>
-</ul>
-<p>  <img src="http://upload-images.jianshu.io/upload_images/8716089-744d4e22dac7d5aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="theorem 3.jpg"></p>
-<ul>
-<li>其中on the interior of the convex set是什么意思呢？定义：the domain of a convex function is a convex set，那么 a function is convex on a convex set意思就是在domain上是convex function，而interior只是意味着为两边开区间。</li>
-<li><a href="http://www.math.cmu.edu/~ploh/docs/math/mop2013/convexity-soln.pdf">其他证明是convex function的方法</a></li>
-<li>这里就谈convex function的optimization问题求解。涉及对偶概念，根据wiki，<blockquote>
-<p>Duality :duality means that optimization problems may be viewed from either of two perspectives, the primal problem or the dual problem (the duality principle). The solution to the dual problem <strong>provides a lower bound</strong> to the solution of the primal (minimization) problem. </p>
-</blockquote>
-</li>
-</ul>
-<p>  给最小值以下限。lower bound中有一个值为<strong>infimum</strong> (即 greatest lower bound)。补充，相对而言</p>
-<blockquote>
-<p>The same logic apply with the relation “greater than or equal” and we have the concept of upper-bound and supremum.</p>
-</blockquote>
-<ul>
-<li>对偶，在求最小值时求对应的最大值，求出的最大值将是=&lt;最小值，两者之差即为<strong>duality gap**。对应来说，在求最大值时求对应最小值，求出的最小值将是&gt;=最大值即upper bound。</strong>duality gap<strong>为正，我们称之</strong>weak duality holds<strong>，为0则为</strong>strong duality holds**。</li>
-<li>拉格朗日乘子 ： <blockquote>
-<p>In mathematical optimization, the method of Lagrange multipliers is a strategy for finding the local maxima and minima of a function subject to <strong>equality</strong> constraints. </p>
-</blockquote>
-</li>
-</ul>
-<p>  <img src="http://upload-images.jianshu.io/upload_images/8716089-59b1f2660a4869b6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Lagrange_portrait.jpg"></p>
-<ul>
-<li><p>如何将3D图在2D平面表示：Contour lines  两个要点：1. 线上的点z值不变，for each point on a line, the function returns the same value 2. 颜色扮演标识，the darker the area is, the smallest the value of the function is<br><img src="http://upload-images.jianshu.io/upload_images/8716089-271a7e44b55a0424.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="contours.png"></p>
-</li>
-<li><p>那么梯度就可以用<strong>向量场</strong>进行可视化。箭头指向函数增长的方向。与Contour lines 图有什么关系呢？在Contour lines 图中，gradient vectors非常容易画出，1 垂直于Contour lines 2.指向增加的方向。<img src="http://upload-images.jianshu.io/upload_images/8716089-8ee3efb4b3646c71.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="gradient_and_contour.png"></p>
-</li>
-<li><p>将约束函数和优化目标函数以contour lines 画在一幅图中，并画出两者的gradient vector。可得到最优点。图中的优化目标函数为x^2+y^2, 约束函数为 y=1-x。 <img src="http://upload-images.jianshu.io/upload_images/8716089-fc1f3051bbf27c8a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="function_and_constraint.png"></p>
-</li>
-<li><p>▽f(x,y) = λ ▽g(x,y)<br>λ 这就是拉格朗日乘子。根据图中，当两个gradient vector平行时，我们得到最优解。无论是否同向。更无论是否等长。乘以λ 即意味着不必等长。即求▽L(x,y,λ )=0时的x，y。现在我们需要列出L并求解。</p>
-</li>
-<li><p>由于我们需要求f(w)=1/2*||w||^2的最小值，将每个约束函数乘以的 λ需要取正数。<img src="http://upload-images.jianshu.io/upload_images/8716089-76c3fc3fc413375d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="L.jpg"></p>
-</li>
-<li><p>又面临一个问题，求L(x,y,λ )=0， the problem can only be solved <strong>analytically when the number of examples is small</strong> (Tyson Smith, 2004 即只有当约束函数数量比较小的时候，λ 个数不多，我们才能用分析的方法求解). So we will once again rewrite the problem using the duality principle–&gt;we need to minimize with respect to w and b, and to maximize with respect to a at the same time.我们在上一步需要最小化<br><img src="http://upload-images.jianshu.io/upload_images/8716089-4ca65da333340058.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="duality_after_L.jpg"></p>
-</li>
-<li><p>这里需要讲清楚三个问题。1. 拉格朗日是对约束函数是等式的情况，那么我们在这里是不等式约束的问题，也用拉格朗日乘子解决，需要满足什么条件吗？(KKT)2.之前说了，对偶问题有强与弱，只有当强时，gap才为0，我们才能将对偶问题的最大值作为原问题的最小值。那么，这里是否满足是strong duality holds? （强对偶 即下文Slater’s condition）3.或许你对为什么能够是对w b求min，对a求max还是留有疑问。(拉格朗日到对偶问题这两个之间的转化过程)</p>
-</li>
-<li><p>仍需要引入两个理论。1.  duality principle 2.Slater’s condition 3.KKT<br>首先，L对w与b求偏导，令为0(这里两个等式)，再将这两个等式带入到L中，消去了w、b，只剩下变量a，即得L(a)。于是将问题转化为 Wolfe dual Problem<br><img src="http://upload-images.jianshu.io/upload_images/8716089-67cdfbf09b820630.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="wolfe dual.jpg"></p>
-</li>
-<li><p>慢着，这里又出现一个问题。</p>
-<blockquote>
-<p>Traditionally the Wolfe dual Lagrangian problem is constrained by the gradients being equal to zero. In theory, we should add the constraints θL/θw=0  and  θL/θb=0 . However, we only added the latter, because it is necessary for removing   b from the function. However, we can solve the problem without the constraint   θL/θw=0.</p>
-</blockquote>
-<p>这里就会不明白为什么不需要加上θL/θw=0约束仍能够solve the problem？暂且保留疑问。</p>
-</li>
-<li><p>Karush-Kuhn-Tucker conditions :<strong>first-order necessary conditions</strong> for a solution of an optimization problem to be optimal<br>除了KKT还需要满足一些regularity conditions，其中之一为Slater’s condition。</p>
-<blockquote>
-<p>Because the primal problem we are trying to solve is a convex problem, the KKT conditions are also sufficient for the point to be primal and dual optimal, and there is zero duality gap.</p>
-</blockquote>
-<p>这里说的，即只要为convex问题，KKT也满足，即可说得出的结果是原问题或对偶问题的最优解，因为Slater’s condition是一定满足了的，gap=0。对于SVM，如果结果满足KKT，那么即可说是最优解。(详细证明过程[2] ch5)</p>
-<p>   <img src="http://upload-images.jianshu.io/upload_images/8716089-62f19539ba8a88bc.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="KKT.jpg"></p>
-</li>
-<li><p>可见，1. stationary 即为偏导为0即为驻点,若无约束函数则直接gradient是0，有了约束则gradient of the Lagrangian为0。2. primal feasibility为原问题约束函数  3. dual feasibility 为我们对L求解时使用对偶理论时的约束函数  4.complementary slackness含义是，要么a=0，要么y*(w*x+b)-1=0.这里与<strong>Support vectors</strong>相关，</p>
-<blockquote>
-<p>Support vectors are examples having a positive Lagrange multiplier. They are the ones for which the constraint y*(w<em>x+b)-1&gt;=0  is active. (We say the constraint is active when y</em>(w*x+b)-1=0 )</p>
-</blockquote>
-<p>这里，是否会疑惑为什么不能同时为0？为什么multiplier一定是正数？在KKT中，我们只选取支持向量，即将不等号约束改为等号约束，其他的点不考虑。</p>
-<blockquote>
-<p>Solving the SVM problem is equivalent to finding a solution to the KKT conditions.” (Burges, 1988)</p>
-</blockquote>
-</li>
-<li><p>现在有了L(a),求导即可。得到了a。再根据偏导为0的公式回代得到w 。再根据prime problem中的约束函数y*(w*x+b)-1&gt;=0，计算b</p>
-</li>
-</ul>
-<pre><code>- 用QP solver来解对偶问题。用python CVXOPT包。将wolfe dual.jpg中我们需要求解的公式转化到下面CVXOPT支持的形式。这里引入了一个Gram matrix - The matrix of all possible inner products of X.
-  ![CVXOPT.jpg](http://upload-images.jianshu.io/upload_images/8716089-907dcfe22f62860e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-   ![转化过程.jpg](http://upload-images.jianshu.io/upload_images/8716089-ac41318c2c79efb1.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-这个图里有问题，minimize部分最后一项需要q.T*a, 详见代码部分，需要q = cvxopt.matrix(-1 * np.ones(m))。
-</code></pre>
-<ul>
-<li>code部分：<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import cvxopt.solvers</span><br><span class="line">X, y &#x3D; 这里获取到数据</span><br><span class="line">m &#x3D; X.shape[0]  #data有多少</span><br><span class="line"># Gram </span><br><span class="line">K &#x3D; np.array([np.dot(X[i], X[j]) for j in range(m) for i in range(m)]).reshape((m, m)) </span><br><span class="line">P &#x3D; cvxopt.matrix(np.outer(y, y) * K)</span><br><span class="line">q &#x3D; cvxopt.matrix(-1 * np.ones(m))</span><br><span class="line"># 等式约束</span><br><span class="line">A &#x3D; cvxopt.matrix(y, (1, m))</span><br><span class="line">b &#x3D; cvxopt.matrix(0.0)</span><br><span class="line"># 不等式约束</span><br><span class="line">G &#x3D; cvxopt.matrix(np.diag(-1 * np.ones(m))) h &#x3D; cvxopt.matrix(np.zeros(m))</span><br><span class="line"># 求解</span><br><span class="line">solution &#x3D; cvxopt.solvers.qp(P, q, G, h, A, b)</span><br><span class="line"># 拉格朗日乘子</span><br><span class="line">multipliers &#x3D; np.ravel(solution[&#39;x&#39;])</span><br><span class="line"># 支持向量</span><br><span class="line">has_positive_multiplier &#x3D; multipliers &gt; 1e-7 </span><br><span class="line">sv_multipliers &#x3D; multipliers[has_positive_multiplier]</span><br><span class="line">support_vectors &#x3D; X[has_positive_multiplier] </span><br><span class="line">support_vectors_y &#x3D; y[has_positive_multiplier]</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#计算w，b</span><br><span class="line">def compute_w(multipliers, X, y):</span><br><span class="line">    return np.sum(multipliers[i] * y[i] * X[i]  for i in range(len(y)))</span><br><span class="line">def compute_b(w, X, y):</span><br><span class="line">    return np.sum([y[i] - np.dot(w, X[i]) for i in range(len(X))])&#x2F;len(X)</span><br><span class="line"></span><br><span class="line">w &#x3D; compute_w(multipliers, X, y)</span><br><span class="line">w_from_sv &#x3D; compute_w(sv_multipliers, support_vectors, support_vect</span><br><span class="line">b &#x3D; compute_b(w, support_vectors, support_vectors_y)</span><br><span class="line"> </span><br></pre></td></tr></table></figure></li>
-</ul>
-<blockquote>
-<p>We saw that the original optimization problem can be rewritten using a Lagrangian function. Then, thanks to duality theory, we transformed the Lagrangian problem into the Wolfe dual problem. We eventually used the package CVXOPT to solve the Wolfe dual.</p>
-</blockquote>
-<ul>
-<li>为什么需要将拉格朗日函数转化为对偶问题到wolfe dual？<br>这里还差对偶原则及Slater’s condition 概念。</li>
-</ul>
+<p>S4<code>注册</code></p>
 ]]></content>
       <categories>
-        <category>ml</category>
+        <category>spring</category>
       </categories>
       <tags>
-        <tag>ml</tag>
+        <tag>spring</tag>
       </tags>
   </entry>
   <entry>
@@ -779,14 +729,76 @@
       </tags>
   </entry>
   <entry>
-    <title>listwise</title>
-    <url>/2021/03/08/listwise/</url>
-    <content><![CDATA[]]></content>
+    <title>hive</title>
+    <url>/2021/03/03/hive/</url>
+    <content><![CDATA[<br>
+
+
+<ul>
+<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
+<a id="more"></a>
+<blockquote>
+<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
+</blockquote>
+</li>
+<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
+</li>
+<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
+</li>
+<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
+</li>
+<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
+</li>
+<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
+</li>
+<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
+</li>
+<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
+</li>
+</ul>
+<ul>
+<li> Making Multiple Passes over the Same Data<blockquote>
+<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
+</blockquote>
+</li>
+</ul>
+<p>因此如下方式更加高效,并且可开启并行：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>日期处理<br>查看N天前的日期：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
+<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
+<li><p>left outer join</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
+</li>
+<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
+</li>
+<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
+<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
+</li>
+<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
+</li>
+<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
+<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure></li>
+<li><p><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></p>
+</li>
+<li><p>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></p>
+</li>
+</ul>
+]]></content>
       <categories>
-        <category>dl</category>
+        <category>大数据</category>
       </categories>
       <tags>
-        <tag>dl</tag>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -833,6 +845,7 @@
 <h1 id="xgboost"><a href="#xgboost" class="headerlink" title="xgboost"></a>xgboost</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li>xgboost是Gradient Boosting的一种高效系统实现</li>
 </ul>
+<a id="more"></a>
 <h2 id="基学习器"><a href="#基学习器" class="headerlink" title="基学习器"></a>基学习器</h2><ul>
 <li>tree(gbtree)，也可用线性分类器(gblinear)。GBDT则特指梯度提升决策树算法</li>
 </ul>
@@ -965,9 +978,9 @@
     <title>分布式事务</title>
     <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/</url>
     <content><![CDATA[<p><strong>摘要</strong></p>
-<p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务<br>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
+<p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务</p>
 <a id="more"></a>
-
+<p>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
 <h2 id="1、事务、分布式事务及场景"><a href="#1、事务、分布式事务及场景" class="headerlink" title="1、事务、分布式事务及场景"></a>1、事务、分布式事务及场景</h2><ul>
 <li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
 </li>
@@ -1144,18 +1157,18 @@
     <content><![CDATA[<p><br> <br></p>
 <p><strong>摘要</strong></p>
 <p>1、可靠消息最终一致性，概念特点、问题、针对问题的方案(本地消息表、Rocketmq)<br>2、本地消息表流程图<br>3、Rocketmq流程、实战<br>4、最大努力通知，流程、</p>
+<a id="more"></a>
+
 <h2 id="可靠消息最终一致性"><a href="#可靠消息最终一致性" class="headerlink" title="可靠消息最终一致性"></a>可靠消息最终一致性</h2><p>当事务发起方执行完成本地事务后并发出一条消息，事务参与方(消息消费者)一定能 够接收消息并处理事务成功，此方案强调的是只要消息发给事务参与方最终事务要达到一致。</p>
 <ul>
-<li>特点<ul>
+<li><p>特点</p>
+<ul>
 <li>适合执行周期长且实时性要求不高的场景</li>
 <li>引入消息机制后，同步的事务操作变为基于消 息执行的异步操作, 避免了分布式事务中的同步阻塞操作的影响，并实现了两个服务的解耦。</li>
 </ul>
 </li>
-</ul>
-<a id="more"></a>
-
-<ul>
-<li>网络通信的不确定性会导致分布式事务问题：</li>
+<li><p>网络通信的不确定性会导致分布式事务问题：</p>
+</li>
 </ul>
 <ol>
 <li>事务发起方(消息生产方)将消息发给消息中间件</li>
@@ -1241,6 +1254,60 @@
       </categories>
       <tags>
         <tag>方法论</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>对偶</title>
+    <url>/2021/03/11/%E5%AF%B9%E5%81%B6/</url>
+    <content><![CDATA[<br>
+
+
+<ul>
+<li>对于凸形<br>结论1：凸形可行域只有1个峰，只要达到那个峰，我们就达到了最优，是全局最优。<br>结论2：至少有一个顶点是峰。</li>
+</ul>
+<a id="more"></a>
+<ul>
+<li><p>单纯形法：</p>
+<ol>
+<li>单纯形是什么？数学上可以写成一堆线性不等式限制出来的区域。</li>
+<li>单纯形法，仅适用于求解线性规划，线性规划又是凸优化的一种。因为线性规划的定义域是单纯形，单纯形是凸的，即线性规划是定义域为凸、目标函数为线性的问题。</li>
+<li>先找到一个顶点，然后从这个顶点，沿着某条边线，走到下一个顶点，直到最优。方向的选择可以有很多种，最多使用的是比较短视的方法：沿着最陡峭的那一条，追求当前步上升最快。</li>
+<li>单纯形法寻找路线优化目标函数，直至达到一个峰，而该峰就是全局最优。</li>
+</ol>
+</li>
+<li><p>Slater’s condition 根据wiki， </p>
+<blockquote>
+<p>Slater’s condition (or Slater condition) is a sufficient condition for strong duality to hold for a convex optimization problem, named after Morton L. Slater. Informally, Slater’s condition states that the <strong>feasible region must have an interior point</strong>.<br>即在对偶问题中gap为0要满足的条件，即可行域中必须有内点的条件。</p>
+</blockquote>
+</li>
+<li><p>线性规划的对偶理论没出现的时候，线性规划是不知道能不能解的。也就是说，对偶理论能够证明一个线性规划问题<strong>不</strong>存在解。思路是找到一个跟原问题的对偶问题密切相关的问题，如果这个问题有解，原问题就没解。</p>
+</li>
+<li><p><strong>那么证明便归为两个主要部分，1 如何转化为对偶问题 2 为什么两个问题的解相关？</strong></p>
+</li>
+<li><p>首先[问题要满足是凸优化]。对于凸优化来说，在满足constraint qualifications(如上文的slater condition为其中一种，满足该条件，这里涉及到仿射函数即可表示为f=A*w+b 。仿射函数其实就是线性变换liner。)情况下，gap=0，为强对偶。</p>
+</li>
+<li><p>其次[在求解凸优化时引入乘子以及最优解需要满足的条件]。在凸优化中的非线性优化问题下，该问题满足一些constraint qualifications，当存在不等式约束时(只有等式约束时，即拉格朗日function求偏导(也就是KKT turns into the Lagrange conditions))，我们用KKT引进 <a href="https://en.wikipedia.org/wiki/Lagrange_multipliers" title="Lagrange multipliers">Lagrange multipliers</a>，这些乘子需要满足KKT 的四个条件。注意到这里的目标函数与约束函数一定是<a href="https://en.wikipedia.org/wiki/Smooth_function" title="Smooth function">continuously differentiable</a> at a point x(local optimum点)，如果functions are non-differentiable,<a href="https://en.wikipedia.org/wiki/Subderivative" title="Subderivative">subdifferential</a><br>versions of Karush–Kuhn–Tucker (KKT) conditions are available.</p>
+</li>
+<li><p>对偶问题， 这里代表Lagrangian dual problem，还有其他对偶问题 <a href="https://en.wikipedia.org/wiki/Wolfe_dual_problem" title="Wolfe dual problem">Wolfe dual problem</a> and the <a href="https://en.wikipedia.org/wiki/Fenchel%27s_duality_theorem" title="Fenchel&#39;s duality theorem">Fenchel dual problem</a>。</p>
+</li>
+<li><p>Lagrangian dual problem 需要先形成一个L函数，这个原问题的解是，</p>
+</li>
+</ul>
+<ul>
+<li>todo</li>
+</ul>
+<ul>
+<li> 用数学表达：</li>
+</ul>
+<p>凸优化问题：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/8716089-0c145b1194ca5146.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="standard form for convex minimization problem.jpg"></p>
+<p>reference:<br>[1]<a href="https://cowles.yale.edu/sites/default/files/files/pub/d00/d0080.pdf">https://cowles.yale.edu/sites/default/files/files/pub/d00/d0080.pdf</a><br>[2]<a href="https://en.wikipedia.org/wiki/Convex_optimization">https://en.wikipedia.org/wiki/Convex_optimization</a></p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -1519,6 +1586,95 @@
       </tags>
   </entry>
   <entry>
+    <title>统计角度看ml</title>
+    <url>/2021/03/11/%E7%BB%9F%E8%AE%A1%E8%A7%92%E5%BA%A6%E7%9C%8Bml/</url>
+    <content><![CDATA[<p>一些思考，不太严谨，从整体上看模型的思路，进行比较。</p>
+<p>极大似然？就是后验、大量样本的整体出现概率值最大。样本之间独立。可应用乘法原理。</p>
+<p>条件概率，即某(些)条件下某(些)事件出现的概率。</p>
+<p>决策树则是求其极大值，局部选择当前条件概率最大。条件概率越大，不确定性越低，条件熵越小。整体熵未必减小。考虑整体熵值的是最大熵模型和logistics模型。logistics是可以通过假设先验概率，转化为这样的问题：推导出满足极大似然极值而得到的w参数。都可以通过拉格朗日将问题转化为无约束求极值，偏导为0，算法里有迭代尺度、梯度下降、牛顿插值。牛顿插值迭代收敛快些。</p>
+<p>特征选择无论是熵、增益(比)还是基尼系数都体现出不确定性的思想。增益大则说明特征对结果的影响力大，因为说明条件熵越小，即条件概率越大，该条件下不确定性越低。增益或比越大，而基尼越小越好。因为前者都有-号，类似相反数的关系。本质还条件概率的问题。</p>
+<p>决策生成树可以用动归提高算法效率。</p>
+<p>感知器从loss func出发，求最小。距离如何定义还要看具体应用场景。主要算法里有<a href="https://blog.csdn.net/greenyang5277/article/details/104270803">Gram矩阵</a>，对偶算法。</p>
+<p>k邻很简单，经验风险最小，就是多数为胜，即最简单的频率派概率最大思路，k不一样结果可能瞬间不同了，参数也少。</p>
+<p>朴素贝叶斯主要是独立性假设，在类确定下特征条件独立，才能将公式分子简化，否则不那么容易求最大值，后验概率最大，还是极大似然思路，后验概率这是可用简单的乘法原理表达。如果有0，这里提出可以平滑的思想。</p>
+<p>无论是熵、条件熵、基尼系数，还是贝叶斯、条件概率，还是感知器的loss func，还是c4.5里的loss(在剪枝时通过熵建立的loss，加入了模型复杂度因子，通过比较剪枝前后大小来判断是否剪枝)，还是logistics(初始分布进行求对数几率，求极大似然最大的参数)、最大熵(公式也化为求极大似然最大)两个对数线性模型的经验分布推导出来的无约束最优化公式，都是对初始概率进行包装，要么转为极大似然问题或者说转为条件概率问题，要么转为loss最小问题。概率问题则为监督学习中的两种，生成和判别。非概率则自定义的一些代数loss。</p>
+<p>对给定输入判别输出，判别要么是f(x),要么是P(Y|X)。前者会出现loss func，定义距离如感知器、LDA，后者则决策树、k邻、贝叶斯、GMM。对数线性模型也是P(Y|X)概率分布公式表达的分类模型。都可以说是在对这两种函数求最优的问题。但如决策树、k邻，没有什么公式，也就没有什么参数需要调整，大多重点在算法，如决策树里主要是三个算法里剪枝过程应用到熵之类问题，而kmeans主要kd树解决高维搜索问题。理论框架虽然可以和统计通过加条件等方式相关联，但是更多是另一种思路。</p>
+<p>生成模型，由学习数据得到原始分布，再来求P(Y|X)，如贝叶斯。判别模型，学习数据不从分布入手，而直接对条件概率进行假设，如LR。</p>
+<p>具体细节，如收敛性证明，拉格朗日转化，最大熵的约束公式，包括泛化误差利用切比雪夫求上界的前提条件，感知器中正负，logistics里对数几率特征空间是n+1维，都需落在数学上去一步步转化推证。</p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>编辑距离</title>
+    <url>/2021/03/11/%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BB/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+<h2 id="编辑距离"><a href="#编辑距离" class="headerlink" title="编辑距离"></a>编辑距离</h2><a id="more"></a>
+
+<br>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static int editDist(String str1 , String str2 , int m ,int n)&#123;</span><br><span class="line"></span><br><span class="line">    if (str1.charAt(m-1) &#x3D;&#x3D; str2.charAt(n-1))</span><br><span class="line">        return editDist(str1, str2, m-1, n-1);</span><br><span class="line"></span><br><span class="line">    return 1 + min ( editDist(str1,  str2, m, n-1),    &#x2F;&#x2F; Insert</span><br><span class="line">                     editDist(str1,  str2, m-1, n),   &#x2F;&#x2F; Remove</span><br><span class="line">                     editDist(str1,  str2, m-1, n-1) &#x2F;&#x2F; Replace                     </span><br><span class="line">                   ); &#x2F;&#x2F;三个子问题</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;s: beforeediting,length&#x3D;n  t: afterediting,length&#x3D;m</span><br><span class="line">&#x2F;&#x2F;d: recording the distance</span><br><span class="line">        d &#x3D; new int[n + 1][m + 1];  </span><br><span class="line">              </span><br><span class="line">        for (i &#x3D; 0; i &lt;&#x3D; n; i++) &#123;  </span><br><span class="line">            d[i][0] &#x3D; i;  </span><br><span class="line">        &#125;  </span><br><span class="line">        for (j &#x3D; 0; j &lt;&#x3D; m; j++) &#123;  </span><br><span class="line">            d[0][j] &#x3D; j;  </span><br><span class="line">        &#125;  </span><br><span class="line">          </span><br><span class="line">         </span><br><span class="line">        for (i &#x3D; 1; i &lt;&#x3D; n; i++) &#123;  </span><br><span class="line">            s_i &#x3D; s.charAt(i - 1);  </span><br><span class="line">              </span><br><span class="line">            for (j &#x3D; 1; j &lt;&#x3D; m; j++) &#123;  </span><br><span class="line">                t_j &#x3D; t.charAt(j - 1);  </span><br><span class="line">                 </span><br><span class="line">                cost &#x3D; (s_i &#x3D;&#x3D; t_j) ? 0 : 1;  </span><br><span class="line">                 </span><br><span class="line">                d[i][j] &#x3D; min(d[i - 1][j] + 1, d[i][j - 1] + 1,  </span><br><span class="line">                        d[i - 1][j - 1] + cost);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if x &#x3D;&#x3D; y, then d[i][j] &#x3D;&#x3D; d[i-1][j-1]</span><br><span class="line">if x !&#x3D; y, 插入y则 d[i][j] &#x3D; d[i][j-1] + 1</span><br><span class="line">if x !&#x3D; y, 删除x则 d[i][j] &#x3D; d[i-1][j] + 1</span><br><span class="line">if x !&#x3D; y, x改变为y则 d[i][j] &#x3D; d[i-1][j-1] + 1</span><br><span class="line">When x!&#x3D;y, d[i][j] 取三中编辑方式最小代价。</span><br><span class="line">初始化条件 ： d[i][0] &#x3D; i, d[0][j] &#x3D; j</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>为什么不同操作就是对应与d的左移上移或左上移？<br>这个问题递归角度较易理解。<br>DP角度，d记录的是目前最小编辑距离。左、上、左上为子问题，即儿子。若为插入，则j需+1得到t的下一个字符，而x继续与此字符比较，i不变。</p>
+</li>
+<li><p>由递归到DP，实质就是找到递归中子问题。<br>找到后，将子问题结果记录在数组即可。</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>leetcode</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>贝叶斯网络</title>
+    <url>/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/</url>
+    <content><![CDATA[<br>
+
+<h2 id="概率图"><a href="#概率图" class="headerlink" title="概率图"></a>概率图</h2><ul>
+<li><p>概率图模型分为贝叶斯网络（Bayesian Network）和马尔可夫网络（Markov Network）两大类。</p>
+<a id="more"></a></li>
+<li><p>贝叶斯网络可以用一个有向图结构表示，马尔可夫网络可以表示成一个无向图的网络结构。</p>
+</li>
+<li><p>更详细地说，概率图模型包括了朴素贝叶斯模型、最大熵模型、隐马尔可夫模型、条件随机场、主题模型等，在机器学习的诸多场景中都有着广泛的应用。</p>
+</li>
+</ul>
+<h2 id="频率派与贝叶斯派"><a href="#频率派与贝叶斯派" class="headerlink" title="频率派与贝叶斯派"></a>频率派与贝叶斯派</h2><p>频率派与贝叶斯派各自不同的思考方式：</p>
+<p>频率派把需要推断的参数θ看做是固定的未知常数，即概率虽然是未知的，但最起码是确定的一个值，同时，样本X 是随机的，所以频率派重点研究样本空间，大部分的概率计算都是针对样本X 的分布；</p>
+<p>而贝叶斯派的观点则截然相反，他们认为参数是随机变量，而样本X 是固定的，由于样本是固定的，所以他们重点研究的是参数的分布。</p>
+<p>贝叶斯派既然把概率看做是一个随机变量，所以要计算概率的分布，便得事先知道的无条件分布，即在有样本之前（或观察到X之前），有着怎样的分布呢？这种在实验之前定下的属于基本前提性质的分布称为先验分布，或着无条件分布。</p>
+<p>其中，先验信息一般来源于经验跟历史资料。而后验分布π（θ|X）一般也认为是在给定样本X的情况下的θ条件分布，而使π（θ|X）达到最大的值，称为最大后验估计，类似于经典统计学中的极大似然估计。</p>
+<h2 id="贝叶斯网络"><a href="#贝叶斯网络" class="headerlink" title="贝叶斯网络"></a>贝叶斯网络</h2><p>贝叶斯网络(Bayesian network)，又称信念网络(Belief Network)，或有向无环图模型(directed acyclic graphical model)</p>
+<h3 id="结构形式"><a href="#结构形式" class="headerlink" title="结构形式"></a>结构形式</h3><p>1、 a-&gt;c b-&gt;c</p>
+<p>P(a,b,c) = P(a)P(b)P(c|a,b)成立，即在c未知的条件下，a、b被阻断(blocked)，是独立的，称之为head-to-head条件独立。</p>
+<p>2、c-&gt;a c-&gt;b</p>
+<p>考虑c未知，跟c已知这两种情况：</p>
+<p>在c未知的时候，有：P(a,b,c)=P(c)P(a|c)P(b|c)，此时，没法得出P(a,b) = P(a)P(b)，即c未知时，a、b不独立。</p>
+<p>在c已知的时候，有：P(a,b|c)=P(a,b,c)/P(c)，然后将P(a,b,c)=P(c)P(a|c)P(b|c)带入式子中，得到：P(a,b|c)= P(a|c)*P(b|c)，即c已知时，a、b独立。</p>
+<p>3、a-&gt;c-&gt;b</p>
+<p>还是分c未知跟c已知这两种情况：</p>
+<p>c未知时，有：P(a,b,c)=P(a)P(c|a)P(b|c)，但无法推出P(a,b) = P(a)P(b)，即c未知时，a、b不独立。</p>
+<p>c已知时，有：P(a,b|c)=P(a,b,c)/P(c)，且根据P(a,c) = P(a)P(c|a) = P(c)P(a|c)，可化简得到：</p>
+<h3 id><a href="#" class="headerlink" title></a></h3>]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>通货膨胀-下</title>
     <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
     <content><![CDATA[<p><strong>摘要</strong></p>
@@ -1703,99 +1859,195 @@
       </tags>
   </entry>
   <entry>
-    <title>面试题积累</title>
-    <url>/2021/03/03/%E9%9D%A2%E8%AF%95%E9%A2%98%E7%A7%AF%E7%B4%AF/</url>
-    <content><![CDATA[<h4 id="java"><a href="#java" class="headerlink" title="java"></a>java</h4><p>1、线程安全地使用list<br>Collections.SynchronizedList能把所有 List 接口的实现类转换成线程安全的List，比 Vector 有更好的扩展性和兼容性<br>java.util.concurrent.CopyOnWriteArrayList，读不加锁，写加锁、复制后写，读多写少的场景合适，写多的场景要复制，不合适。</p>
-<a id="more"></a>
+    <title>笛卡尔积</title>
+    <url>/2021/03/11/%E9%9B%86%E5%90%88%E7%9A%84%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF/</url>
+    <content><![CDATA[<br>
+<br>
 
-<p>2、异常类<br>javap -verbose看athrow<br>Error\Exception都是Throwable，Exception又分为检查和非检查。<br>JVM 规定继承自 RuntimeException 的异常都是 UncheckedException.<br>JVM 规定，每个函数必须对自己要抛出的异常心中有数，在函数声明时通过 throws 语句将该函数可能会抛出的异常声明出来。<br>finally的return会把其他的return给覆盖。</p>
-<hr>
-<p>3、HashMap、ConcurrentHashMap</p>
-<ul>
-<li><p>Node对象内部的hash字段，这个hash值是怎么得到呢？hash字段为什么采用高低位异或？</p>
-<blockquote>
-<p>当数组的长度很短时，只有低位数的hashcode值能参与运算。而让高16位参与运算可以更好的均匀散列，减少碰撞，进一步降低hash冲突的几率。并且使得高16位和低16位的信息都被保留了。</p>
-</blockquote>
-</li>
-<li><p>填入table的数组的脚标怎么算的？<br>hash ^ (hash&gt;&gt;&gt; 16) (&gt;&gt;&gt;:无符号右移、高位补0)<br>(len-1) &amp; hash</p>
-</li>
-<li><p>put数据的过程？<br>分四种情况。无数据则直接放入，有链且key同则替换，有链且key不同则尾插(再判断大小看是否树化)，红黑树则红黑树插入。</p>
-</li>
-<li><p>红黑树的写入操作，是怎么找到父节点的，找父节点流程？</p>
-</li>
-<li><p>TreeNode数据结构，简单说下。<br>key value next hash</p>
-</li>
-<li><p>红黑树的原则有哪些呢？<br>root、叶子为黑；黑高相同；红色孩子为黑</p>
-</li>
-<li><p>JDK8 hashmap为什么引入红黑树？解决什么问题？<br>hash冲突较多时，查询和插入、删除的性能。保证查询效率（O(logn)）</p>
-</li>
-<li><p>hashmap扩容后，老表的数据怎么迁移到扩容后的表的呢？hashmap扩容后，迁移数据发现该slot是颗红黑树，怎么处理呢？<br>数组翻倍扩容，将旧数据每个key都按照脚标公式重新计算。红黑树则进行insert操作。</p>
-</li>
-<li><p>为什么hashmap大小要为2的幂次方数<br>一个key的hashCode是一个int整数，而int在内存中是以二进制数存储，位运算比运算符运算更高效。当长度为2的幂次方数时，hash &amp; (length -1) = hash % length</p>
-</li>
-</ul>
-<hr>
-<p>4、ConcurrentHashMap</p>
-<ul>
-<li><p>多线程下的hashmap替代<br>Collections.synchronizedMap(Map)创建线程安全的map集合；Hashtable；ConcurrentHashMap</p>
-</li>
-<li><p>Collections.synchronizedMap是怎么实现线程安全<br>在SynchronizedMap内部维护了一个普通对象Map，还有排斥锁mute。<code>Collections.synchronizedMap(new HashMap&lt;&gt;(16));</code>将对象排斥锁赋值为this。创建出synchronizedMap之后，再操作map的时候，就会对方法上锁。</p>
-</li>
-<li><p>HashTable？</p>
-</li>
-</ul>
-<p>1.实现：Hashtable 继承了 Dictionary类，而 HashMap 继承的是 AbstractMap 类。<br>2.并发：HashMap相比Hashtable是线程安全的，但是是synchronized效率不高。<br>3.异常：Hashtable 是不允许键或值为 null 的，HashMap 的键值则都可以为 null。即为Hashtable在我们put 空值的时候会直接抛空指针异常，但是HashMap做了特殊处理。<br>Hashtable使用的是安全失败机制（fail-safe），这种机制会使你此次读到的数据不一定是最新的数据。如果你使用null值，就会使得其无法判断对应的key是不存在还是为空，因为你无法再调用一次contain(key）来对key是否存在进行判断，ConcurrentHashMap同理。<br>4.初始化、扩容不同<br>5.迭代器不同：HashMap 中的 Iterator 迭代器是 fail-fast 的，而 Hashtable 的 Enumerator 不是 fail-fast 的。所以，当其他线程改变了HashMap 的结构，如：增加、删除元素，将会抛出ConcurrentModificationException 异常，而 Hashtable 则不会。</p>
-<ul>
-<li><p>concurrenthashmap并发度设计？<br>ConcurrentHashMap 采用了分段锁技术，其中 Segment 继承于 ReentrantLock。理论上 ConcurrentHashMap 支持 CurrencyLevel (Segment 数组数量)的线程并发。1.8采用了 CAS + synchronized 来保证并发安全性。</p>
-</li>
-<li><p>1.7如何解决HahsMap闭环问题<br>Segment 对象是一把锁，所以在 rehash 的过程中，其他线程无法对segment 的 hash 表做操作</p>
-</li>
-<li><p>put?</p>
-</li>
-</ul>
-<p>1.7时：<br>根据key的hash值，在Segment数组中找到相应的位置，如果相应位置的Segment还未初始化，则通过CAS进行赋值。首先第一步的时候会尝试获取锁，如果获取失败肯定就有其他线程存在竞争，则利用 scanAndLockForPut() 自旋获取锁。尝试自旋获取锁。如果重试的次数达到了 MAX_SCAN_RETRIES 则改为阻塞锁获取，保证能获取成功。如果已经初始化，则执行Segment对象的put方法通过加锁机制插入数据。</p>
-<p>1.8时：<br>key val必须不为空。根据 key 计算出 hashcode 。判断是否需要进行初始化–initTable 方法初始化。<br>初始化流程：使用了 CAS ，1、判断 sizeCtl 值是否小于 0，如果小于 0 则表示 ConcurrentHashMap 正在执行初始化操作，所以需要先等待一会，如果其它线程初始化失败还可以顶替上去。2、如果 sizeCtl 值大于等于 0，则基于 CAS 策略抢占标记 sizeCtl 为 -1，表示ConcurrentHashMap 正在执行初始化，然后构造 table，并更新 sizeCtl 的值<br>即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。如果当前位置的 hashcode == MOVED == -1,则需要进行扩容。如果都不满足，则利用 synchronized 锁把头节点被锁住了，保证了同时只有一个线程修改链表，防止出现链表成环。写入数据后，如果数量大于 TREEIFY_THRESHOLD 则要转换为红黑树。</p>
-<ul>
-<li>size？</li>
-</ul>
-<p>1.7：<br>先采用不加锁的方式，连续计算元素的个数，最多计算3次：如果前后两次计算结果相同，则说明计算出来的元素个数是准确的；如果前后两次计算结果都不同，则给每个Segment进行加锁，再计算一次元素的个数；</p>
-<p>1.8：<br>1.8中使用一个volatile类型的变量baseCount记录元素的个数，当插入新数据或则删除数据时，会通过addCount()方法更新baseCount1.8中的size实现比1.7简单多，因为元素个数保存baseCount中，部分元素的变化个数保存在CounterCell数组。累加baseCount和CounterCell数组中的数量，即可得到元素的总个数</p>
-<ul>
-<li>transfer、helper（并发扩容）</li>
-</ul>
-<hr>
-<p>5、fail-fast？<br>1.原理：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变modCount的值。每当迭代器使用hashNext()/next()遍历下一个元素之前，都会检测modCount变量是否为expectedmodCount值，是的话就返回遍历；否则抛出异常，终止遍历。如果集合发生变化时修改modCount值刚好又设置为了expectedmodCount值，则异常不会抛出。因此，不能依赖于这个异常是否抛出而进行并发操作的编程，这个异常只建议用于检测并发修改的bug。<br>2.java.util包下的集合类都是快速失败的，不能在多线程下发生并发修改<br>3.安全失败（fail—safe）：java.util.concurrent包下的容器都是安全失败，可以在多线程下并发使用，并发修改。</p>
-<p>6、volatile<br>保证了不同线程对这个变量进行操作时的可见性；禁止进行指令重排序（实现有序性）；volatile 只能保证对单次读/写的原子性。i++ 这种操作不能保证原子性。</p>
-<p>7、cas<br>CAS 只能保证一个共享变量的原子操作。<br>是乐观锁的一种实现方式，是一种轻量级锁。在准备写回数据时，比较原值是否修改，若未被其他线程修改则写回，若已被修改，则重新执行读取流程。这是一种乐观策略，认为并发操作并不总会发生。<br>ABA问题，CAS就无法判断了。用版本号 时间戳去保证。<br>自旋，cpu消耗大，不适合高并发。</p>
-<p>8、锁升级<br>针对 synchronized 获取锁的方式，JVM 使用了锁升级的优化方式，就是先使用偏向锁优先同一线程然后再次获取锁，如果失败，就升级为 CAS 轻量级锁，如果失败就会短暂自旋，防止线程被系统挂起。最后如果以上都失败就升级为重量级锁。</p>
-<hr>
-<p>9、synchronized<br>monitorenter和monitorexit – 挂起或者唤醒一个线程都需要操作系统 –用户和内核切换<br>对象锁锁的计算器-阻塞<br>自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁等技术来减少锁操作的开销。<br>修饰实例方法–对象实例的锁<br>修饰静态方法–当前类对象的锁<br>不要使用 synchronized(String a) – 字符串常量池 缓冲功能<br>JVM 通过该 ACC_SYNCHRONIZED 访问标志来辨别一个方法是否声明为同步方法，从而执行相应的同步调用。</p>
-<p>10、ReentrantLock<br>放弃等待，避免出现死锁<br>申请锁的时间顺序获得，默认非公平。<br>内部类Sync管理锁， 有两个实现，分别为 NonfairSync（非公平锁）和 FairSync（公平锁）<br>基于AQS<br>同时绑定对个对象</p>
-<p>11、java 中断机制</p>
-<p>12、condition状态</p>
-<p>13、AQS<br>AQS 中采用了 LockSupport.park(thread) 来挂起线程，用 unpark 来唤醒线程</p>
-<p>每个线程被封装成一个Node，包含waitstatus(该线程的status)：不抢了、唤醒下一个、停在某个condition上、propagate。每个 node 在入队的时候，都会把前驱节点的状态改为 SIGNAL，然后阻塞，等待被前驱唤醒。这里涉及的是两个问题：有线程取消了排队、唤醒操作。</p>
-<p>AQS中包含state(锁的status)：0代表没有被占用，大于 0 代表有线程持有当前锁，这个值可以大于 1，是因为锁可以重入，每次重入都加上 1</p>
-<p>公平锁：<code>if (!tryAcquire(arg) &amp;&amp;  &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) </code>先try，没有成功，这个时候需要把当前线程挂起，放到阻塞队列中。</p>
-<p>tryAcquire(arg)</p>
-<blockquote>
-<p>1如果队列每人，cas获取，没获取到，说明刚有人获取了，获取到的人标记下自己获取了。<br>2如果是重入的情况，计数+1。<br>3都不是则获取失败<br>返回true：1.没有线程在等待锁且CAS获取成功；2.重入锁，线程本来就持有锁，也就可以理所当然可以直接获取</p>
-</blockquote>
-<p>acquireQueued(addWaiter(Node.EXCLUSIVE), arg)</p>
-<blockquote>
-<p>1队列不空则CAS加入队尾2队列空或者CAS失败，则进入enq(node);<br>通过上面的操作已经入队了。在判断，自己是否是队头，再tryAcquire，获得了返回false。<br>否则不是队头、也没try成功，就shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt()。</p>
-</blockquote>
-<p>enq(node)</p>
-<blockquote>
-<p>for (;;) 自旋入队，CAS竞争一次竞争不到，就多次竞争，总会排到的</p>
-</blockquote>
-<p>14、</p>
+
+<h2 id="笛卡尔积"><a href="#笛卡尔积" class="headerlink" title="笛卡尔积"></a>笛卡尔积</h2><a id="more"></a>
+
+<br>
+
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static String cartesianProduct(final String[][] inputs) &#123;</span><br><span class="line">        if (inputs &#x3D;&#x3D; null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        final StringBuilder sb &#x3D; new StringBuilder();</span><br><span class="line">        </span><br><span class="line">        product(&quot;&quot;, 0, inputs, sb);</span><br><span class="line">        </span><br><span class="line">        return sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">public void product(String prefix,int index, String[][] input,StringBuilder sb)&#123;</span><br><span class="line">        for (int i &#x3D; 0; i &lt; input[index].length; i++) &#123;</span><br><span class="line">            if (index &gt;&#x3D; input.length - 1) &#123;</span><br><span class="line">                sb.append(prefix + input[index][i]);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                product(prefix + input[index][i], index + 1, input, sb);</span><br><span class="line">            &#125;</span><br><span class="line">            if (i &lt; input[index].length - 1) &#123;</span><br><span class="line">                sb.append(&quot;, &quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>两个变量关键prefix和index，作为递归方法的参数时进行变化<code>prefix + input[index][i]</code>和<code>index+1</code>。</p>
+<p>从数列角度看，sb(j) = sb(j-1) + charAt(i) ,charAt(i)需要一个for循环即<code>for (int i = 0; i &lt; input[index].length; i++)</code>。sb(j-1)为<code>prefix</code>，下一步需要<code>prefix + input[index][i]</code>；其中<code>j-1</code>为<code>index</code>，进入下一步需要<code>index+1</code>。</p>
 ]]></content>
       <categories>
-        <category>面试</category>
+        <category>leetcode</category>
       </categories>
       <tags>
-        <tag>面试</tag>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SVM</title>
+    <url>/2021/02/04/SVM/</url>
+    <content><![CDATA[<br>
+
+
+<ul>
+<li><p>reference：[非常好的两本书。再加上libsvm的源码与调参的论文。]<br>[1]<a href="http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf">http://files2.syncfusion.com/Downloads/Ebooks/support_vector_machines_succinctly.pdf</a><br>[2]An Introduction to Support Vector Machines and Other Kernel-based Learning Methods<br>[3]<a href="https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793">https://pan.baidu.com/share/link?shareid=262520779&amp;uk=1378138793</a></p>
+</li>
+<li><p>干货</p>
+</li>
+<li><p>首先，SVM是解决supervised learning 中classification问题。有两种情况，看是否linearly separable。线性不可分则引入kernel，想法为先做transformation到其他空间进而转为可分问题。</p>
+</li>
+<li><p>对于线性可分的监督分类问题，SVM的目标是什么呢? find  the optimal separating hyperplane which maximizes the margin of the training data</p>
+</li>
+<li><p>为什么以最大化间隔为目标？因为it correctly classifies the training data and because it is the one which will generalize better with unseen data</p>
+</li>
+</ul>
+<a id="more"></a>
+<ul>
+<li><p>这里的 间隔 指？关于间隔涉及到两种分类，一种分类为几何间隔与函数间隔；一种为软、硬间隔。几何间隔在二维则为点线距离，三维空间就是我们学习的点面距离。函数间隔二维中可以理解为<em>几个</em>点没有在线上，三维则为<em>几个</em>点没有在面上；或者结合几何间隔可理解为，是将几何间隔求解的分母去掉了，没有归一化(也因此SVM中不能选择以函数间隔衡量，否则maximizes是没有意义的)。关于软硬，是看噪声，There will never be any data point inside the margin.  If data is noisy, we need soft margin classifier.</p>
+</li>
+<li><p>继上面的目标，假设该超平面的公式为W*X=0，这里会有疑惑：</p>
+<ul>
+<li>Why do we use the hyperplane equation W<em>X instead of   Y=a</em>x+b? –&gt; the vector W will always be normal to the hyperplane</li>
+</ul>
+</li>
+<li><p>澄清下要做的步骤：<br>  1 数据集<br>  2 选择两个超平面能够分类数据并在两平面间没有其他点<br>  3 最大化超平面间隔</p>
+</li>
+<li><p>将步骤整理成数学过程</p>
+<ul>
+<li><p>设两个超平面， W<em>X+b = -θ  和  W</em>X+b = +θ。这里，为什么我们需要两个超平面？我们设想的是，假定最佳的超平面在这两个超平面的中间。我们求得两个超平面即可求得最佳分类超平面。</p>
+</li>
+<li><p>θ取值无关，直接设为1。 即得W<em>X+b = -1  和  W</em>X+b = +1。这里要想明白W与b到底是什么关系？b依赖还是独立于W？显然，是独立的，可以想象为，我们需要求得W与b两个变量，能够最大化间隔。</p>
+</li>
+<li><p>需要满足两个约束: 1. 任何&gt;=1的为class 1 2.任何&lt;=-1的为class -1 –&gt;这个限制使在两平面间没有其他点</p>
+</li>
+<li><p>将两个约束写为一个式子即： y*(w*x+b)&gt;=1</p>
+</li>
+<li><p>最大化间隔 ？对于这个问题，目前我们已知条件是两个。一个是两个平面 W<em>X+b = -1  和  W</em>X+b = +1。一个是有一个点x在平面  W<em>X+b = -1 上</em>。得：<br><code>w*(x + m*w/||w||)+b=1</code><br>化简得 <code> m = 2/||w||</code></p>
+</li>
+<li><p>得到的公式意味着：如果||w||没有限制，那么m我们可以取得任意大的值。</p>
+</li>
+<li><p>现在自然就面临optimization problem。所有的点subject to  y*(w*x+b)&gt;=1, 在此条件下如何minimize ||w||?先引入<strong>理论1</strong>，该理论为两个条件，在两个条件满足的情况下，可以说我们得到了一个scalar function的local minimum。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2021/02/04/SVM/theorem1.png" alt="theorem1"></p>
+<ul>
+<li>f为从集合σ(其元素为vector)到实数集(其元素为值)的映射，且在x处 连续、可二阶导。这里涉及到两个的概念：<ol>
+<li>**gradient ：a generalization of the usual concept of derivative of  a function in one dimension to a function in several dimensions  ( the gradient of a function is a vector containing each of its partial derivatives.)**注意符号为 nabla,图中倒三角。 </li>
+<li><strong>scalar function：A scalar valued function is a function that takes one or more values but returns a single value. In our case f is a scalar valued function.</strong></li>
+</ol>
+</li>
+<li>positive definite：<br>A symmetric matrix A  is called positive definite if x.T<em>A</em>x&gt;0 , for all n维的实数向量x。</li>
+<li><strong>theorem 2</strong>中的四个条件是等价的。因此可以通过其他三种情况来判断是否为正定。这里选择主子式来判断Hessian正定，涉及到三个概念：</li>
+</ul>
+<p><img src="/2021/02/04/SVM/theorem2.png" alt="theorem2"></p>
+<ol>
+<li>Minors： 删除某行和某列的所有值再计算行列式。remove the ith line and the jth column</li>
+<li>Principal minors ：删除的行、列号一致。remove the ith line and the jth column and i=j</li>
+<li>Leading principal minor ：The leading principal minor of A of order k is the minor of order k obtained by <strong>deleting the last n−k rows and columns</strong>.（这里包含一个正三角符号，标注删除哪些行列）栗子看图Leading principal minor</li>
+</ol>
+<p><img src="http://upload-images.jianshu.io/upload_images/8716089-42fb025afc8f45d5.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="leading principal minor.jpg"></p>
+<ul>
+<li>得到了local minimum，How can we find a global minimum?两步走， 1. Find all the local minima 2. Take the smallest one; it is the global minimum. 另一个思路是看我们的f是否是<strong>convex</strong> ,是then we are sure its local minimum is a global minimum.</li>
+</ul>
+<p><strong>Theorem: A local minimum of a convex function is a global minimum</strong> 这里又涉及到convex function, convex set的定义。</p>
+<ul>
+<li>What is a <a href="http://mathworld.wolfram.com/ConvexFunction.html">convex function</a>? A function is convex if you can trace a line between two of its points without crossing the function line.<br><img src="http://upload-images.jianshu.io/upload_images/8716089-fd9cfea722d77a1d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="convex  0&lt;λ&lt;1.jpg"><blockquote>
+<p>A function is convex if its epigraph (the set of points on or above the graph of the function) is a convex set. In Euclidean space, a convex set is the region such that, for every pair of points within the region, every point on the straight line segment that joins the pair of points is also within the region. </p>
+</blockquote>
+</li>
+</ul>
+<p>栗子看图convex set</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/8716089-b484ebf0cfdf222d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="convex set.jpg"></p>
+<ul>
+<li>同样根据Hessian判断是否convex，这里需要看是否是<strong>positive semidefinite</strong>,而semi有对应三个条件是与之等价。看 theorem 3<blockquote>
+<p>**More generally, a continuous, twice differentiable function of several variables is convex on a convex set if and only if its Hessian matrix is positive semidefinite on the interior of the convex set.**The difference here is that we need to check all the principal minors, not only the leading principal minors. </p>
+</blockquote>
+</li>
+</ul>
+<p>  <img src="http://upload-images.jianshu.io/upload_images/8716089-744d4e22dac7d5aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="theorem 3.jpg"></p>
+<ul>
+<li>其中on the interior of the convex set是什么意思呢？定义：the domain of a convex function is a convex set，那么 a function is convex on a convex set意思就是在domain上是convex function，而interior只是意味着为两边开区间。</li>
+<li><a href="http://www.math.cmu.edu/~ploh/docs/math/mop2013/convexity-soln.pdf">其他证明是convex function的方法</a></li>
+<li>这里就谈convex function的optimization问题求解。涉及对偶概念，根据wiki，<blockquote>
+<p>Duality :duality means that optimization problems may be viewed from either of two perspectives, the primal problem or the dual problem (the duality principle). The solution to the dual problem <strong>provides a lower bound</strong> to the solution of the primal (minimization) problem. </p>
+</blockquote>
+</li>
+</ul>
+<p>  给最小值以下限。lower bound中有一个值为<strong>infimum</strong> (即 greatest lower bound)。补充，相对而言</p>
+<blockquote>
+<p>The same logic apply with the relation “greater than or equal” and we have the concept of upper-bound and supremum.</p>
+</blockquote>
+<ul>
+<li>对偶，在求最小值时求对应的最大值，求出的最大值将是=&lt;最小值，两者之差即为<strong>duality gap**。对应来说，在求最大值时求对应最小值，求出的最小值将是&gt;=最大值即upper bound。</strong>duality gap<strong>为正，我们称之</strong>weak duality holds<strong>，为0则为</strong>strong duality holds**。</li>
+<li>拉格朗日乘子 ： <blockquote>
+<p>In mathematical optimization, the method of Lagrange multipliers is a strategy for finding the local maxima and minima of a function subject to <strong>equality</strong> constraints. </p>
+</blockquote>
+</li>
+</ul>
+<p>  <img src="http://upload-images.jianshu.io/upload_images/8716089-59b1f2660a4869b6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Lagrange_portrait.jpg"></p>
+<ul>
+<li><p>如何将3D图在2D平面表示：Contour lines  两个要点：1. 线上的点z值不变，for each point on a line, the function returns the same value 2. 颜色扮演标识，the darker the area is, the smallest the value of the function is<br><img src="http://upload-images.jianshu.io/upload_images/8716089-271a7e44b55a0424.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="contours.png"></p>
+</li>
+<li><p>那么梯度就可以用<strong>向量场</strong>进行可视化。箭头指向函数增长的方向。与Contour lines 图有什么关系呢？在Contour lines 图中，gradient vectors非常容易画出，1 垂直于Contour lines 2.指向增加的方向。<img src="http://upload-images.jianshu.io/upload_images/8716089-8ee3efb4b3646c71.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="gradient_and_contour.png"></p>
+</li>
+<li><p>将约束函数和优化目标函数以contour lines 画在一幅图中，并画出两者的gradient vector。可得到最优点。图中的优化目标函数为x^2+y^2, 约束函数为 y=1-x。 <img src="http://upload-images.jianshu.io/upload_images/8716089-fc1f3051bbf27c8a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="function_and_constraint.png"></p>
+</li>
+<li><p>▽f(x,y) = λ ▽g(x,y)<br>λ 这就是拉格朗日乘子。根据图中，当两个gradient vector平行时，我们得到最优解。无论是否同向。更无论是否等长。乘以λ 即意味着不必等长。即求▽L(x,y,λ )=0时的x，y。现在我们需要列出L并求解。</p>
+</li>
+<li><p>由于我们需要求f(w)=1/2*||w||^2的最小值，将每个约束函数乘以的 λ需要取正数。<img src="http://upload-images.jianshu.io/upload_images/8716089-76c3fc3fc413375d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="L.jpg"></p>
+</li>
+<li><p>又面临一个问题，求L(x,y,λ )=0， the problem can only be solved <strong>analytically when the number of examples is small</strong> (Tyson Smith, 2004 即只有当约束函数数量比较小的时候，λ 个数不多，我们才能用分析的方法求解). So we will once again rewrite the problem using the duality principle–&gt;we need to minimize with respect to w and b, and to maximize with respect to a at the same time.我们在上一步需要最小化<br><img src="http://upload-images.jianshu.io/upload_images/8716089-4ca65da333340058.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="duality_after_L.jpg"></p>
+</li>
+<li><p>这里需要讲清楚三个问题。1. 拉格朗日是对约束函数是等式的情况，那么我们在这里是不等式约束的问题，也用拉格朗日乘子解决，需要满足什么条件吗？(KKT)2.之前说了，对偶问题有强与弱，只有当强时，gap才为0，我们才能将对偶问题的最大值作为原问题的最小值。那么，这里是否满足是strong duality holds? （强对偶 即下文Slater’s condition）3.或许你对为什么能够是对w b求min，对a求max还是留有疑问。(拉格朗日到对偶问题这两个之间的转化过程)</p>
+</li>
+<li><p>仍需要引入两个理论。1.  duality principle 2.Slater’s condition 3.KKT<br>首先，L对w与b求偏导，令为0(这里两个等式)，再将这两个等式带入到L中，消去了w、b，只剩下变量a，即得L(a)。于是将问题转化为 Wolfe dual Problem<br><img src="http://upload-images.jianshu.io/upload_images/8716089-67cdfbf09b820630.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="wolfe dual.jpg"></p>
+</li>
+<li><p>慢着，这里又出现一个问题。</p>
+<blockquote>
+<p>Traditionally the Wolfe dual Lagrangian problem is constrained by the gradients being equal to zero. In theory, we should add the constraints θL/θw=0  and  θL/θb=0 . However, we only added the latter, because it is necessary for removing   b from the function. However, we can solve the problem without the constraint   θL/θw=0.</p>
+</blockquote>
+<p>这里就会不明白为什么不需要加上θL/θw=0约束仍能够solve the problem？暂且保留疑问。</p>
+</li>
+<li><p>Karush-Kuhn-Tucker conditions :<strong>first-order necessary conditions</strong> for a solution of an optimization problem to be optimal<br>除了KKT还需要满足一些regularity conditions，其中之一为Slater’s condition。</p>
+<blockquote>
+<p>Because the primal problem we are trying to solve is a convex problem, the KKT conditions are also sufficient for the point to be primal and dual optimal, and there is zero duality gap.</p>
+</blockquote>
+<p>这里说的，即只要为convex问题，KKT也满足，即可说得出的结果是原问题或对偶问题的最优解，因为Slater’s condition是一定满足了的，gap=0。对于SVM，如果结果满足KKT，那么即可说是最优解。(详细证明过程[2] ch5)</p>
+<p>   <img src="http://upload-images.jianshu.io/upload_images/8716089-62f19539ba8a88bc.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="KKT.jpg"></p>
+</li>
+<li><p>可见，1. stationary 即为偏导为0即为驻点,若无约束函数则直接gradient是0，有了约束则gradient of the Lagrangian为0。2. primal feasibility为原问题约束函数  3. dual feasibility 为我们对L求解时使用对偶理论时的约束函数  4.complementary slackness含义是，要么a=0，要么y*(w*x+b)-1=0.这里与<strong>Support vectors</strong>相关，</p>
+<blockquote>
+<p>Support vectors are examples having a positive Lagrange multiplier. They are the ones for which the constraint y*(w<em>x+b)-1&gt;=0  is active. (We say the constraint is active when y</em>(w*x+b)-1=0 )</p>
+</blockquote>
+<p>这里，是否会疑惑为什么不能同时为0？为什么multiplier一定是正数？在KKT中，我们只选取支持向量，即将不等号约束改为等号约束，其他的点不考虑。</p>
+<blockquote>
+<p>Solving the SVM problem is equivalent to finding a solution to the KKT conditions.” (Burges, 1988)</p>
+</blockquote>
+</li>
+<li><p>现在有了L(a),求导即可。得到了a。再根据偏导为0的公式回代得到w 。再根据prime problem中的约束函数y*(w*x+b)-1&gt;=0，计算b</p>
+</li>
+<li><p>用QP solver来解对偶问题。用python CVXOPT包。将wolfe dual.jpg中我们需要求解的公式转化到下面CVXOPT支持的形式。这里引入了一个Gram matrix - The matrix of all possible inner products of X.</p>
+</li>
+</ul>
+<p><img src="http://upload-images.jianshu.io/upload_images/8716089-907dcfe22f62860e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="CVXOPT.jpg"></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/8716089-ac41318c2c79efb1.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="转化过程.jpg"></p>
+<p>这个图里有问题，minimize部分最后一项需要<code>q.T*a</code>, 详见代码部分，需要q = cvxopt.matrix(-1 * np.ones(m))。</p>
+<ul>
+<li>code部分：<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import cvxopt.solvers</span><br><span class="line">X, y &#x3D; 这里获取到数据</span><br><span class="line">m &#x3D; X.shape[0]  #data有多少</span><br><span class="line"># Gram </span><br><span class="line">K &#x3D; np.array([np.dot(X[i], X[j]) for j in range(m) for i in range(m)]).reshape((m, m)) </span><br><span class="line">P &#x3D; cvxopt.matrix(np.outer(y, y) * K)</span><br><span class="line">q &#x3D; cvxopt.matrix(-1 * np.ones(m))</span><br><span class="line"># 等式约束</span><br><span class="line">A &#x3D; cvxopt.matrix(y, (1, m))</span><br><span class="line">b &#x3D; cvxopt.matrix(0.0)</span><br><span class="line"># 不等式约束</span><br><span class="line">G &#x3D; cvxopt.matrix(np.diag(-1 * np.ones(m))) h &#x3D; cvxopt.matrix(np.zeros(m))</span><br><span class="line"># 求解</span><br><span class="line">solution &#x3D; cvxopt.solvers.qp(P, q, G, h, A, b)</span><br><span class="line"># 拉格朗日乘子</span><br><span class="line">multipliers &#x3D; np.ravel(solution[&#39;x&#39;])</span><br><span class="line"># 支持向量</span><br><span class="line">has_positive_multiplier &#x3D; multipliers &gt; 1e-7 </span><br><span class="line">sv_multipliers &#x3D; multipliers[has_positive_multiplier]</span><br><span class="line">support_vectors &#x3D; X[has_positive_multiplier] </span><br><span class="line">support_vectors_y &#x3D; y[has_positive_multiplier]</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#计算w，b</span><br><span class="line">def compute_w(multipliers, X, y):</span><br><span class="line">    return np.sum(multipliers[i] * y[i] * X[i]  for i in range(len(y)))</span><br><span class="line">def compute_b(w, X, y):</span><br><span class="line">    return np.sum([y[i] - np.dot(w, X[i]) for i in range(len(X))])&#x2F;len(X)</span><br><span class="line"></span><br><span class="line">w &#x3D; compute_w(multipliers, X, y)</span><br><span class="line">w_from_sv &#x3D; compute_w(sv_multipliers, support_vectors, support_vect</span><br><span class="line">b &#x3D; compute_b(w, support_vectors, support_vectors_y)</span><br><span class="line"> </span><br></pre></td></tr></table></figure></li>
+</ul>
+<blockquote>
+<p>We saw that the original optimization problem can be rewritten using a Lagrangian function. Then, thanks to duality theory, we transformed the Lagrangian problem into the Wolfe dual problem. We eventually used the package CVXOPT to solve the Wolfe dual.</p>
+</blockquote>
+<ul>
+<li>为什么需要将拉格朗日函数转化为对偶问题到wolfe dual？<br>这里还差对偶原则及Slater’s condition 概念。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -1865,6 +2117,164 @@
       </categories>
       <tags>
         <tag>股市理论</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>面试题积累</title>
+    <url>/2021/03/03/%E9%9D%A2%E8%AF%95%E9%A2%98%E7%A7%AF%E7%B4%AF/</url>
+    <content><![CDATA[<h4 id="java"><a href="#java" class="headerlink" title="java"></a>java</h4><p>1、线程安全地使用list<br>Collections.SynchronizedList能把所有 List 接口的实现类转换成线程安全的List，比 Vector 有更好的扩展性和兼容性<br>java.util.concurrent.CopyOnWriteArrayList，读不加锁，写加锁、复制后写，读多写少的场景合适，写多的场景要复制，不合适。</p>
+<a id="more"></a>
+
+<p>2、异常类<br>javap -verbose看athrow<br>Error\Exception都是Throwable，Exception又分为检查和非检查。<br>JVM 规定继承自 RuntimeException 的异常都是 UncheckedException.<br>JVM 规定，每个函数必须对自己要抛出的异常心中有数，在函数声明时通过 throws 语句将该函数可能会抛出的异常声明出来。<br>finally的return会把其他的return给覆盖。</p>
+<hr>
+<p>3、HashMap、ConcurrentHashMap</p>
+<ul>
+<li><p>Node对象内部的hash字段，这个hash值是怎么得到呢？hash字段为什么采用高低位异或？</p>
+<blockquote>
+<p>当数组的长度很短时，只有低位数的hashcode值能参与运算。而让高16位参与运算可以更好的均匀散列，减少碰撞，进一步降低hash冲突的几率。并且使得高16位和低16位的信息都被保留了。</p>
+</blockquote>
+</li>
+<li><p>填入table的数组的脚标怎么算的？<br>hash ^ (hash&gt;&gt;&gt; 16) (&gt;&gt;&gt;:无符号右移、高位补0)<br>(len-1) &amp; hash</p>
+</li>
+<li><p>put数据的过程？<br>分四种情况。无数据则直接放入，有链且key同则替换，有链且key不同则尾插(再判断大小看是否树化)，红黑树则红黑树插入。</p>
+</li>
+<li><p>红黑树的写入操作，是怎么找到父节点的，找父节点流程？</p>
+</li>
+<li><p>TreeNode数据结构。</p>
+</li>
+</ul>
+<p>TreeNode继承了LinkedHashMap内部类LinkedHashMap.Entry，LinkedHashMap.Entry又继承自HashMap.Node。这些字段跟Entry，Node中的字段一样，是使用默认访问权限的，所以子类可以直接使用父类的属性。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static final class TreeNode&lt;K,V&gt; extends LinkedHashMap.Entry&lt;K,V&gt; &#123;</span><br><span class="line">    TreeNode&lt;K,V&gt; parent;  &#x2F;&#x2F; 红黑树父节点</span><br><span class="line">    TreeNode&lt;K,V&gt; left;    &#x2F;&#x2F;左子节点</span><br><span class="line">    TreeNode&lt;K,V&gt; right;   &#x2F;&#x2F;右子节点	</span><br><span class="line">    TreeNode&lt;K,V&gt; prev;    &#x2F;&#x2F; 删除后需要取消链接，指向前一个节点（原链表中的前一个节点）</span><br><span class="line">    boolean red;		   &#x2F;&#x2F;红黑树精髓 red</span><br><span class="line">    TreeNode(int hash, K key, V val, Node&lt;K,V&gt; next) &#123;</span><br><span class="line">        super(hash, key, val, next);</span><br><span class="line">    &#125;　　　　 &#x2F;&#x2F;省略后续代码</span><br><span class="line"></span><br><span class="line">static class Entry&lt;K,V&gt; extends HashMap.Node&lt;K,V&gt; &#123;</span><br><span class="line">    Entry&lt;K,V&gt; before, after;</span><br><span class="line">    Entry(int hash, K key, V value, Node&lt;K,V&gt; next) &#123;</span><br><span class="line">        super(hash, key, value, next);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>红黑树的原则有哪些呢？<br>root、叶子为黑；黑高相同；红色孩子为黑</p>
+</li>
+<li><p>JDK8 hashmap为什么引入红黑树？解决什么问题？<br>hash冲突较多时，查询和插入、删除的性能。保证查询效率（O(logn)）</p>
+</li>
+<li><p>hashmap扩容后，老表的数据怎么迁移到扩容后的表的呢？hashmap扩容后，迁移数据发现该slot是颗红黑树，怎么处理呢？<br>数组翻倍扩容，将旧数据每个key都按照脚标公式重新计算。红黑树则进行insert操作。</p>
+</li>
+<li><p>为什么hashmap大小要为2的幂次方数<br>一个key的hashCode是一个int整数，而int在内存中是以二进制数存储，位运算比运算符运算更高效。当长度为2的幂次方数时，hash &amp; (length -1) = hash % length</p>
+</li>
+</ul>
+<hr>
+<p>4、ConcurrentHashMap</p>
+<ul>
+<li><p>多线程下的hashmap替代<br>Collections.synchronizedMap(Map)创建线程安全的map集合；Hashtable；ConcurrentHashMap</p>
+</li>
+<li><p>Collections.synchronizedMap是怎么实现线程安全<br>在SynchronizedMap内部维护了一个普通对象Map，还有排斥锁mute。<code>Collections.synchronizedMap(new HashMap&lt;&gt;(16));</code>将对象排斥锁赋值为this。创建出synchronizedMap之后，再操作map的时候，就会对方法上锁。</p>
+</li>
+<li><p>HashTable？</p>
+</li>
+</ul>
+<p>1.实现：Hashtable 继承了 Dictionary类，而 HashMap 继承的是 AbstractMap 类。<br>2.并发：HashMap相比Hashtable是线程安全的，但是是synchronized效率不高。<br>3.异常：Hashtable 是不允许键或值为 null 的，HashMap 的键值则都可以为 null。即为Hashtable在我们put 空值的时候会直接抛空指针异常，但是HashMap做了特殊处理。<br>Hashtable使用的是安全失败机制（fail-safe），这种机制会使你此次读到的数据不一定是最新的数据。如果你使用null值，就会使得其无法判断对应的key是不存在还是为空，因为你无法再调用一次contain(key）来对key是否存在进行判断，ConcurrentHashMap同理。<br>4.初始化、扩容不同<br>5.迭代器不同：HashMap 中的 Iterator 迭代器是 fail-fast 的，而 Hashtable 的 Enumerator 不是 fail-fast 的。所以，当其他线程改变了HashMap 的结构，如：增加、删除元素，将会抛出ConcurrentModificationException 异常，而 Hashtable 则不会。</p>
+<ul>
+<li><p>concurrenthashmap并发度设计？<br>ConcurrentHashMap 采用了分段锁技术，其中 Segment 继承于 ReentrantLock。理论上 ConcurrentHashMap 支持 CurrencyLevel (Segment 数组数量)的线程并发。1.8采用了 CAS + synchronized 来保证并发安全性。</p>
+</li>
+<li><p>1.7如何解决HahsMap闭环问题<br>Segment 对象是一把锁，所以在 rehash 的过程中，其他线程无法对segment 的 hash 表做操作</p>
+</li>
+<li><p>put?</p>
+</li>
+</ul>
+<p>1.7时：<br>根据key的hash值，在Segment数组中找到相应的位置，如果相应位置的Segment还未初始化，则通过CAS进行赋值。首先第一步的时候会尝试获取锁，如果获取失败肯定就有其他线程存在竞争，则利用 scanAndLockForPut() 自旋获取锁。尝试自旋获取锁。如果重试的次数达到了 MAX_SCAN_RETRIES 则改为阻塞锁获取，保证能获取成功。如果已经初始化，则执行Segment对象的put方法通过加锁机制插入数据。</p>
+<p>1.8时：<br>key val必须不为空。根据 key 计算出 hashcode 。判断是否需要进行初始化–initTable 方法初始化。<br>初始化流程：使用了 CAS ，1、判断 sizeCtl 值是否小于 0，如果小于 0 则表示 ConcurrentHashMap 正在执行初始化操作，所以需要先等待一会，如果其它线程初始化失败还可以顶替上去。2、如果 sizeCtl 值大于等于 0，则基于 CAS 策略抢占标记 sizeCtl 为 -1，表示ConcurrentHashMap 正在执行初始化，然后构造 table，并更新 sizeCtl 的值<br>即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。如果当前位置的 hashcode == MOVED == -1,则需要进行扩容。如果都不满足，则利用 synchronized 锁把头节点被锁住了，保证了同时只有一个线程修改链表，防止出现链表成环。写入数据后，如果数量大于 TREEIFY_THRESHOLD 则要转换为红黑树。</p>
+<ul>
+<li>size？</li>
+</ul>
+<p>1.7：<br>先采用不加锁的方式，连续计算元素的个数，最多计算3次：如果前后两次计算结果相同，则说明计算出来的元素个数是准确的；如果前后两次计算结果都不同，则给每个Segment进行加锁，再计算一次元素的个数；</p>
+<p>1.8：<br>1.8中使用一个volatile类型的变量baseCount记录元素的个数，当插入新数据或则删除数据时，会通过addCount()方法更新baseCount1.8中的size实现比1.7简单多，因为元素个数保存baseCount中，部分元素的变化个数保存在CounterCell数组。累加baseCount和CounterCell数组中的数量，即可得到元素的总个数</p>
+<ul>
+<li>transfer、helper（并发扩容）</li>
+</ul>
+<hr>
+<p>5、fail-fast？<br>1.原理：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变modCount的值。每当迭代器使用hashNext()/next()遍历下一个元素之前，都会检测modCount变量是否为expectedmodCount值，是的话就返回遍历；否则抛出异常，终止遍历。如果集合发生变化时修改modCount值刚好又设置为了expectedmodCount值，则异常不会抛出。因此，不能依赖于这个异常是否抛出而进行并发操作的编程，这个异常只建议用于检测并发修改的bug。<br>2.java.util包下的集合类都是快速失败的，不能在多线程下发生并发修改<br>3.安全失败（fail—safe）：java.util.concurrent包下的容器都是安全失败，可以在多线程下并发使用，并发修改。</p>
+<p>6、volatile<br>保证了不同线程对这个变量进行操作时的可见性；禁止进行指令重排序（实现有序性）；volatile 只能保证对单次读/写的原子性。i++ 这种操作不能保证原子性。</p>
+<p>7、cas<br>CAS 只能保证一个共享变量的原子操作。<br>是乐观锁的一种实现方式，是一种轻量级锁。在准备写回数据时，比较原值是否修改，若未被其他线程修改则写回，若已被修改，则重新执行读取流程。这是一种乐观策略，认为并发操作并不总会发生。<br>ABA问题，CAS就无法判断了。用版本号 时间戳去保证。<br>自旋，cpu消耗大，不适合高并发。</p>
+<p>8、锁升级<br>针对 synchronized 获取锁的方式，JVM 使用了锁升级的优化方式，就是先使用偏向锁优先同一线程然后再次获取锁，如果失败，就升级为 CAS 轻量级锁，如果失败就会短暂自旋，防止线程被系统挂起。最后如果以上都失败就升级为重量级锁。</p>
+<hr>
+<p>9、synchronized<br>monitorenter和monitorexit – 挂起或者唤醒一个线程都需要操作系统 –用户和内核切换<br>对象锁锁的计算器-阻塞<br>自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁等技术来减少锁操作的开销。<br>修饰实例方法–对象实例的锁<br>修饰静态方法–当前类对象的锁<br>不要使用 synchronized(String a) – 字符串常量池 缓冲功能<br>JVM 通过该 ACC_SYNCHRONIZED 访问标志来辨别一个方法是否声明为同步方法，从而执行相应的同步调用。</p>
+<p>10、ReentrantLock<br>放弃等待，避免出现死锁<br>申请锁的时间顺序获得，默认非公平。<br>内部类Sync管理锁， 有两个实现，分别为 NonfairSync（非公平锁）和 FairSync（公平锁）<br>基于AQS<br>同时绑定对个对象</p>
+<p>11、java 中断机制</p>
+<p>12、condition状态</p>
+<p>13、AQS<br>AQS 中采用了 LockSupport.park(thread) 来挂起线程，用 unpark 来唤醒线程</p>
+<p>每个线程被封装成一个Node，包含waitstatus(该线程的status)：不抢了、唤醒下一个、停在某个condition上、propagate。每个 node 在入队的时候，都会把前驱节点的状态改为 SIGNAL，然后阻塞，等待被前驱唤醒。这里涉及的是两个问题：有线程取消了排队、唤醒操作。</p>
+<p>AQS中包含state(锁的status)：0代表没有被占用，大于 0 代表有线程持有当前锁，这个值可以大于 1，是因为锁可以重入，每次重入都加上 1</p>
+<p>公平锁：<code>if (!tryAcquire(arg) &amp;&amp;  &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) </code>先try，没有成功，这个时候需要把当前线程挂起，放到阻塞队列中。</p>
+<p>tryAcquire(arg)</p>
+<blockquote>
+<p>1如果队列每人，cas获取，没获取到，说明刚有人获取了，获取到的人标记下自己获取了。<br>2如果是重入的情况，计数+1。<br>3都不是则获取失败<br>返回true：1.没有线程在等待锁且CAS获取成功；2.重入锁，线程本来就持有锁，也就可以理所当然可以直接获取</p>
+</blockquote>
+<p>acquireQueued(addWaiter(Node.EXCLUSIVE), arg)</p>
+<blockquote>
+<p>1队列不空则CAS加入队尾2队列空或者CAS失败，则进入enq(node);<br>通过上面的操作已经入队了。在判断，自己是否是队头，再tryAcquire，获得了返回false。<br>否则不是队头、也没try成功，就shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt()。</p>
+</blockquote>
+<p>enq(node)</p>
+<blockquote>
+<p>for (;;) 自旋入队，CAS竞争一次竞争不到，就多次竞争，总会排到的</p>
+</blockquote>
+<p>14、常见函数</p>
+<ul>
+<li><p>sleep()<br>不释放对象锁;要捕捉异常;可以使低优先级的线程得到执行的机会<br>在一个运行系统中，如果较高优先级的线程没有调用sleep方法，也没有受到I/O阻塞，那么较低优先级线程只能等待所有较高优先级的线程运行结束。</p>
+</li>
+<li><p>join()<br>等待该方法的线程执行完毕后再往下继续;要捕捉异常</p>
+</li>
+<li><p>yield()<br>与sleep()类似，只是不能由用户指定暂停多长时间。使当前线程让出CPU占有权，但让出的时间是不可设定;只能让同优先级的线程有执行的机会;不释放锁标志</p>
+</li>
+<li><p>wait()和notify()、notifyAll()</p>
+</li>
+</ul>
+<ol>
+<li>协调多个线程对共享数据的存取，所以必须在synchronized语句块内使用。否则能编译通过，但在运行时会IllegalMonitorStateException的异常。</li>
+<li>能在当前线程还没退出synchronized数据块时让其他线程也有机会访问共享数据</li>
+<li>wait()当前线程暂停执行并释放对象锁标示，让其他线程可以进入synchronized数据块 &amp;&amp;当前线程被放入对象等待池中</li>
+<li>当调用notify()方法后，将从对象的等待池中移走一个任意的线程并放到锁标志等待池中，只有锁标志等待池中线程能够获取锁标志；如果锁标志等待池中没有线程，则notify()不起作用。notifyAll()则从对象等待池中移走所有等待那个对象的线程并放到锁标志等待池中。</li>
+<li>这三个方法都是java.lang.Object的方法。<br>sleep()和yield()是Thread类的方法。</li>
+</ol>
+<p>15、中断两种情况<br>一种是当线程处于阻塞状态或者试图执行一个阻塞操作时，我们可以使用实例方法interrupt()进行线程中断，执行中断操作后将会抛出interruptException异常(该异常必须捕捉无法向外抛出)并将中断状态复位，另外一种是当线程处于运行状态时，我们也可调用实例方法interrupt()进行线程中断，但同时必须手动判断中断状态，并编写中断线程的代码(其实就是结束run方法体的代码)。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public void run()&#123;</span><br><span class="line">    try &#123;</span><br><span class="line">    &#x2F;&#x2F;判断当前线程是否已中断,注意interrupted方法是静态的,执行后会对中断状态进行复位</span><br><span class="line">    while (!Thread.interrupted()) &#123;</span><br><span class="line">        TimeUnit.SECONDS.sleep(2);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125; catch (InterruptedException e) &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>16、</p>
+<ul>
+<li>应用</li>
+</ul>
+<ol>
+<li><p>修饰实例方法，作用于当前实例加锁，进入同步代码前要获得当前实例的锁</p>
+</li>
+<li><p>修饰静态方法，作用于当前类对象加锁，进入同步代码前要获得当前类对象的锁</p>
+</li>
+<li><p>修饰代码块，指定加锁对象，对给定对象加锁，进入同步代码库前要获得给定对象的锁。</p>
+</li>
+</ol>
+<ul>
+<li>知识</li>
+</ul>
+<ol>
+<li>JVM中，对象在堆内存中的布局分为三块区域：<strong>对象头</strong>、<strong>实例数据</strong>（类的属性数据信息，包括父类的属性信息，如果是数组的实例部分还包括数组的长度，这部分内存按4字节对）和<strong>对齐填充</strong>（虚拟机要求对象起始地址必须是8字节的整数倍）。</li>
+<li>jvm中采用2个字来存储对象头(如果对象是数组则会分配3个字，多出来的1个字记录的是数组长度)，其主要结构是由<strong>Mark Word 和 Class Metadata Address</strong>组成</li>
+<li>重量级锁也就是通常说synchronized的对象锁，<strong>锁标识位为10，其中指针指向的是 <em>monitor对象（也称为管程或监视器锁）</em> 的起始地址</strong>。每个对象都存在着一个 monitor 与之关联，对象与其 monitor 之间的关系有存在多种实现方式，如monitor可以与对象一起创建销毁或当线程试图获取对象锁时自动生成，但当一个 monitor 被某个线程持有后，它便处于锁定状态。在Java虚拟机(HotSpot)中，monitor是由ObjectMonitor实现的（位于HotSpot虚拟机源码ObjectMonitor.hpp）</li>
+<li>Monitor中有两个队列，_WaitSet 和 _EntryList，用来保存ObjectWaiter对象列表( 每个等待锁的线程都会被封装成<strong>ObjectWaiter</strong>对象)，_owner指向持有ObjectMonitor对象的线程，当多个线程同时访问一段同步代码时，首先会进入 <strong>_EntryList(处于等待锁block状态的线程，会被加入到该列表)</strong> 集合，当线程获取到对象的monitor 后进入 _Owner 区域并把monitor中的owner变量设置为当前线程同时monitor中的计数器count加1，</li>
+</ol>
+<p><strong>若线程调用 wait() 方法，将释放当前持有的monitor，owner变量恢复为null，count自减1，同时该线程进入 WaitSet集合中等待被唤醒</strong>。若当前线程执行完毕也将释放monitor(锁)并复位变量的值，以便其他线程进入获取monitor(锁)。<br>5. monitor对象存在于每个Java对象的对象头中(存储的指针的指向)，synchronized锁便是通过这种方式获取锁，因此：Java中任意对象可以作为锁，notify/notifyAll/wait等方法存在于顶级对象Object中<br>6. 在对代码块synchronized时，是monitorenter 和 monitorexit指令来控制的 ：monitorenter指令指向同步代码块的开始位置，monitorexit指令则指明同步代码块的结束位置，当执行monitorenter指令时，当前线程将试图获取 <strong>objectref(即对象锁)</strong> 所对应的 monitor 的持有权，当 objectref 的 monitor 的进入计数器为 0，那线程可以成功取得 monitor，并将计数器值设置为 1，取锁成功。如果当前线程已经拥有 objectref 的 monitor 的持有权，那它可以重入这个 monitor (关于重入性稍后会分析)，重入时计数器的值也会加 1。倘若其他线程已经拥有 objectref 的 monitor 的所有权，那当前线程将被阻塞，直到正在执行线程执行完毕，即monitorexit指令被执行，执行线程将释放 monitor(锁)并设置计数器值为0 ，其他线程将有机会持有 monitor 。<br>7. 编译器将会确保无论方法通过何种方式完成，方法中调用过的每条 monitorenter 指令都有执行其对应 monitorexit 指令，而无论这个方法是正常结束还是异常结束。为了保证在方法异常完成时 monitorenter 和 monitorexit 指令依然可以正确配对执行，<strong>编译器会自动产生一个异常处理器，这个异常处理器声明可处理所有的异常，它的目的就是用来执行 monitorexit 指令</strong>。<br>8. 方法级的synchronized是隐式，即无需通过字节码指令来控制的，它实现在<strong>方法调用和返回操作</strong>之中。JVM可以从方法常量池中的<strong>方法表结构(method_info Structure)</strong> 中的 <strong>ACC_SYNCHRONIZED 访问标志</strong>区分一个方法是否同步方法。<br>当方法调用时，调用指令将会 检查方法的 ACC_SYNCHRONIZED 访问标志是否被设置，如果设置了，执行线程将先持有monitor（虚拟机规范中用的是管程一词）， 然后再执行方法，最后在方法完成(无论是正常完成还是非正常完成)时释放monitor。在方法执行期间，执行线程持有了monitor，其他任何线程都无法再获得同一个monitor。如果一个同步方法执行期间抛 出了异常，并且在方法内部无法处理此异常，那这个同步方法所持有的monitor将在异常抛到同步方法之外时自动释放。<br>9. synchronized属于重量级锁，效率低下，因为监视器锁（monitor）是依赖于底层的操作系统的Mutex Lock来实现的，而操作系统实现线程之间的切换时需要从用户态转换到核心态，这个状态之间的转换需要相对比较长的时间，时间成本相对较高，这也是为什么早期的synchronized效率低的原因。Java 6之后Java官方对从JVM层面对synchronized较大优化，所以现在的synchronized锁效率也优化得很不错了，Java 6之后，为了减少获得锁和释放锁所带来的性能消耗，引入了<strong>轻量级锁和偏向锁</strong>。</p>
+<ul>
+<li>优化</li>
+</ul>
+<ol>
+<li>多数时锁不仅不存在多线程竞争，而且总是由<strong>同一线程多次获得</strong>，因此为了减少同一线程获取锁(会涉及到一些CAS操作,耗时)的代价而引入偏向锁。偏向锁的核心思想是，如果一个线程获得了锁，那么锁就进入偏向模式，此时Mark Word 的结构也变为偏向锁结构，当这个线程再次请求锁时，无需再做任何同步操作，即获取锁的过程，这样就省去了大量有关锁申请的操作，从而也就提供程序的性能。所以，对于没有锁竞争的场合，偏向锁有很好的优化效果，毕竟极有可能连续多次是同一个线程申请相同的锁。但是对于锁竞争比较激烈的场合，偏向锁就失效了，因为这样场合极有可能每次申请锁的线程都是不相同的，因此这种场合下不应该使用偏向锁，否则会得不偿失，需要注意的是，偏向锁失败后，并不会立即膨胀为重量级锁，而是<strong>先升级为轻量级锁</strong>。</li>
+<li>轻量级锁能够提升程序性能的依据是“对绝大部分的锁，在整个同步周期内都不存在竞争”，注意这是经验数据。需要了解的是，轻量级锁所适应的场景是线程交替执行同步块的场合，如果存在同一时间访问同一锁的场合，就会导致轻量级锁膨胀为重量级锁。</li>
+<li>轻量级锁失败后，虚拟机为了避免线程真实地在操作系统层面挂起，还会进行一项称为自旋锁的优化手段。这是基于在大多数情况下，线程持有锁的时间都不会太长，如果直接挂起操作系统层面的线程可能会得不偿失，毕竟操作系统实现线程之间的切换时需要从用户态转换到核心态，这个状态之间的转换需要相对比较长的时间，时间成本相对较高，因此自旋锁会假设在不久将来，当前的线程可以获得锁，因此虚拟机会让当前想要获取锁的线程做几个空循环(这也是称为自旋的原因)，一般不会太久，可能是50个循环或100循环，在经过若干次循环后，如果得到锁，就顺利进入临界区。</li>
+<li>Java虚拟机在JIT编译时(可以简单理解为当某段代码即将第一次被执行时进行编译，又称即时编译)，通过对运行上下文的扫描，去除不可能存在共享资源竞争的锁，通过这种方式消除没有必要的锁，可以节省毫无意义的请求锁时间，如下StringBuffer的append是一个同步方法，但是在add方法中的StringBuffer属于一个局部变量，并且不会被其他线程所使用，因此StringBuffer不可能存在共享资源竞争的情景，JVM会自动将其锁消除。</li>
+</ol>
+<ul>
+<li>中断、 wait &amp; notify</li>
+</ul>
+<ol>
+<li>对于synchronized来说，如果一个线程在等待锁，那么结果只有两种，要么它获得这把锁继续执行，要么它就保存等待，即使调用中断线程的方法，也不会生效</li>
+<li>调用这几个方法前必须拿到当前对象的监视器monitor对象，也就是说notify/notifyAll和wait方法依赖于monitor对象，在前面的分析中，我们知道monitor 存在于对象头的Mark Word 中(存储monitor引用指针)，而synchronized关键字可以获取 monitor ，这也就是为什么notify/notifyAll和wait方法必须在synchronized代码块或者synchronized方法调用的原因。</li>
+<li>同时notify/notifysAll方法调用后，并不会马上释放监视器锁，而是在相应的synchronized(){}/synchronized方法执行结束后才自动释放锁。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>面试</category>
+      </categories>
+      <tags>
+        <tag>面试</tag>
       </tags>
   </entry>
 </search>
