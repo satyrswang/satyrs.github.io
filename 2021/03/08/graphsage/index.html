@@ -15,21 +15,20 @@
 <meta property="og:site_name" content="satyrswang">
 <meta property="og:description" content="GCN 卷积数学上卷积的两个例子：  一个对象（吃冰淇凌）对一个系统（体重）的作用效果满足线性原理、累加原理。该对象对这个系统连续作用了一段时间后，求该系统的状态。这个时候，一个卷积就可以求出来了！">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/卷积.jpg">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/laplacian.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/GCN%E5%AD%A6%E4%B9%A0%E7%AD%96%E7%95%A5.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/%E9%80%90%E5%B1%82%E4%BC%A0%E6%92%AD%E5%85%AC%E5%BC%8F.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/visual_graphsage.webp">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/graphsage.png">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/K解释.png">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/loss.png">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/loss解释.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/K%E8%A7%A3%E9%87%8A.jpg">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/loss.jpg">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/graphsage/loss%E8%A7%A3%E9%87%8A.jpg">
 <meta property="article:published_time" content="2021-03-08T02:36:08.000Z">
-<meta property="article:modified_time" content="2021-03-08T07:27:51.024Z">
+<meta property="article:modified_time" content="2021-03-13T09:10:22.351Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="dl">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://satyrswang.github.io/2021/03/08/graphsage/卷积.jpg">
+<meta name="twitter:image" content="https://satyrswang.github.io/2021/03/08/graphsage/laplacian.png">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
   
@@ -205,10 +204,11 @@
 </ul>
 <p>一个对象（吃冰淇凌）对一个系统（体重）的作用效果满足线性原理、累加原理。该对象对这个系统连续作用了一段时间后，求该系统的状态。这个时候，一个卷积就可以求出来了！</p>
 <a id="more"></a>
-<!-- ![卷积](卷积.jpg) -->
+
 <br>
 第二个例子：
-<img src="/2021/03/08/graphsage/卷积.jpg" width="100%" height="700">
+![卷积](卷积.jpg)
+
 
 <hr>
 <p>DL中的卷积：</p>
@@ -249,27 +249,23 @@
 <p>2、inductive 还是 transductive<br>如果训练时用到了测试集或验证集样本的信息(或者说，测试集和验证集在训练的时候是可见的), 我们把这种学习方式叫做transductive learning, 反之，称为inductive learning. 显然，我们所处理的大多数机器学习问题都是inductive learning, 因为我们刻意的将样本集分为训练/验证/测试，并且训练的时候只用训练样本。然而，在GCN中，训练节点收集邻居信息的时候，用到了测试或者验证样本，所以它是transductive的。</p>
 <p>3、简单过程<br>思路一个网络里，我们知道部分点的分类，我们希望通过各种方法，知道其他未知点的属性。解决对未知节点的泛化问题。</p>
 <p>GraphSAGE是一个inductive框架，在具体实现中，训练时它仅仅保留训练样本到训练样本的边。inductive learning 的优点是可以利用已知节点的信息为未知节点生成Embedding. GraphSAGE 取自 Graph SAmple and aggreGatE, SAmple指如何对邻居个数进行采样。aggreGatE指拿到邻居的embedding之后如何汇聚这些embedding以更新自己的embedding信息。<br><br></p>
-<img src="/2021/03/08/graphsage/visual_graphsage.webp" width="80%" height="300">
-
+<p><img src="/2021/03/08/graphsage/visual_graphsage.webp" alt="visual_graphsage"></p>
 <hr>
 <p>4、具体步骤及伪代码</p>
 <p>步骤：<br>1.对邻居采样<br>2.采样后的邻居embedding传到节点上来，并使用一个聚合函数聚合这些邻居信息以更新节点的embedding<br>3.根据更新后的embedding预测节点的标签</p>
-<!-- ![graphsage](graphsage.png) -->
-<img src="/2021/03/08/graphsage/graphsage.png" width="80%" height="300">
+<p><img src="/2021/03/08/graphsage/graphsage.png" alt="graphsage"></p>
 <br>
 
 
 <p>描述：初始化各个节点emb，对每个节点emb采样邻居的emb，对邻居进行聚合，将自己的emb和聚合后的emb做一个非线性变换，更新为自己的emb。</p>
 <p>5、K的解释</p>
 <p>K：聚合器数量，权重矩阵数量，层数。</p>
-<!-- ![k](K解释.png) -->
-<img src="/2021/03/08/graphsage/K解释.png" width="70%" height="600">
-
+<p><img src="/2021/03/08/graphsage/K%E8%A7%A3%E9%87%8A.jpg" alt="K解释"></p>
 <br>
 
 <p>6、采样<br>定长抽样。定义邻居个数，进行有放回的重采样/负采样达到个数。每个node采样个数一致，为了把多个邻居拼成tensor放入gpu批量训练。</p>
 <p>7、聚合器<br>平均效果最好。<br>也有用lstm聚合器和pooling聚合器，</p>
-<p>8、学习过程<br>有监督：交叉熵<br>无监督：学习出来的相邻node的emb应该尽可能接近。此时的loss如下。<br><img src="/2021/03/08/graphsage/loss.png" width="70%" height="100"><br><img src="/2021/03/08/graphsage/loss解释.png" width="70%" height="400"></p>
+<p>8、学习过程<br>有监督：交叉熵<br>无监督：学习出来的相邻node的emb应该尽可能接近。此时的loss如下。<br><img src="/2021/03/08/graphsage/loss.jpg" alt="loss"><br><img src="/2021/03/08/graphsage/loss%E8%A7%A3%E9%87%8A.jpg" alt="loss解释"></p>
 
       
 

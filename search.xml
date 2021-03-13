@@ -187,29 +187,20 @@
 <p>在多项式模型中，特征xi与xj的组合用xixj表示。为了简单起见，我们讨论二阶多项式模型。<br>2、与线性模型相比，FM的模型就多了后面特征组合的部分。<br><img src="/2021/03/08/DeepFm/%E4%BA%8C%E9%A1%B9%E5%BC%8F.png" alt="二项式"></p>
 <h3 id="Q2：FM参数求解？"><a href="#Q2：FM参数求解？" class="headerlink" title="Q2：FM参数求解？"></a>Q2：FM参数求解？</h3><p>1、公式中，组合部分的特征相关参数共有n(n−1)/2个。在数据很稀疏的情况下xi,xj都不为0的情况非常少，这样将导致ωij无法通过训练得出。</p>
 <p>为了求出ωij，我们对每一个特征分量xi引入辅助向量Vi=(vi1,vi2,⋯,vik)。然后，利用vivj^T对ωij进行求解。</p>
-<img src="/2021/03/08/DeepFm/引入V.png" width="70%" height="200">
-
+<p><img src="/2021/03/08/DeepFm/%E5%BC%95%E5%85%A5V.png" alt="引入V"></p>
 <p>2、如何求解V？</p>
 <p>推导公式网上到处都有。</p>
 <p>3、得到公式推导结果后，对w求导，梯度下降进行训练。</p>
 <h4 id="Q3：FFM？"><a href="#Q3：FFM？" class="headerlink" title="Q3：FFM？"></a>Q3：FFM？</h4><p>公式：</p>
-<img src="/2021/03/08/DeepFm/ffm_gs.png" width="70%" height="150">
-
-
+<p><img src="/2021/03/08/DeepFm/ffm_gs.png" alt="ffm_gs"></p>
 <p>举例：</p>
-<img src="/2021/03/08/DeepFm/ffm.png" width="50%" height="400">
-
-
+<p><img src="/2021/03/08/DeepFm/ffm.png" alt="ffm"></p>
 <h4 id="Q4：why-DeepFm？"><a href="#Q4：why-DeepFm？" class="headerlink" title="Q4：why DeepFm？"></a>Q4：why DeepFm？</h4><p>1、因子分解机(Factorization Machines, FM)通过对于每一维特征的隐变量内积来提取特征组合。最终的结果也非常好。<br>但是，虽然理论上来讲FM可以对高阶特征组合进行建模，但实际上因为计算复杂度的原因一般都只用到了二阶特征组合。<br>那么对于高阶的特征组合来说，通过多层的神经网络即DNN去解决。</p>
 <p>2、One-hot类型的特征输入到DNN中，会导致网络参数太多。<br>如何解决这个问题呢，类似于FFM中的思想，将特征分为不同的field：让Dense Vector进行组合，来表示高阶特征。</p>
-<img src="/2021/03/08/DeepFm/field.png" width="70%" height="400">
-
+<p><img src="/2021/03/08/DeepFm/field.png" alt="field"></p>
 <p>3、但是低阶和高阶特征组合隐含地体现在隐藏层中，如果我们希望把低阶特征组合单独建模，然后融合高阶特征组合。<br>=&gt;就得到了DeepFm。</p>
 <h4 id="Q5：what-DeepFm？"><a href="#Q5：what-DeepFm？" class="headerlink" title="Q5：what DeepFm？"></a>Q5：what DeepFm？</h4><p>1、有两种融合方式，分别为串行和并行的结构。<br>这里介绍并行结构。</p>
-<img src="/2021/03/08/DeepFm/structure.png" width="80%" height="500">
-<img src="/2021/03/08/DeepFm/deepfm.png" width="70%" height="700">
-
-
+<p><img src="/2021/03/08/DeepFm/structure.png" alt="structure"><br><img src="/2021/03/08/DeepFm/deepfm.png" alt="deepfm"></p>
 <p>2、emb部分</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">#embeddings</span><br><span class="line">#weights[&#39;feature_embeddings&#39;] 存放的每一个值其实就是FM中的vik</span><br><span class="line">weights[&#39;feature_embeddings&#39;] &#x3D; tf.Variable(</span><br><span class="line">    tf.random_normal([self.feature_size,self.embedding_size],0.0,0.01),</span><br><span class="line">    name&#x3D;&#39;feature_embeddings&#39;)</span><br><span class="line"></span><br><span class="line">weights[&#39;feature_bias&#39;] &#x3D; tf.Variable(tf.random_normal([self.feature_size,1],0.0,1.0),name&#x3D;&#39;feature_bias&#39;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># model</span><br><span class="line">self.embeddings &#x3D; tf.nn.embedding_lookup(self.weights[&#39;feature_embeddings&#39;],self.feat_index) # N * F * K</span><br><span class="line">feat_value &#x3D; tf.reshape(self.feat_value,shape&#x3D;[-1,self.field_size,1])</span><br><span class="line">self.embeddings &#x3D; tf.multiply(self.embeddings,feat_value)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>如果是离散值，则embedding lookup之后，每个维度✖️1，连续值则✖️连续值。<br>✖️后的结果就是公式里的 Vi,f · Xi</p>
@@ -408,18 +399,13 @@
 <ul>
 <li><p>扩展<br>对DSSM的优化出现了很多的变种，有CNN-DSSM，LSTM-DSSM，MV-DSSM等。</p>
 </li>
-<li><p>trick</p>
+<li><p>trick<br><img src="/2021/03/08/dssm/trick.png" alt="trick"></p>
 </li>
 </ul>
-<img src="/2021/03/08/dssm/trick.png" width="80%" height="400">
-
 <hr>
 <ul>
-<li>架构</li>
+<li>架构<br><img src="/2021/03/08/dssm/dssm.png" alt="dssm"></li>
 </ul>
-<img src="/2021/03/08/dssm/dssm.png" width="70%" height="900">
-
-
 ]]></content>
       <categories>
         <category>dl</category>
@@ -655,10 +641,11 @@
 </ul>
 <p>一个对象（吃冰淇凌）对一个系统（体重）的作用效果满足线性原理、累加原理。该对象对这个系统连续作用了一段时间后，求该系统的状态。这个时候，一个卷积就可以求出来了！</p>
 <a id="more"></a>
-<!-- ![卷积](卷积.jpg) -->
+
 <br>
 第二个例子：
-<img src="/2021/03/08/graphsage/卷积.jpg" width="100%" height="700">
+![卷积](卷积.jpg)
+
 
 <hr>
 <p>DL中的卷积：</p>
@@ -699,27 +686,23 @@
 <p>2、inductive 还是 transductive<br>如果训练时用到了测试集或验证集样本的信息(或者说，测试集和验证集在训练的时候是可见的), 我们把这种学习方式叫做transductive learning, 反之，称为inductive learning. 显然，我们所处理的大多数机器学习问题都是inductive learning, 因为我们刻意的将样本集分为训练/验证/测试，并且训练的时候只用训练样本。然而，在GCN中，训练节点收集邻居信息的时候，用到了测试或者验证样本，所以它是transductive的。</p>
 <p>3、简单过程<br>思路一个网络里，我们知道部分点的分类，我们希望通过各种方法，知道其他未知点的属性。解决对未知节点的泛化问题。</p>
 <p>GraphSAGE是一个inductive框架，在具体实现中，训练时它仅仅保留训练样本到训练样本的边。inductive learning 的优点是可以利用已知节点的信息为未知节点生成Embedding. GraphSAGE 取自 Graph SAmple and aggreGatE, SAmple指如何对邻居个数进行采样。aggreGatE指拿到邻居的embedding之后如何汇聚这些embedding以更新自己的embedding信息。<br><br></p>
-<img src="/2021/03/08/graphsage/visual_graphsage.webp" width="80%" height="300">
-
+<p><img src="/2021/03/08/graphsage/visual_graphsage.webp" alt="visual_graphsage"></p>
 <hr>
 <p>4、具体步骤及伪代码</p>
 <p>步骤：<br>1.对邻居采样<br>2.采样后的邻居embedding传到节点上来，并使用一个聚合函数聚合这些邻居信息以更新节点的embedding<br>3.根据更新后的embedding预测节点的标签</p>
-<!-- ![graphsage](graphsage.png) -->
-<img src="/2021/03/08/graphsage/graphsage.png" width="80%" height="300">
+<p><img src="/2021/03/08/graphsage/graphsage.png" alt="graphsage"></p>
 <br>
 
 
 <p>描述：初始化各个节点emb，对每个节点emb采样邻居的emb，对邻居进行聚合，将自己的emb和聚合后的emb做一个非线性变换，更新为自己的emb。</p>
 <p>5、K的解释</p>
 <p>K：聚合器数量，权重矩阵数量，层数。</p>
-<!-- ![k](K解释.png) -->
-<img src="/2021/03/08/graphsage/K解释.png" width="70%" height="600">
-
+<p><img src="/2021/03/08/graphsage/K%E8%A7%A3%E9%87%8A.jpg" alt="K解释"></p>
 <br>
 
 <p>6、采样<br>定长抽样。定义邻居个数，进行有放回的重采样/负采样达到个数。每个node采样个数一致，为了把多个邻居拼成tensor放入gpu批量训练。</p>
 <p>7、聚合器<br>平均效果最好。<br>也有用lstm聚合器和pooling聚合器，</p>
-<p>8、学习过程<br>有监督：交叉熵<br>无监督：学习出来的相邻node的emb应该尽可能接近。此时的loss如下。<br><img src="/2021/03/08/graphsage/loss.png" width="70%" height="100"><br><img src="/2021/03/08/graphsage/loss解释.png" width="70%" height="400"></p>
+<p>8、学习过程<br>有监督：交叉熵<br>无监督：学习出来的相邻node的emb应该尽可能接近。此时的loss如下。<br><img src="/2021/03/08/graphsage/loss.jpg" alt="loss"><br><img src="/2021/03/08/graphsage/loss%E8%A7%A3%E9%87%8A.jpg" alt="loss解释"></p>
 ]]></content>
       <categories>
         <category>dl</category>
@@ -1325,13 +1308,7 @@
 <p>Q5：出货？<br>拉高出货，以变现锁定的获利。<br>成本区在之前的拉升和吸货之间的位置。<br>填权再拉。<br>然后高位震荡也能出货。<br>之前的拉升，净吃入。拉高出货不能吃，要卖。拉两三天，做个平台，拉两三天再做个平台，别人就会认为每次到平台就突破，就会买入。如果大盘面差，要跑的时候，向下钓鱼出货法–开始砸、跌停板打下来，然后巨大买盘，买盘巨大，不停再往上推，就会有买盘跟进，卖盘都是庄的，择机再砸掉买盘，又往上推，再砸，再推。1天可以卖掉好几千万资金。利用追涨杀跌。</p>
 <p>Q6：大波段操作<br>胆大心细。有胆量入场，指定止损–买入后预计涨结果跌了、或者预计强势结果未强势–&gt;改错择机出来。<br>买错即卖。<br>国家政策–&gt;板块和强势股(股票强度、涨停板)–&gt;龙头、二三龙头、补涨股等<br>–&gt;F10基本面符合–&gt;看技术面，平台突破点找买点</p>
 <p>Q7：二龙头补涨<br>二龙头的突破(某一天放量、十几分钟拉了3%-5%、分时线k线高于原来的平台)时加仓。补涨等不到回调机会。<br>卖出点只和技术面有关。<br>跌破五日线，先卖1/3。五日线十日线高位死叉卖1/3。死叉后又跌则全出。</p>
-<br>
-<br>
-
-<div align="center">    
-<img src="/2021/02/22/%E5%BA%84%E5%AE%B6/yakj.png" width="700" height="500" alt="亿安科技" align="center">
-</div>
-
+<p><img src="/2021/02/22/%E5%BA%84%E5%AE%B6/yakj.png" alt="yakj"></p>
 ]]></content>
       <categories>
         <category>股市理论</category>
@@ -1369,16 +1346,15 @@
 <h4 id="如何传递、融合图上异构节点的信息？"><a href="#如何传递、融合图上异构节点的信息？" class="headerlink" title="如何传递、融合图上异构节点的信息？"></a>如何传递、融合图上异构节点的信息？</h4><p>1、为了完成user, video, tag, media这四类节点的信息融合，GraphTR设计了3层卷积结构，称为Heterogeneous field interaction network (HFIN)。</p>
 <p>2、最底层Heterogeneous Feature Layer：<br>3-hop的embdding是lookup获得的，分别有四个域(user/video/tag/media域的特征)，相加得到2-hop邻居的embedding。</p>
 <p>3、中间层：Multi-field Interaction Layer：<br>这一层的任务是由2-hop邻居的embedding，聚合生成1-hop邻居的embedding。<br>而HFIN采用了GraphSAGE+FM+Transformer三种方式，粒度上从由粗到细，完成聚合。</p>
-<h4 id="三种聚合方式"><a href="#三种聚合方式" class="headerlink" title="三种聚合方式"></a>三种聚合方式</h4><p>1、GraphSAGE聚合<br>graphsage聚合<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage聚合.png" width="60%" height="370"></p>
+<h4 id="三种聚合方式"><a href="#三种聚合方式" class="headerlink" title="三种聚合方式"></a>三种聚合方式</h4><p>1、GraphSAGE聚合<br>graphsage聚合<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage%E8%81%9A%E5%90%88.png" alt="graphsage聚合"></p>
 <p>这里的hGraph就是1-hop的最终embding。</p>
-<p>2、FM 聚合<br>FM聚合，区分各域，因此粒度更细一些。<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/fm聚合.png" width="60%" height="300"></p>
+<p>2、FM 聚合<br>FM聚合，区分各域，因此粒度更细一些。<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/fm%E8%81%9A%E5%90%88.png" alt="fm聚合"></p>
 <p>hFM2就是1-hop的最终embding。</p>
 <p>3、Multi-field transformer aggregator</p>
 <p>GraphTR觉得FM聚合时，各域节点（即各域特征）交叉得还不够：1:FM聚合，只有在第2步才做域与域之间的交叉。2:在一个域内部，这n+1个特征之间，只有简单pooling，不存在交叉。3:FM聚合的第1步，每个域average pooling的是，这1+n个节点的原始特征。</p>
 <p>Transformer聚合，希望增强各域节点（即各域特征）的交叉。步骤如下：</p>
 <p>S1:Transformer决定在第1步引入交叉。具体方式就是，在一个域的1+n个节点之间进行Transformer变换，重新生成1+n个向量，每个新向量是老向量的加权平均，权重是当前老向量相对于其他老向量的attention score。(一套attention恐怕没有代表性，还引入多头机制)</p>
-<img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/transformer聚合.png" width="60%" height="500">
-
+<p><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/transformer%E8%81%9A%E5%90%88.png" alt="transformer聚合"></p>
 <p>S2:再拿生成的1+n个新向量，做average pooling。</p>
 <p>S3:最后将“域间交叉结果”与”域内交叉结果”拼接在一起返回，作为由Transformer聚合得到的1-hop邻居的embedding。论文的实验结果证明，这个最复杂、最细粒度的聚合，对于模型性能的提升也最大。</p>
 <p>4、通过三种聚合方式，我们就可以得到1-hop邻居的最终embedding，是这三种聚合结果的concat。</p>
@@ -1387,8 +1363,7 @@
 <h4 id="如何定义loss"><a href="#如何定义loss" class="headerlink" title="如何定义loss?"></a>如何定义loss?</h4><p>通过以上三层卷积，就能够给图上所有类型的所有节点，都产生一个embedding。接下来的问题就是，如何定义优化目标，使这些节点的embedding得到优化？</p>
 <p>这一部分的解决方案比较常规，无非就是建模节点之间的相关性，可以有选择是:</p>
 <p>建模user-tag之间的相关性，user与点击过的tag之间的距离要尽可能小。但是user-tag之间交互的数据太少；建模user-video之间的相关性，user与点击过的视频之间，距离应该较近。但是图上建模的不是单个user而是user group，一个user group包含的用户兴趣太复杂，拿user-goup与video训练，可能噪声比较大；建模video-video之间的相关性，在同一个session被观看的视频之间，距离要尽可能小。因为video的点击行为比较多，这方面的数据比较丰富，文中采用的是这种方案。</p>
-<img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/loss.png" width="60%" height="250">
-
+<p><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/loss.png" alt="loss"></p>
 <h4 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h4><p>将这些tag emedding代入上文的”第二个方案”，即拿用户观看过视频携带的tag的embedding加权平均得到user embedding，再拿这个user embedding在当前视频所携带的tag的embedding中寻找出距离最近的top-k个tag，作为推荐结果显示在视频的下方。因为这些tag embedding蕴含了丰富的user-video行为信息，不仅有助于提升用户对tag的点击率，也有助于提升进入沉浸式tag频道后的观看时长。</p>
 <h4 id="借鉴"><a href="#借鉴" class="headerlink" title="借鉴"></a>借鉴</h4><p>1、数据少的领域如何借力于数据多的领域，同时要兼顾两个领域的优化目标：<br>通过将不同领域的不同节点、关系建立在一张异构图上，通过图卷积，使得每个节点的embedding都浓缩了多个领域的知识，达成了“知识迁移+目标兼顾”。</p>
 <p>2、GraphTR采用了GraphSAGE+FM+Transformer多种手段，粒度上从粗到细，交叉、聚合来自不同领域的异构消息，相比于mean/max pooling、浅层FC等传统聚合方式，极大提升了模型的表达能力。</p>

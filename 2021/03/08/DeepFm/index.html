@@ -16,14 +16,14 @@
 <meta property="og:description" content="背景在推荐领域较流行的深度模型方案： 实战：阿里MLR、阿里DIN、阿里ESSM、京东强化学习推荐、facebook个性化推荐dlrm、Deep Neural Networks for YouTube Recommendations、华为DeepFM、google2016 wide&amp;deep learning、googleDeep&amp;Cross Network等。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/%E4%BA%8C%E9%A1%B9%E5%BC%8F.png">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/引入V.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/%E5%BC%95%E5%85%A5V.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/ffm_gs.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/ffm.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/field.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/structure.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/deepfm.png">
 <meta property="article:published_time" content="2021-03-08T07:27:20.000Z">
-<meta property="article:modified_time" content="2021-03-08T11:24:55.327Z">
+<meta property="article:modified_time" content="2021-03-13T09:12:38.610Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="dl">
 <meta name="twitter:card" content="summary">
@@ -209,29 +209,20 @@
 <p>在多项式模型中，特征xi与xj的组合用xixj表示。为了简单起见，我们讨论二阶多项式模型。<br>2、与线性模型相比，FM的模型就多了后面特征组合的部分。<br><img src="/2021/03/08/DeepFm/%E4%BA%8C%E9%A1%B9%E5%BC%8F.png" alt="二项式"></p>
 <h3 id="Q2：FM参数求解？"><a href="#Q2：FM参数求解？" class="headerlink" title="Q2：FM参数求解？"></a>Q2：FM参数求解？</h3><p>1、公式中，组合部分的特征相关参数共有n(n−1)/2个。在数据很稀疏的情况下xi,xj都不为0的情况非常少，这样将导致ωij无法通过训练得出。</p>
 <p>为了求出ωij，我们对每一个特征分量xi引入辅助向量Vi=(vi1,vi2,⋯,vik)。然后，利用vivj^T对ωij进行求解。</p>
-<img src="/2021/03/08/DeepFm/引入V.png" width="70%" height="200">
-
+<p><img src="/2021/03/08/DeepFm/%E5%BC%95%E5%85%A5V.png" alt="引入V"></p>
 <p>2、如何求解V？</p>
 <p>推导公式网上到处都有。</p>
 <p>3、得到公式推导结果后，对w求导，梯度下降进行训练。</p>
 <h4 id="Q3：FFM？"><a href="#Q3：FFM？" class="headerlink" title="Q3：FFM？"></a>Q3：FFM？</h4><p>公式：</p>
-<img src="/2021/03/08/DeepFm/ffm_gs.png" width="70%" height="150">
-
-
+<p><img src="/2021/03/08/DeepFm/ffm_gs.png" alt="ffm_gs"></p>
 <p>举例：</p>
-<img src="/2021/03/08/DeepFm/ffm.png" width="50%" height="400">
-
-
+<p><img src="/2021/03/08/DeepFm/ffm.png" alt="ffm"></p>
 <h4 id="Q4：why-DeepFm？"><a href="#Q4：why-DeepFm？" class="headerlink" title="Q4：why DeepFm？"></a>Q4：why DeepFm？</h4><p>1、因子分解机(Factorization Machines, FM)通过对于每一维特征的隐变量内积来提取特征组合。最终的结果也非常好。<br>但是，虽然理论上来讲FM可以对高阶特征组合进行建模，但实际上因为计算复杂度的原因一般都只用到了二阶特征组合。<br>那么对于高阶的特征组合来说，通过多层的神经网络即DNN去解决。</p>
 <p>2、One-hot类型的特征输入到DNN中，会导致网络参数太多。<br>如何解决这个问题呢，类似于FFM中的思想，将特征分为不同的field：让Dense Vector进行组合，来表示高阶特征。</p>
-<img src="/2021/03/08/DeepFm/field.png" width="70%" height="400">
-
+<p><img src="/2021/03/08/DeepFm/field.png" alt="field"></p>
 <p>3、但是低阶和高阶特征组合隐含地体现在隐藏层中，如果我们希望把低阶特征组合单独建模，然后融合高阶特征组合。<br>=&gt;就得到了DeepFm。</p>
 <h4 id="Q5：what-DeepFm？"><a href="#Q5：what-DeepFm？" class="headerlink" title="Q5：what DeepFm？"></a>Q5：what DeepFm？</h4><p>1、有两种融合方式，分别为串行和并行的结构。<br>这里介绍并行结构。</p>
-<img src="/2021/03/08/DeepFm/structure.png" width="80%" height="500">
-<img src="/2021/03/08/DeepFm/deepfm.png" width="70%" height="700">
-
-
+<p><img src="/2021/03/08/DeepFm/structure.png" alt="structure"><br><img src="/2021/03/08/DeepFm/deepfm.png" alt="deepfm"></p>
 <p>2、emb部分</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">#embeddings</span><br><span class="line">#weights[&#39;feature_embeddings&#39;] 存放的每一个值其实就是FM中的vik</span><br><span class="line">weights[&#39;feature_embeddings&#39;] &#x3D; tf.Variable(</span><br><span class="line">    tf.random_normal([self.feature_size,self.embedding_size],0.0,0.01),</span><br><span class="line">    name&#x3D;&#39;feature_embeddings&#39;)</span><br><span class="line"></span><br><span class="line">weights[&#39;feature_bias&#39;] &#x3D; tf.Variable(tf.random_normal([self.feature_size,1],0.0,1.0),name&#x3D;&#39;feature_bias&#39;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># model</span><br><span class="line">self.embeddings &#x3D; tf.nn.embedding_lookup(self.weights[&#39;feature_embeddings&#39;],self.feat_index) # N * F * K</span><br><span class="line">feat_value &#x3D; tf.reshape(self.feat_value,shape&#x3D;[-1,self.field_size,1])</span><br><span class="line">self.embeddings &#x3D; tf.multiply(self.embeddings,feat_value)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>如果是离散值，则embedding lookup之后，每个维度✖️1，连续值则✖️连续值。<br>✖️后的结果就是公式里的 Vi,f · Xi</p>

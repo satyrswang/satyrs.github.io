@@ -15,17 +15,17 @@
 <meta property="og:site_name" content="satyrswang">
 <meta property="og:description" content="提出背景“迁移学习+多任务”的场景通过将不同领域的节点、关系都建模在一幅图中，通过图卷积，完成知识从数据丰富的领域向数据稀疏领域的迁移，并兼顾两个领域的指标。">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage聚合.png">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/fm聚合.png">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/transformer聚合.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage%E8%81%9A%E5%90%88.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/fm%E8%81%9A%E5%90%88.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/transformer%E8%81%9A%E5%90%88.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/loss.png">
 <meta property="article:published_time" content="2021-03-08T07:34:09.000Z">
-<meta property="article:modified_time" content="2021-03-08T14:09:48.448Z">
+<meta property="article:modified_time" content="2021-03-13T09:14:06.100Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="dl">
 <meta property="article:tag" content="模型框架">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage聚合.png">
+<meta name="twitter:image" content="https://satyrswang.github.io/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage%E8%81%9A%E5%90%88.png">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
   
@@ -221,16 +221,15 @@
 <h4 id="如何传递、融合图上异构节点的信息？"><a href="#如何传递、融合图上异构节点的信息？" class="headerlink" title="如何传递、融合图上异构节点的信息？"></a>如何传递、融合图上异构节点的信息？</h4><p>1、为了完成user, video, tag, media这四类节点的信息融合，GraphTR设计了3层卷积结构，称为Heterogeneous field interaction network (HFIN)。</p>
 <p>2、最底层Heterogeneous Feature Layer：<br>3-hop的embdding是lookup获得的，分别有四个域(user/video/tag/media域的特征)，相加得到2-hop邻居的embedding。</p>
 <p>3、中间层：Multi-field Interaction Layer：<br>这一层的任务是由2-hop邻居的embedding，聚合生成1-hop邻居的embedding。<br>而HFIN采用了GraphSAGE+FM+Transformer三种方式，粒度上从由粗到细，完成聚合。</p>
-<h4 id="三种聚合方式"><a href="#三种聚合方式" class="headerlink" title="三种聚合方式"></a>三种聚合方式</h4><p>1、GraphSAGE聚合<br>graphsage聚合<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage聚合.png" width="60%" height="370"></p>
+<h4 id="三种聚合方式"><a href="#三种聚合方式" class="headerlink" title="三种聚合方式"></a>三种聚合方式</h4><p>1、GraphSAGE聚合<br>graphsage聚合<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/graphsage%E8%81%9A%E5%90%88.png" alt="graphsage聚合"></p>
 <p>这里的hGraph就是1-hop的最终embding。</p>
-<p>2、FM 聚合<br>FM聚合，区分各域，因此粒度更细一些。<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/fm聚合.png" width="60%" height="300"></p>
+<p>2、FM 聚合<br>FM聚合，区分各域，因此粒度更细一些。<br><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/fm%E8%81%9A%E5%90%88.png" alt="fm聚合"></p>
 <p>hFM2就是1-hop的最终embding。</p>
 <p>3、Multi-field transformer aggregator</p>
 <p>GraphTR觉得FM聚合时，各域节点（即各域特征）交叉得还不够：1:FM聚合，只有在第2步才做域与域之间的交叉。2:在一个域内部，这n+1个特征之间，只有简单pooling，不存在交叉。3:FM聚合的第1步，每个域average pooling的是，这1+n个节点的原始特征。</p>
 <p>Transformer聚合，希望增强各域节点（即各域特征）的交叉。步骤如下：</p>
 <p>S1:Transformer决定在第1步引入交叉。具体方式就是，在一个域的1+n个节点之间进行Transformer变换，重新生成1+n个向量，每个新向量是老向量的加权平均，权重是当前老向量相对于其他老向量的attention score。(一套attention恐怕没有代表性，还引入多头机制)</p>
-<img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/transformer聚合.png" width="60%" height="500">
-
+<p><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/transformer%E8%81%9A%E5%90%88.png" alt="transformer聚合"></p>
 <p>S2:再拿生成的1+n个新向量，做average pooling。</p>
 <p>S3:最后将“域间交叉结果”与”域内交叉结果”拼接在一起返回，作为由Transformer聚合得到的1-hop邻居的embedding。论文的实验结果证明，这个最复杂、最细粒度的聚合，对于模型性能的提升也最大。</p>
 <p>4、通过三种聚合方式，我们就可以得到1-hop邻居的最终embedding，是这三种聚合结果的concat。</p>
@@ -239,8 +238,7 @@
 <h4 id="如何定义loss"><a href="#如何定义loss" class="headerlink" title="如何定义loss?"></a>如何定义loss?</h4><p>通过以上三层卷积，就能够给图上所有类型的所有节点，都产生一个embedding。接下来的问题就是，如何定义优化目标，使这些节点的embedding得到优化？</p>
 <p>这一部分的解决方案比较常规，无非就是建模节点之间的相关性，可以有选择是:</p>
 <p>建模user-tag之间的相关性，user与点击过的tag之间的距离要尽可能小。但是user-tag之间交互的数据太少；建模user-video之间的相关性，user与点击过的视频之间，距离应该较近。但是图上建模的不是单个user而是user group，一个user group包含的用户兴趣太复杂，拿user-goup与video训练，可能噪声比较大；建模video-video之间的相关性，在同一个session被观看的视频之间，距离要尽可能小。因为video的点击行为比较多，这方面的数据比较丰富，文中采用的是这种方案。</p>
-<img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/loss.png" width="60%" height="250">
-
+<p><img src="/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/loss.png" alt="loss"></p>
 <h4 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h4><p>将这些tag emedding代入上文的”第二个方案”，即拿用户观看过视频携带的tag的embedding加权平均得到user embedding，再拿这个user embedding在当前视频所携带的tag的embedding中寻找出距离最近的top-k个tag，作为推荐结果显示在视频的下方。因为这些tag embedding蕴含了丰富的user-video行为信息，不仅有助于提升用户对tag的点击率，也有助于提升进入沉浸式tag频道后的观看时长。</p>
 <h4 id="借鉴"><a href="#借鉴" class="headerlink" title="借鉴"></a>借鉴</h4><p>1、数据少的领域如何借力于数据多的领域，同时要兼顾两个领域的优化目标：<br>通过将不同领域的不同节点、关系建立在一张异构图上，通过图卷积，使得每个节点的embedding都浓缩了多个领域的知识，达成了“知识迁移+目标兼顾”。</p>
 <p>2、GraphTR采用了GraphSAGE+FM+Transformer多种手段，粒度上从粗到细，交叉、聚合来自不同领域的异构消息，相比于mean/max pooling、浅层FC等传统聚合方式，极大提升了模型的表达能力。</p>
