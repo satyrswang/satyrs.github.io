@@ -8,16 +8,17 @@
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
   <title>Apriori_fptree | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Apriori {  input{ID1:[item1,item2…],ID2:[item3,item2…],…}  outputitem1-&gt;item2,item3…  math频率及条件概率的简单应用支持度: 频数&#x2F;样本总量置信度: 条件概率如果子集不为频繁集则超集一定不为；反之如果超集是频繁集则子集均为频繁集。  parametersminSupportminConf  过程1-4完">
+  <meta name="description" content="Apriori input{ID1:[item1,item2…],ID2:[item3,item2…],…}">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Apriori_fptree">
 <meta property="og:url" content="https://satyrswang.github.io/2021/03/11/Apriori-fptree/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="Apriori {  input{ID1:[item1,item2…],ID2:[item3,item2…],…}  outputitem1-&gt;item2,item3…  math频率及条件概率的简单应用支持度: 频数&#x2F;样本总量置信度: 条件概率如果子集不为频繁集则超集一定不为；反之如果超集是频繁集则子集均为频繁集。  parametersminSupportminConf  过程1-4完">
+<meta property="og:description" content="Apriori input{ID1:[item1,item2…],ID2:[item3,item2…],…}">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-03-11T10:23:27.000Z">
-<meta property="article:modified_time" content="2021-03-11T10:23:45.079Z">
+<meta property="article:modified_time" content="2021-03-13T09:50:07.923Z">
 <meta property="article:author" content="yuqing wang">
+<meta property="article:tag" content="ml">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
@@ -85,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">50.2k</span>
+    总字数 <span class="post-count">51k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -185,15 +186,15 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：784字 | 预计阅读时长：3分钟
+    字数：789字 | 预计阅读时长：3分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <ul>
-<li><p>Apriori {</p>
-</li>
-<li><p>input<br>{ID1:[item1,item2…],ID2:[item3,item2…],…}</p>
-</li>
+        <h2 id="Apriori"><a href="#Apriori" class="headerlink" title="Apriori"></a>Apriori</h2><ul>
+<li>input<br>{ID1:[item1,item2…],ID2:[item3,item2…],…}</li>
+</ul>
+<a id="more"></a>
+<ul>
 <li><p>output<br>item1-&gt;item2,item3…</p>
 </li>
 <li><p>math<br>频率及条件概率的简单应用<br>支持度: 频数/样本总量<br>置信度: 条件概率<br>如果子集不为频繁集则超集一定不为；反之如果超集是频繁集则子集均为频繁集。</p>
@@ -203,25 +204,15 @@
 <li><p>过程<br>1-4完成了频繁集的搜寻，5及之后产生规则。</p>
 </li>
 </ul>
-<ol>
-<li><p><code>list</code>存放每个用户的  <code>itemset</code>，生成[[],[]]存放所有item并排序，<code>map(frozenset, C1)</code></p>
-</li>
-<li><p>第一轮遍历，生成一个<code>list</code>存放所有支持度大于<code>minSupport</code>，大于则<code>insert(0,key)</code>。遍历的函数<code>scanD</code>所生成<code>list</code>的元素是<code>frozenset</code>。如果<code>can.issubset(tid)</code>且<code>！ssCnt.has_key(can)</code>则加入到<code>supportData</code>。</p>
-</li>
-<li><p>list存放所有频繁物品集，<code>supportData</code>存放所有计算过的物品集的支持度，以<code>frozenset</code>作为<code>key</code>。两者更新的过程是在<code>apriori</code>中循环调用<code>aprioriGen</code>和<code>scanD </code>，再更新。直到<code>scanD</code>得到的频繁物品集为空。</p>
-</li>
-<li><p><code>aprioriGen</code>的过程，两层循环，遍历上一个(即物品集中个数为目前需要产生的个数-1)频繁物品集，<code>L1 = list(Lk[i])[:k-2];L2 = list(Lk[j])[:k-2]</code>取前k-2项比较，若相同则<code>retList.append(Lk[i] | Lk[j])</code>将物品集union。是一个merging过程。</p>
-</li>
-<li><p>如果频繁集<code>frozenset</code>中item多于2，先<code>rulesFromConseq</code>再<code>calcConf</code>。<code>rulesFromConseq</code>是个递归过程，</p>
+<p>1、<code>list</code>存放每个用户的  <code>itemset</code>，生成[[],[]]存放所有item并排序，<code>map(frozenset, C1)</code><br>2、第一轮遍历，生成一个<code>list</code>存放所有支持度大于<code>minSupport</code>，大于则<code>insert(0,key)</code>。遍历的函数<code>scanD</code>所生成<code>list</code>的元素是<code>frozenset</code>。如果<code>can.issubset(tid)</code>且<code>！ssCnt.has_key(can)</code>则加入到<code>supportData</code>。<br>3、list存放所有频繁物品集，<code>supportData</code>存放所有计算过的物品集的支持度，以<code>frozenset</code>作为<code>key</code>。两者更新的过程是在<code>apriori</code>中循环调用<code>aprioriGen</code>和<code>scanD </code>，再更新。直到<code>scanD</code>得到的频繁物品集为空。<br>4、<code>aprioriGen</code>的过程，两层循环，遍历上一个(即物品集中个数为目前需要产生的个数-1)频繁物品集，<code>L1 = list(Lk[i])[:k-2];L2 = list(Lk[j])[:k-2]</code>取前k-2项比较，若相同则<code>retList.append(Lk[i] | Lk[j])</code>将物品集union。是一个merging过程。</p>
+<p>5、如果频繁集<code>frozenset</code>中item多于2，先<code>rulesFromConseq</code>再<code>calcConf</code>。<code>rulesFromConseq</code>是个递归过程，</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        if (len(Hmp1) &gt; 1):   #至少需要两个元素才能够merge</span><br><span class="line">            rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
 <p>这里一个问题是，如果<code>len(Hmp1) =1</code>，但是<code>len(freqSet) &gt; (len(Hmp1[0]) + 1)</code>仍然成立，因此修改为：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        if(len(H) &gt; 1):</span><br><span class="line">            Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
-<p>}</p>
-</li>
-</ol>
-<ul>
-<li><p>fptree {</p>
-</li>
+<br>
+
+
+<h2 id="fptree"><a href="#fptree" class="headerlink" title="fptree"></a>fptree</h2><ul>
 <li><p>概念<br>闭项：超集的支持度为s，子集的支持度都不超过s。<br>条件模式基： 即一个item追溯到root的所有路径<br>条件fp树 ： 即根据条件模式基创建的tree<br><code>myCondTree, myHead = createTree(condPattBases, minSup)</code></p>
 </li>
 <li><p>准备<br><code>headertable</code> : <code>dict</code>，<code>value</code>为<code>[count,treeNode]</code><br><code>treeNode</code> : <code>class</code></p>
@@ -237,7 +228,7 @@
 <li><code>updateTree</code>，这里就是普通的对树的操作，也是递归。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">if len(items) &gt; 1:#call updateTree() with remaining ordered items</span><br><span class="line">        updateTree(items[1::], inTree.children[items[0]], headerTable, count)</span><br></pre></td></tr></table></figure>
 唯一注意之处，需要<code>updateHeader</code>。</li>
 <li><code>mineTree</code>和<code>Apriori</code>中的<code>rulesFromConseq </code>一样较复杂，包含递归。先生成条件模式基，再生成conditional-fptree，再递归。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">if myHead !&#x3D; None:                  </span><br><span class="line">   mineTree(myCondTree, myHead, minSup, newFreqSet, freqItemList)</span><br></pre></td></tr></table></figure>
-循环递归mineTree的过程即生成规则过程，直到频繁2项集都得到。<br>}</li>
+循环递归mineTree的过程即生成规则过程，直到频繁2项集都得到。</li>
 </ol>
 
       
@@ -299,7 +290,29 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">ml</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/ml//" class="article-tag-list-link color3">ml</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
 
       
 
@@ -399,6 +412,8 @@
 
 
 
+
+    
   
   
   
@@ -408,8 +423,6 @@
   
 
   
-
-
 
 
 

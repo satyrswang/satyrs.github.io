@@ -15,11 +15,18 @@
 <meta property="og:site_name" content="satyrswang">
 <meta property="og:description" content="概率图 概率图模型分为贝叶斯网络（Bayesian Network）和马尔可夫网络（Markov Network）两大类。">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/%E6%A6%82%E7%8E%87%E5%9B%BE.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/%E5%88%A4%E5%88%AB%E4%B8%8E%E7%94%9F%E6%88%90.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/headtail.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/factor.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/推导.png">
 <meta property="article:published_time" content="2021-03-13T06:24:09.000Z">
-<meta property="article:modified_time" content="2021-03-13T08:30:09.396Z">
+<meta property="article:modified_time" content="2021-03-13T12:49:31.140Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="ml">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://satyrswang.github.io/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/%E6%A6%82%E7%8E%87%E5%9B%BE.png">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
   
@@ -86,7 +93,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">50.2k</span>
+    总字数 <span class="post-count">51k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,7 +193,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：772字 | 预计阅读时长：3分钟
+    字数：1.5k字 | 预计阅读时长：5分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -195,17 +202,24 @@
 <h2 id="概率图"><a href="#概率图" class="headerlink" title="概率图"></a>概率图</h2><ul>
 <li><p>概率图模型分为贝叶斯网络（Bayesian Network）和马尔可夫网络（Markov Network）两大类。</p>
 <a id="more"></a></li>
-<li><p>贝叶斯网络可以用一个有向图结构表示，马尔可夫网络可以表示成一个无向图的网络结构。</p>
+<li><p>贝叶斯网络可以用一个有向图结构表示，马尔可夫网络可以表示成一个无向图的网络结构。若随机变量Y构成一个无向图 G=(V,E)表示的马尔科夫随机场（MRF），则条件概率分布P(Y|X)称为条件随机场（Conditional Random Field, 简称CRF。</p>
 </li>
 <li><p>更详细地说，概率图模型包括了朴素贝叶斯模型、最大熵模型、隐马尔可夫模型、条件随机场、主题模型等，在机器学习的诸多场景中都有着广泛的应用。</p>
 </li>
 </ul>
+<p><img src="/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/%E6%A6%82%E7%8E%87%E5%9B%BE.png" alt="概率图"></p>
 <h2 id="频率派与贝叶斯派"><a href="#频率派与贝叶斯派" class="headerlink" title="频率派与贝叶斯派"></a>频率派与贝叶斯派</h2><p>频率派与贝叶斯派各自不同的思考方式：</p>
 <p>频率派把需要推断的参数θ看做是固定的未知常数，即概率虽然是未知的，但最起码是确定的一个值，同时，样本X 是随机的，所以频率派重点研究样本空间，大部分的概率计算都是针对样本X 的分布；</p>
 <p>而贝叶斯派的观点则截然相反，他们认为参数是随机变量，而样本X 是固定的，由于样本是固定的，所以他们重点研究的是参数的分布。</p>
 <p>贝叶斯派既然把概率看做是一个随机变量，所以要计算概率的分布，便得事先知道的无条件分布，即在有样本之前（或观察到X之前），有着怎样的分布呢？这种在实验之前定下的属于基本前提性质的分布称为先验分布，或着无条件分布。</p>
 <p>其中，先验信息一般来源于经验跟历史资料。而后验分布π（θ|X）一般也认为是在给定样本X的情况下的θ条件分布，而使π（θ|X）达到最大的值，称为最大后验估计，类似于经典统计学中的极大似然估计。</p>
+<h2 id="判别和生成"><a href="#判别和生成" class="headerlink" title="判别和生成"></a>判别和生成</h2><p>常见的概率图模型有朴素贝叶斯、最大熵模型、贝叶斯网络、隐马尔可夫模<br>型、条件随机场、pLSA、LDA等。</p>
+<p>朴素贝叶斯、贝叶斯网络、pLSA、LDA等模型都是先对联合概率分布进行建模，然后再通过计算边缘分布得到对变量的预测，所以它们都属于生成式模型；而最大熵模型是直接对条件概率分布进行建模，因此属于判别式模型。隐马尔可夫模型和条件随机场模型是对序列数据进行建模的方法，将在后面的章节中详细介绍，其中隐马尔可夫模型属于生成式模型，条件随机场属于判别式模型。</p>
+<p><img src="/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/%E5%88%A4%E5%88%AB%E4%B8%8E%E7%94%9F%E6%88%90.png" alt="判别与生成"></p>
+<p>我的视频讲解(<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV16y4y187pE">https://www.bilibili.com/video/BV16y4y187pE</a>)</p>
+<h2 id="解释朴素贝叶斯算法里面的先验概率、似然估计和边际似然估计？"><a href="#解释朴素贝叶斯算法里面的先验概率、似然估计和边际似然估计？" class="headerlink" title="解释朴素贝叶斯算法里面的先验概率、似然估计和边际似然估计？"></a>解释朴素贝叶斯算法里面的先验概率、似然估计和边际似然估计？</h2><p>先验概率：就是因变量（二分法）在数据集中的比例。这是在你没有任何进一步的信息的时候，是对分类能做出的最接近的猜测。<br>似然估计：似然估计是在其他一些变量的给定的情况下，一个观测值被分类为1的概率。例如，“FREE”这个词在以前的垃圾邮件使用的概率就是似然估计。<br>边际似然估计：边际似然估计就是，“FREE”这个词在任何消息中使用的概率。</p>
 <h2 id="贝叶斯网络"><a href="#贝叶斯网络" class="headerlink" title="贝叶斯网络"></a>贝叶斯网络</h2><p>贝叶斯网络(Bayesian network)，又称信念网络(Belief Network)，或有向无环图模型(directed acyclic graphical model)</p>
+<p>例子：<br><img src="/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C.png" alt="贝叶斯网络"></p>
 <h3 id="结构形式"><a href="#结构形式" class="headerlink" title="结构形式"></a>结构形式</h3><p>1、 a-&gt;c b-&gt;c</p>
 <p>P(a,b,c) = P(a)P(b)P(c|a,b)成立，即在c未知的条件下，a、b被阻断(blocked)，是独立的，称之为head-to-head条件独立。</p>
 <p>2、c-&gt;a c-&gt;b</p>
@@ -215,8 +229,20 @@
 <p>3、a-&gt;c-&gt;b</p>
 <p>还是分c未知跟c已知这两种情况：</p>
 <p>c未知时，有：P(a,b,c)=P(a)P(c|a)P(b|c)，但无法推出P(a,b) = P(a)P(b)，即c未知时，a、b不独立。</p>
-<p>c已知时，有：P(a,b|c)=P(a,b,c)/P(c)，且根据P(a,c) = P(a)P(c|a) = P(c)P(a|c)，可化简得到：</p>
-<h3 id><a href="#" class="headerlink" title></a></h3>
+<p>c已知时，有：P(a,b|c)=P(a,b,c)/P(c)，且根据P(a,c) = P(a)P(c|a) = P(c)P(a|c)，可化简得到：<br><img src="/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/headtail.png" alt="headtail"><br>所以，在c给定的条件下，a，b被阻断(blocked)，是独立的，称之为head-to-tail条件独立。<br>这个head-to-tail其实就是一个链式网络。</p>
+<h3 id="因子图"><a href="#因子图" class="headerlink" title="因子图"></a>因子图</h3><p>wikipedia上是这样定义因子图的：将一个具有多变量的全局函数因子分解，得到几个局部函数的乘积，以此为基础得到的一个双向图叫做因子图（Factor Graph）。</p>
+<p>通俗来讲，所谓因子图就是对函数进行因子分解得到的一种概率图。一般内含两种节点：变量节点和函数节点。我们知道，一个全局函数通过因式分解能够分解为多个局部函数的乘积，这些局部函数和对应的变量关系就体现在因子图上。</p>
+<p>根据贝叶斯网络的例子，</p>
+<p float="left">
+  <img src="/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/factor.png" width="48%">
+  <img src="/2021/03/13/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BD%91%E7%BB%9C/推导.png" width="48%"> 
+</p>
+
+
+<h3 id="内容"><a href="#内容" class="headerlink" title="内容"></a>内容</h3><p>1、求某个变量的边缘分布是常见的问题：这问题有很多求解方法，其中之一就是把贝叶斯网络或马尔科夫随机场 转换成 因子图，然后用sum-product算法求解。换言之，基于因子图可以用sum-product 算法高效的求各个变量的边缘分布。</p>
+<p>2、</p>
+<p>reference：<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/v_july_v/article/details/40984699">https://blog.csdn.net/v_july_v/article/details/40984699</a></p>
+
       
 
        <!-- 添加版权声明 -->
@@ -362,6 +388,15 @@
   
 <nav id="article-nav">
   
+    <a href="/2021/03/13/random%E7%AE%97%E6%B3%95%E9%A2%98/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          random算法题
+        
+      </div>
+    </a>
+  
   
     <a href="/2021/03/11/%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BB/" id="article-nav-older" class="article-nav-link-wrap">
       <div class="article-nav-title">编辑距离</div>
@@ -389,6 +424,8 @@
 
 
 
+
+    
   
   
   
@@ -398,8 +435,6 @@
   
 
   
-
-
 
 
 
