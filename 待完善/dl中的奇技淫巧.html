@@ -16,7 +16,7 @@
 <meta property="og:description" content="加速 minibatch">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-03-11T15:17:06.000Z">
-<meta property="article:modified_time" content="2021-03-11T16:22:30.811Z">
+<meta property="article:modified_time" content="2021-03-22T09:21:02.169Z">
 <meta property="article:author" content="yuqing wang">
 <meta name="twitter:card" content="summary">
   
@@ -85,7 +85,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">51k</span>
+    总字数 <span class="post-count">44.8k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -185,7 +185,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：26字 | 预计阅读时长：1分钟
+    字数：502字 | 预计阅读时长：1分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -196,8 +196,15 @@
 </ul>
 <a id="more"></a>
 
-<p>batch将一个batch里的example组成matrix进行运算。GPU使同时运算。GPU+minibatch</p>
-<h2 id="提升performance"><a href="#提升performance" class="headerlink" title="提升performance"></a>提升performance</h2>
+<p>batch将一个batch里的example组成matrix进行运算。<br>GPU使同时运算。GPU+minibatch</p>
+<h2 id><a href="#" class="headerlink" title></a></h2><h2 id="提升performance"><a href="#提升performance" class="headerlink" title="提升performance"></a>提升performance</h2><h2 id="bn"><a href="#bn" class="headerlink" title="bn"></a>bn</h2><p>1、bn是因为，1 线性变换加上激活的非线性变换，导致中间层的输入远离初始分布，后面的网络由于每次输入分布变化，导致网络的学习比较慢。2 由于一些激活函数求导随着层数增加，乘积越来越小，导致梯度接近0，模型近似饱和。又有情况是，w的梯度越来越大，w值也越来越大。此时可以改变激活函数为非饱和激活函数如Relu，也可以通过让激活函数的输入分布保持在一个稳定状态，尽可能避免它们陷入梯度饱和区，这也就是Normalization的思路。</p>
+<p>即，一个是分布变化，一个是梯度问题。</p>
+<p>2、解决：<br>1 白化，通过使得输入特征的均值为0，方差为1或者相同，来保证分布的稳定并去除特征相关性，从而加速收敛<br>2 bn ： 白化的缺点是计算量并且改变了特征的分布导致信息丢失，所以引入了bn– 简化、进化版的白化。</p>
+<p>3、bn<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/34879333">bn原理、效果测试</a></p>
+<p>4、 test上bn<br>无偏估计、每个层的bn进行指数</p>
+<p>5、 优点<br>1分布稳定，避免梯度消失，加速收敛 2对网络参数不敏感 3引入随机噪声，正则化效果</p>
+<p>尽管每一个batch中的数据都是从总体样本中抽样得到，但不同mini-batch的均值与方差会有所不同，这就为网络的学习过程中增加了随机噪音，与Dropout通过关闭神经元给网络训练带来噪音类似，在一定程度上对模型起到了正则化的效果。原作者通过也证明了网络加入BN后，可以丢弃Dropout，模型也同样具有很好的泛化效果。</p>
+
       
 
        <!-- 添加版权声明 -->
@@ -507,10 +514,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">商业银行</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
             
             <div class="clearfix"></div>
