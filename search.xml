@@ -158,9 +158,11 @@
 </ul>
 ]]></content>
       <categories>
+        <category>编程语言</category>
         <category>python</category>
       </categories>
       <tags>
+        <tag>编程语言</tag>
         <tag>python</tag>
       </tags>
   </entry>
@@ -341,6 +343,115 @@
       </tags>
   </entry>
   <entry>
+    <title>batchnorm</title>
+    <url>/2021/04/05/batchnorm/</url>
+    <content><![CDATA[<br>
+
+<p>bn相关问题</p>
+<a id="more"></a>
+<ul>
+<li><p>白化</p>
+<ul>
+<li><p>目的</p>
+<ul>
+<li><p>1）去除特征之间的相关性 —&gt; 独立；</p>
+</li>
+<li><p>2）使得所有特征具有相同的均值和方差 —&gt; 同分布。</p>
+</li>
+</ul>
+</li>
+<li><p>PCA白化保证了所有特征分布均值为0，方差为1</p>
+</li>
+<li><p>ZCA白化则保证了所有特征分布均值为0，方差相同；</p>
+</li>
+<li><p>白化操作，固定了每一层网络输入分布，加速网络训练过程的收敛</p>
+</li>
+</ul>
+</li>
+<li><p>Internal Covariate Shift</p>
+<ul>
+<li><p>内容</p>
+<ul>
+<li><p>covariate shift 就是分布不一致假设之下的一个分支问题<br>它是指源空间和目标空间的条件概率是一致的，但是其边缘概率不同</p>
+</li>
+<li><p>对于神经网络的各层输出，由于它们经过了层内操作作用，其分布显然与各层对应的输入信号分布不同，而且差异会随着网络深度增大而增大</p>
+</li>
+<li><p>可是它们所能“指示”的样本标记（label）仍然是不变的，这便符合了covariate shift的定义。由于是对层间信号的分析，也即是“internal”的来由</p>
+</li>
+</ul>
+</li>
+<li><p>问题</p>
+<ul>
+<li><p>简而言之，每个神经元的输入数据不再是“独立同分布”。</p>
+</li>
+<li><p>学习速度、饱和区(早停)、影响其他层</p>
+</li>
+</ul>
+</li>
+<li><p>解决</p>
+<ul>
+<li>bn框架<ul>
+<li>h = f ( g * {(x-μ)/θ} + b)</li>
+</ul>
+</li>
+<li>经过这么的变回来再变过去，会不会跟没变一样<ul>
+<li>再变换引入的两个新参数 g 和 b，可以表示旧参数作为输入的同一族函数</li>
+<li>但是新参数有不同的学习动态。</li>
+<li>在旧参数中，x的均值取决于下层神经网络的复杂关联；<br>但在新参数中， 仅由 b 来确定，去除了与下层计算的密切耦合。</li>
+</ul>
+</li>
+<li>这样的 Normalization 与标准的白化区别<ul>
+<li>标准白化操作的目的是“独立同分布”</li>
+<li>变换为均值为 b  、方差为 g^2 的分布，也并不是严格的同分布，只是映射到了一个确定的区间范围而已</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>BN</p>
+<ul>
+<li><p>分类</p>
+<ul>
+<li>Batch Normalization<ul>
+<li>每一个 mini-batch 的统计量是整体统计量的近似估计，或者说每一个 mini-batch 彼此之间，以及和整体数据，都应该是近似同分布的</li>
+<li>分布差距较小的 mini-batch 可以看做是为规范化操作和模型训练引入了噪声，可以增加模型的鲁棒性</li>
+<li>但如果每个 mini-batch的原始分布差别很大，那么不同 mini-batch 的数据将会进行不一样的数据变换，这就增加了模型训练的难度。</li>
+</ul>
+</li>
+<li>Layer Normalization </li>
+</ul>
+</li>
+<li><p>优点</p>
+<ul>
+<li>防止模型梯度爆炸</li>
+<li>为什么加速收敛<ul>
+<li>梯度的方向为垂直等高线的方向而走之字形路线，这样会使迭代很 </li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>常见的方法有</p>
+<ul>
+<li>min-max标准化（min-max normalization）</li>
+<li>归一化</li>
+<li>log函数转换</li>
+<li>atan函数转换</li>
+<li>z-score标准化（zero-mena normalization，此方法比较常用）- 模糊量化法</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>bean解析及注册源码</title>
     <url>/2021/03/11/bean%E8%A7%A3%E6%9E%90%E5%8F%8A%E6%B3%A8%E5%86%8C%E6%BA%90%E7%A0%81/</url>
     <content><![CDATA[<br>
@@ -426,6 +537,95 @@
 <h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
 <p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
 <p>todo</p>
+]]></content>
+      <categories>
+        <category>dubbo</category>
+      </categories>
+      <tags>
+        <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dubbo</title>
+    <url>/2021/04/05/dubbo/</url>
+    <content><![CDATA[<p>dubbo–rpc框架相关</p>
+<a id="more"></a>
+
+<ul>
+<li><p>分层</p>
+<ul>
+<li>service、config、cluster、 monitor、protocol、exchange、registry、proxy、transport、serialize等</li>
+</ul>
+</li>
+<li><p>网络通信协议、序列化协议</p>
+<ul>
+<li>dubbo 长连接、nio、高并发、数据量小</li>
+<li>hessian </li>
+<li>还有其他 json 、java二进制、rmi等</li>
+</ul>
+</li>
+<li><p>负载均衡</p>
+<ul>
+<li>权重、轮询、自动感知、一致性hash</li>
+<li>方法级别配置</li>
+</ul>
+</li>
+<li><p>spi</p>
+<ul>
+<li>插件扩展</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>动态代理</p>
+<ul>
+<li><p>静态代理</p>
+<ul>
+<li>编译时就将接口、实现类、代理类这些都变成了一个个实际的 class 文件</li>
+<li>代理类中包含具体代理的接口类</li>
+</ul>
+</li>
+<li><p>动态</p>
+<ul>
+<li><p>可以不需要针对每个目标类都创建一个代理类，静态代理中接口一旦新增加方法，目标对象和代理对象都要进行修改，非常麻烦</p>
+</li>
+<li><p>jdk动态</p>
+<ul>
+<li> InvocationHandler 接口和 Proxy 类 (InvocationHandler里面会用到Proxy类)</li>
+<li><code>SmsService smsService = (SmsService) JdkProxyFactory.getProxy(new SmsServiceImpl());</code></li>
+<li>JDK 动态代理只能只能代理实现了接口的类或者直接代理接口，而 CGLIB 可以代理未实现任何接口的类</li>
+</ul>
+</li>
+<li><p>cglib动态代理</p>
+<ul>
+<li>自定义 MethodInterceptor 并重写 intercept 方法，intercept 用于拦截增强被代理类的方法</li>
+<li><code>AliSmsService aliSmsService = (AliSmsService) CglibProxyFactory.getProxy(AliSmsService.class);</code></li>
+<li> CGLIB 动态代理是通过生成一个被代理类的子类来拦截被代理类的方法调用，因此不能代理声明为 final 类型的类和方法。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a href="https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/basis/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3.md">代理模式详解.</a></p>
+</li>
+</ul>
+</li>
+<li><p>服务治理</p>
+<ul>
+<li>链路、压力、时长、可用性(成功率)、服务分层(循环依赖)</li>
+<li>服务降级<ul>
+<li>dubbo中的mock<ul>
+<li>类加上Mock后缀，作为降级策略</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>失败重试、超时重试<ul>
+<li>200ms超时，重试3次</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 ]]></content>
       <categories>
         <category>dubbo</category>
@@ -597,6 +797,9 @@
 <li>todo</li>
 </ul>
 <h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><ul>
+<li>todo</li>
+</ul>
+<h2 id="CET"><a href="#CET" class="headerlink" title="CET"></a>CET</h2><ul>
 <li>todo</li>
 </ul>
 <h2 id="概念-amp-角色"><a href="#概念-amp-角色" class="headerlink" title="概念&amp;角色"></a>概念&amp;角色</h2><ul>
@@ -776,6 +979,647 @@
       </tags>
   </entry>
   <entry>
+    <title>juc</title>
+    <url>/2021/04/05/juc/</url>
+    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
+<a id="more"></a>
+
+
+<ul>
+<li><p>线程池</p>
+<ul>
+<li>阻塞队列<ul>
+<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
+<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
+</ul>
+</li>
+<li>任务类型<ul>
+<li>CPU密集型任务<ul>
+<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
+</ul>
+</li>
+<li>IO密集型任务<ul>
+<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
+</ul>
+</li>
+<li>混合<ul>
+<li>分别用不同的线程池去处理</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>4类<ul>
+<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>乐观锁 悲观锁</p>
+<ul>
+<li>悲观<ul>
+<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
+</ul>
+</li>
+<li>乐观<ul>
+<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
+<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程语言</category>
+        <category>java</category>
+        <category>并发</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>java</tag>
+        <tag>并发</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ml基础</title>
+    <url>/2021/04/05/ml%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<br>
+
+<p>ml知识点</p>
+<a id="more"></a>
+
+<ul>
+<li><p>softmax和logistic</p>
+<ul>
+<li>sigmoid: 导数在(0,1/4)，当x&gt;1/4或者&lt;-1/4时，导数非常小 1/1+e^(-x)</li>
+<li>当分类数为2时，可以推导出两个一致</li>
+<li>softmax建模使用的分布是多项式分布，而logistic则基于二项式分布</li>
+<li>softmax回归进行的多分类，类与类之间是互斥的，即一个输入只能被归为一类</li>
+<li>多个logistic回归进行多分类，”苹果”这个词语既属于”水果”类也属于”3C”类别。</li>
+</ul>
+</li>
+<li><p>二项式和多项式分布</p>
+<ul>
+<li>二项<ul>
+<li>二项分布是n重伯努利试验中正例发生次数的离散概率分布</li>
+<li><code>import numpy; a = numpy.random.binomial(n=10, p=0.7, size = 1)</code></li>
+</ul>
+</li>
+<li>多项<ul>
+<li>二项分布是单变量分布，而多项分布是多变量分布</li>
+<li>多项分布的例子是扔骰子，每次试验有多种可能，进行多次试验，多项分布描述的是每种可能发生次数的联合概率分布</li>
+<li><code>a = numpy.random.multinomial(n=10, pvals=[0.2,0.4,0.4], size = 1)</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>逻辑回归梯度下降伪代码</p>
+<ul>
+<li><a href="https://blog.csdn.net/qq_33391629/article/details/108711228">https://blog.csdn.net/qq_33391629/article/details/108711228</a></li>
+</ul>
+</li>
+<li><p>最小均方误差和最小二乘</p>
+<ul>
+<li>算术平均数可以让均方误差误差最小</li>
+<li>如果误差的分布是正态分布，那么最小二乘法得到的就是最有可能的值。即：最小二乘法是概率密度(误差的概率密度)是高斯分布的最大似然估计的状况</li>
+<li><a href="https://www.zhihu.com/question/396712527/answer/1243682221">线性回归模型用最小二乘法得到的估计的均方误差怎么得到</a></li>
+</ul>
+</li>
+<li><p>并行直方图</p>
+<ul>
+<li>分裂节点时，数据在block中按列存放，而且已经经过了预排序，因此可以并行计算，即同时对各个属性遍历最优分裂点</li>
+</ul>
+</li>
+<li><p>特征点分割</p>
+<ul>
+<li>树节点在进行分裂时，我们需要计算每个特征的每个分割点对应的增益，即用贪心法枚举所有可能的分割点</li>
+<li>当数据无法一次载入内存或者在分布式情况下，贪心算法效率就会变得很低，XGBoost采用了一种近似的算法</li>
+<li>近似的算法对每维特征加权分位进行分桶，具体的算法利用到了损失函数关于待求树的二阶导数。</li>
+</ul>
+</li>
+<li><p>偏导数与残差</p>
+<ul>
+<li>偏导数的计算可以确定每个相关数据对最终结果的局部/全局最小值的一个梯度。<br>顺着梯度进行调整，会让结果逐步趋向局部/全局最小值。</li>
+<li>gbdt是用梯度来近似残差：损失函数L对当前所学模型F预测值的负梯度，所以模型的更新是沿着梯度下降方向的。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>auc计算</p>
+<ul>
+<li>(auc计算)[<a href="https://blog.csdn.net/qq_22238533/article/details/78666436]">https://blog.csdn.net/qq_22238533/article/details/78666436]</a></li>
+<li>为啥auc<ul>
+<li>随机抽出一对样本（一个正样本，一个负样本），然后用训练得到的分类器来对这两个样本进行预测，预测得到正样本的概率大于负样本概率的概率。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>模型评估</p>
+<ul>
+<li>精确率<ul>
+<li>分类正确的正样本 占 判定为正样本的总数 。</li>
+</ul>
+</li>
+<li>召回率<ul>
+<li>分类正确的正样本 占 真正正样本总数 。</li>
+</ul>
+</li>
+<li>问题<ul>
+<li>提高精确率，会更倾向于 “更有把握才把样本判定为正” ，此时保守而降低了召回率</li>
+<li>即排序的TOPN，精确率很高，但是会漏掉 很多其他正样本。导致用户找不到自己想要的。</li>
+<li>综合考虑<ul>
+<li>PR 曲线<ul>
+<li>x召回，y精确。</li>
+</ul>
+</li>
+<li>f1 score<ul>
+<li>调和平均值</li>
+</ul>
+</li>
+<li>ROC 曲线</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>mysql性能优化</title>
+    <url>/2021/04/05/mysql%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</url>
+    <content><![CDATA[<br>
+
+<p>background知识、性能优化</p>
+<a id="more"></a>
+<ul>
+<li><p>MyISAM 与 InnoDB </p>
+<ul>
+<li>InnoDB 支持事务、能回滚，MyISAM 不支持</li>
+<li>MyISAM 适合查询以及插入为主的应用，修改多或者要安全则innodb</li>
+<li>InnoDB 中必须包含只有自增长字段的索引，MyISAM可以和其他字段一起建立联合索引</li>
+<li>清空整个表时，InnoDB 是一行一行的删除，效率非常慢。MyISAM 则会重建表</li>
+<li>InnoDB 支持外键，MyISAM 不支持   <ul>
+<li>外键<ul>
+<li>定义外键约束，关系数据库可以保证无法插入无效的数据</li>
+<li>可以把数据与另一张表关联起来，这种列称为外键</li>
+<li>外键约束会降低数据库的性能，追求速度并不设置外键约束</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>多对多关系：通过一个中间表，关联两个一对多关系</p>
+</li>
+</ul>
+<ul>
+<li><p>分库分表</p>
+<ul>
+<li><p>原因</p>
+<ul>
+<li>单表数据大，sql效率低</li>
+<li>并发高，单库撑不住；磁盘使用高</li>
+</ul>
+</li>
+<li><p>分表</p>
+<ul>
+<li>经常读取和不经常读取的字段分开</li>
+<li>把一个大的用户表分拆为用户基本信息表user_info和用户详细信息表user_profiles。大部分时候，只需要查询user_info表，提高了查询速度。</li>
+</ul>
+</li>
+<li><p>中间件：proxy方案 or client层方案 sharding-jdbc mycat</p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>crud</p>
+</li>
+<li><p>分布式id生成</p>
+</li>
+</ul>
+<ul>
+<li><p>垂直、水平拆分<br>中间件解决对某个字段值的自动路由，路由到相应的库、表<br>range、hash</p>
+</li>
+<li><p>迁移方案<br>数据库中间件的调研学习、设计分库分表方案、测试环境分库代码的正常读写<br>开始迁移：<br>1部署分库策略 2双写 3导数的时候，判断最后修改时间，确保只能新数据覆盖老数据 4自动校验，反复读写，直到新旧库数据一致 5停掉老库，部署分库分表的代码</p>
+</li>
+</ul>
+<ul>
+<li>动态扩容缩容分库分表<br>一般都够用：32库，每个库1500个写并发，qps可以承受4.8w。加上一个MQ削峰，qps接受8w，每秒消费5w。一个库32张表，1024表，每个表500w，一个mysql放50亿条数据。</li>
+</ul>
+<p>1确定机器数量、每台机器多少个库、多少表 2路由规则 3机器上装好mysql 4导数工具导数 5修改配置调整数据库服务器地址 6重发系统上线</p>
+<ul>
+<li><p>分库分表后的全局id<br>1并发不高，qps几百–直接往一个库写入，获得自增的id；起一个服务，专门地获取最大的id，返回一批新的id<br>2sequence+固定步长<br>3uuid –不具有有序性，b+树过多随机读写<br>4系统时间 + 业务数据<br>5雪花算法<br>第一个bit是0。41bit-时间，10bit是工作机器id，12bits序列号<br>同一ms内有12bits可表达的id</p>
+</li>
+<li><p>mysql读写分离<br>Case1在binlog没有被从拉到本地的中继日志中、串行地执行relaylog中的命令时，master宕机<br>Solution半同步，至少一个从返回ack才认为写操作完成。<br>Case2由于串行重发， 会有延迟几十到百毫秒不等<br>Solution2并行同步，从开启多线程，并行重放日志，库级别并行<br>mysql中查看延迟，严重解决：<br>分库、并行复制、新插入的数据查询不到时处理、查询直连主库</p>
+</li>
+<li><p>单库单表和分库分表的join</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据库</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>mysql索引</title>
+    <url>/2021/04/05/mysql%E7%B4%A2%E5%BC%95/</url>
+    <content><![CDATA[<br>
+
+<p>性能优化之 索引</p>
+<a id="more"></a>
+
+
+<ul>
+<li><p>优点</p>
+<ul>
+<li>分组、排序操作</li>
+<li>加速表与表之间的连接</li>
+</ul>
+</li>
+<li><p>分类</p>
+<ul>
+<li><p>普通索引</p>
+<ul>
+<li>允许重复值和空值</li>
+</ul>
+</li>
+<li><p>唯一索引</p>
+<ul>
+<li>必须唯一，允许空值</li>
+<li>组合索引，则列值的组合必须唯一</li>
+</ul>
+</li>
+<li><p>主键索引</p>
+<ul>
+<li>不允许值重复或者值为空</li>
+</ul>
+</li>
+<li><p>空间索引</p>
+<ul>
+<li>空间数据类型的字段建立的索引</li>
+</ul>
+</li>
+<li><p>全文索引</p>
+<ul>
+<li> CHAR、VARCHAR 或 TEXT 类型的列上创建</li>
+<li>只有 MyISAM 存储引擎支持全文索引</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>位图索引</p>
+<ul>
+<li>　“select * from table where Gender=‘男’ and Marital=“未婚”;”<br>  首先取出男向量10100…，然后取出未婚向量00100…，<br>  将两个向量做and操作，这时生成新向量0010</li>
+</ul>
+</li>
+<li><p>B与B+ </p>
+<ul>
+<li>B：树内的每个节点都存储数据；叶子节点之间无指针连接</li>
+<li>B+：数据只出现在叶子节点；所有叶子节点增加了一个链指针</li>
+</ul>
+</li>
+<li><p>聚集索引、非聚集索引 </p>
+<ul>
+<li>区别<ul>
+<li>聚集：行中数据的物理顺序与键值的逻辑（索引）顺序相同</li>
+<li>非聚集索引叶子节点上存储了索引字段自身值和主键索引</li>
+</ul>
+</li>
+<li>聚集相关<ul>
+<li>聚簇索引默认就是主键索引；第一个唯一非空索引被作为聚集索引；内部会生成一个隐藏的主键</li>
+<li>uuid作为主键，写入性能低了</li>
+</ul>
+</li>
+<li>非聚集<ul>
+<li>索引不能随意增加。在做写库操作的时候，需要同时维护这几颗树的变化，导致效率降低</li>
+<li>回表或者二次查询<ul>
+<li>使用聚集索引查询可以直接定位到记录，而普通索引通常需要扫描两遍索引树</li>
+<li>解决<ul>
+<li>联合索引</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>联合索引</p>
+<ul>
+<li>最左匹配</li>
+</ul>
+</li>
+<li><p>查询失效</p>
+<ul>
+<li>条件<ul>
+<li>最左</li>
+<li>OR条件中的每个列都加上索引</li>
+<li>not in</li>
+<li>前置通配符</li>
+<li>is null</li>
+</ul>
+</li>
+<li>函数<ul>
+<li>where age-1=17</li>
+<li>内置函数，索引失效 </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据库</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+        <tag>索引</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>node2vec</title>
+    <url>/2021/04/05/node2vec/</url>
+    <content><![CDATA[<ul>
+<li><p>node2vec的随机游走</p>
+<a id="more"></a>
+<ul>
+<li><p><a href="https://blog.csdn.net/rover2002/article/details/106760664">Alias Method: 非均匀随机抽样算法</a></p>
+<ul>
+<li>空间换时间的方法，在常数时间内，完成非均匀到均匀采样的映射。</li>
+<li>主要思想： 概率转换为面积，然后把面积填到其他地方，总体长方形面积最小。由于有填到其他地方的，就有alias。这样之后再掷筛子，随机。</li>
+</ul>
+</li>
+<li><p>跳转概率</p>
+<ul>
+<li><p>Node2vec 的跳转概率为 自定义的权重*有向边权重。</p>
+</li>
+<li><p>自定义权重，考虑了当前点vi的所有相关点 和 vi前一个node的距离。距离为0则概率1/p(即重复访问刚刚访问过的node)，为1则1，为2则1/q。</p>
+</li>
+<li><p>根据论文做法，对p q在{0.25,0.5,1,2,4}中进行grid search。</p>
+</li>
+<li><p>参数p控制重复访问刚刚访问过的顶点的概率。若p较大，则访问刚刚访问过的顶点的概率会变低。</p>
+</li>
+<li><p>参数q控制着游走是向外还是向内：<br>  若q&gt;1，随机游走倾向于访问和上一次的t接近的顶点(偏向BFS)；<br>  若q&lt;1，倾向于访问远离t的顶点(偏向DFS)</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python</title>
+    <url>/2021/04/05/python/</url>
+    <content><![CDATA[<br>
+
+<p>语言、语法糖相关</p>
+<a id="more"></a>
+
+
+<ul>
+<li><p>python2 3 区别</p>
+<ul>
+<li><p>map filter，由function变为class，前者返回列表，后者为object</p>
+</li>
+<li><p>print由命令变为函数</p>
+</li>
+<li><p>编码由ASCII变为utf8</p>
+</li>
+<li><p>xrange</p>
+<ul>
+<li>要生成很大的数字序列的时候，用xrange会比range性能优很多，因为不需要一上来就开辟一块很大的内存空间。</li>
+<li>range创建列表，xrange是生成器</li>
+<li>3只保留了生成器的方式并命名为range</li>
+</ul>
+</li>
+<li><p>除法 1/2 = 0 0.5</p>
+</li>
+</ul>
+</li>
+<li><p>滑动窗口算法 </p>
+<ul>
+<li>单调栈</li>
+<li><a href="https://leetcode-cn.com/problems/sliding-window-maximum/">https://leetcode-cn.com/problems/sliding-window-maximum/</a></li>
+</ul>
+</li>
+<li><p>abc</p>
+<ul>
+<li>注解abstractmethod，抽象基类</li>
+</ul>
+</li>
+<li><p>标记清除</p>
+<ul>
+<li>对执行删除（-1）后的每个引用-1，为0的放到死亡容器，否则放到存活容器</li>
+<li>循环存活容器，复活死亡中的变量放到存活容器内</li>
+<li>删除死亡容器内的所有对象</li>
+</ul>
+</li>
+<li><p>分代</p>
+<ul>
+<li>新创建的对象做为0代。每执行一个【标记-删除】，存活的对象代数就+1</li>
+<li>代数越高的对象（存活越持久的对象），进行【标记-删除】的时间间隔就越长</li>
+<li>一个对象10次检测都没给它干掉, 就认定这个对象一定很长寿, 就减少这货的”检测频率”</li>
+</ul>
+</li>
+<li><p>触发垃圾回收</p>
+<ul>
+<li>调用gc.collect()</li>
+<li>GC达到阀值时</li>
+<li>程序退出时</li>
+</ul>
+</li>
+<li><p>intern机制</p>
+</li>
+<li><p>copy deepcopy</p>
+<ul>
+<li>复制的值是不可变对象（数值，字符串，元组）,对象的id值与等式左边的id值相同。</li>
+<li>复制的值是可变对象（列表和字典）<ul>
+<li>浅拷贝两种情况：<ul>
+<li>复制的 对象中无 复杂 子对象，浅复制的值改变也并不会影响原来的值反之也不影响</li>
+<li>复制的对象中有 复杂 子对象， 改变原来的值 中的复杂子对象的值 ，会影响浅复制的值</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>cookie和session</p>
+<ul>
+<li>session 在服务器端，cookie 在客户端（浏览器）</li>
+<li>session id 是存在 cookie 中</li>
+<li>浏览器禁用了 cookie ，同时 session 也会失效</li>
+<li>cookie安全性比session差</li>
+</ul>
+</li>
+<li><p>正则</p>
+<ul>
+<li>正则表达式匹配中，（.<em>）和（.</em>?）匹配区别？<ul>
+<li>贪婪、非贪婪</li>
+</ul>
+</li>
+<li>正则re.complie<ul>
+<li>re.compile是将正则表达式编译成一个对象，加快速度，并重复使用</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>动态类型dynamic typing</p>
+<ul>
+<li>将string传入mod，compilier并不会报错，仍然是原来compile出来的步骤。</li>
+<li>mod(“%s%s”, (“py”,”thon”) )结果将是python，在c中，遇到BINARY_MOULO指令操作，如果是string类型则直接调用PyString_Format()。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>一切发生在运行时、命名空间。   </p>
+<ul>
+<li><p>命名空间分模块、类、方法。</p>
+</li>
+<li><p>编译只是从将代码在运行时转成成code object，当执行时转成function object。</p>
+</li>
+<li><p>def是一个assignment function(将return 的结果assign给变量)，遇到def 的时候实则就是call这个function并对参数进行assign。</p>
+</li>
+<li><p>类在创建时就开始执行，在一个字典所表示的命名空间中执行。这个命名空间用来创建类对象。</p>
+</li>
+<li><p>都是 对象/引用。变量只是名称，不是容器。字典中将名称映射到对象上。</p>
+</li>
+<li><p>三个scopes，local，global:module，builtin</p>
+</li>
+<li><p>not pthon object hooks：1，赋值，赋值将改变命名空间，而非对象自身 2，类型检查 3，is运算 4，and or not 都是布尔运算 5，调用，需要实现getattr来返回属性对象，该属性对象在call时执行某方法</p>
+</li>
+<li><p>如果要对object 移动，需要delete并清楚所有的references。</p>
+</li>
+<li><p>弱引用是当object删除之后被通知，即callback。</p>
+</li>
+<li><p>互相引用的reference cycle–&gt;需要cycle gc</p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>Cython PyPy</p>
+<ul>
+<li>Cpython中，PyObject都是以struct实现，包含type pointer、reference counting或其他C type。PyType struct有对type的一些描述信息。</li>
+</ul>
+</li>
+<li><p>常用到的文本提取，任意字符串</p>
+<ul>
+<li>.* .*?</li>
+</ul>
+</li>
+<li><p>编译 解释</p>
+<ul>
+<li>compiler部分很少，interpreter工作量远远多。</li>
+<li>Python interpreter是一个virtual machine(模拟物理机)，是个stack machine(操作stacks)，和register machine(从内存不同位置读写)不同。</li>
+<li>且是byte interpreter，input是instruction sets，元素为byte codes，lexing&amp;parsing将python codes 转为byte codes。相当于C codes和assembly codes。</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程语言</category>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>redis_mindroad</title>
+    <url>/2021/04/05/redis-mindroad/</url>
+    <content><![CDATA[<p><br> <br></p>
+<p><strong>汇总</strong></p>
+<a id="more"></a>
+
+
+<ul>
+<li><p>基础数据结构5种及场景</p>
+</li>
+<li><p>高可用</p>
+<ul>
+<li>持久化</li>
+<li>集群<ul>
+<li>主从</li>
+<li>cluster</li>
+<li>sentinel</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>高级数据结构</p>
+<ul>
+<li>bitmap</li>
+<li>geo</li>
+<li>hyperloglog</li>
+</ul>
+</li>
+<li><p>并发竞争</p>
+</li>
+<li><p>分布式锁</p>
+</li>
+<li><p>内存淘汰机制</p>
+</li>
+<li><p>读写，cache aside pattern</p>
+</li>
+<li><p>单线程</p>
+</li>
+<li><p>选型</p>
+</li>
+<li><p>事务</p>
+</li>
+<li><p>分区</p>
+</li>
+<li><p>性能</p>
+<ul>
+<li>expire时间</li>
+<li>pipeline</li>
+<li>keys scan</li>
+</ul>
+</li>
+<li><p>缓存</p>
+<ul>
+<li>缓存击穿</li>
+<li>缓存穿透</li>
+<li>缓存雪崩</li>
+</ul>
+</li>
+<li><p>新特性</p>
+</li>
+<li><p>底层</p>
+</li>
+<li><p>ziplist、skiplist…</p>
+</li>
+</ul>
+<p><img src="/2021/04/05/redis-mindroad/redis.png" alt="脑图"></p>
+]]></content>
+      <categories>
+        <category>redis</category>
+      </categories>
+      <tags>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>redis</title>
     <url>/2021/01/31/redis/</url>
     <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
@@ -809,6 +1653,295 @@
       </categories>
       <tags>
         <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark</title>
+    <url>/2021/04/05/spark/</url>
+    <content><![CDATA[<br>
+
+<p>spark job相关</p>
+<a id="more"></a>
+
+<ul>
+<li><p>groupby reduceby区别</p>
+<ul>
+<li>reduceByKey 会进行分区内聚合，函数内部调用了combineByKey，然后再进行网络传输</li>
+<li>groupByKey 不会进行局部聚合</li>
+</ul>
+</li>
+<li><p>依赖</p>
+<ul>
+<li>NarrowDependency分为OneToOneDependency和RangeDependency两种</li>
+<li>ShuffleDependency：子依赖多个父RDD</li>
+</ul>
+</li>
+<li><p>stage &amp; task</p>
+<ul>
+<li><p>DAGScheduler将Stage划分-&gt;把Stage转换为TaskSet-&gt;TaskScheduler将计算任务最终提交到集群</p>
+</li>
+<li><p>最后的Stage包含了一组ResultTask</p>
+</li>
+<li><p>task</p>
+<ul>
+<li>task和partition是一对一。一组Task就组成了一个Stage</li>
+<li>Task<ul>
+<li>ShuffleMapTask<ul>
+<li>根据Task的partitioner将计算结果放到不同的bucket</li>
+</ul>
+</li>
+<li>ResultTask<ul>
+<li>计算结果发送回Driver</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>如何将stage划分为taskset</p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>Spark Standalone-cluster</p>
+<ul>
+<li>流程<ul>
+<li>集群启动后worker向Master汇报资源，Master掌握集群资源</li>
+<li>client提交sparkApplication，向Master申请启动Driver</li>
+<li>Master收到请求后随机找一台节点启动Driver，Driver向Master申请executor进程资源</li>
+<li>driver 里scheduler将DAG划分为stage，taskscheduler划分stage为taskset</li>
+<li>Master找到满足资源的worker节点，启动Excutor，反向注册给Driver</li>
+<li>Driver的context taskscheduler再把task发给executor，监控task，回收结果（collect方法）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>缓存</p>
+<ul>
+<li>persist() 会把数据以序列化的形式缓存在 JVM 的堆空间中</li>
+<li>触发后面的action时，该RDD将会被缓存在计算节点的内存中，并供后面重用</li>
+<li>StorageLevel</li>
+<li>shuffle会涉及到网络传输，可能会丢失数据，shuffle之前做persist，框架默认将数据持久化到磁盘</li>
+</ul>
+</li>
+<li><p>checkpoint</p>
+<ul>
+<li>在checkpoint的时候强烈建议先进行cache</li>
+<li>当你checkpoint执行成功了,那么前面所有的RDD依赖都会被销毁</li>
+<li>区别persist<ul>
+<li>persist可以将 RDD 的 partition 持久化到磁盘，但该 partition 由 blockManager 管理, blockManager stop，文件夹被删除</li>
+<li>checkpoint 将 RDD 持久化到 HDFS 或本地文件夹，是一直存在的，也就是说可以被下一个 driver program 使用</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>rdd</p>
+<ul>
+<li>本质上是多个Partition组成的List。一个RDD可以包含多个分区，每个分区就是一个dataset片段。分区数决定了并行计算的数量<br>默认情况下，HDFS上面一个Block就是一个Partition。</li>
+<li>RDD如何保障数据处理效率<ul>
+<li>通过persist与patitionBy函数来控制RDD的分区与持久化</li>
+<li>底层接口则是基于迭代器的</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>容错</p>
+<ul>
+<li><p>rdd记住构建它的操作图（Graph of Operation），Worker失败时重新计算，无需replication</p>
+</li>
+<li><p>需要恢复执行过程的中间状态：通过Spark提供的checkpoint</p>
+</li>
+<li><p>lineAge：每次更新都会记录下来，比较复杂且比较耗费性能。适用于DAG中重算太耗费时间的</p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>数据倾斜<ul>
+<li>先局部聚合，再全局聚合。</li>
+<li>并行度太少了，导致个别Task的压力太大</li>
+<li>自定义partition，分散key的分布，使其更加均匀</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>累加器和广播变量</p>
+<ul>
+<li><p>累加器</p>
+<ul>
+<li>累计计数等场景</li>
+<li>Driver端定义赋初始值，累加器只能在Driver端读取最后的值，在Excutor端更新。</li>
+</ul>
+</li>
+<li><p>广播变量</p>
+<ul>
+<li>每个executor一个副本，普通变量每个task一个副本</li>
+<li>driver定义和修改</li>
+<li>节点间高效分发大对象</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>序列化</p>
+<ul>
+<li><p>java序列化</p>
+<ul>
+<li>static和transient修饰的变量不会被序列化</li>
+<li>readObject()方法和writeObject()自定义实现序列化</li>
+</ul>
+</li>
+<li><p>spark序列反序列化过程</p>
+<ul>
+<li>代码中对象在driver本地序列化；</li>
+<li>对象序列化后传输到远程executor节点；</li>
+<li>远程executor节点反序列化对象</li>
+</ul>
+</li>
+<li><p>SerializationDebugger在日志中出问题的类和属性</p>
+</li>
+<li><p>kryo </p>
+<ul>
+<li>Kryo serialization 性能和序列化大小都比默认提供的 Java serialization 要好</li>
+<li><code>.registerKryoClasses(Array(classOf[Student])) // 将自定义的类注册到Kryo</code></li>
+<li>Spark 2.0.0以来,sparkcontext初始化时某些类型已被注册进去</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>repartition和coalesce的区别、partitionby</p>
+<ul>
+<li>coalesce<ul>
+<li>repartition底层为coalesce</li>
+<li>一般增大rdd分区用repartition，减小用coalesce</li>
+<li>repartition一定涉及shuffle，coalesce根据传入参数判断是否发生shuffle</li>
+</ul>
+</li>
+<li>partitionby<ul>
+<li>repartition 和 partitionBy 都是对数据进行重新分区，默认都是使用 HashPartitioner，区别在于partitionBy 只能用于 PairRDD</li>
+<li>repartition 随机生成的数来当做 Key，partitionby是自己的key</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>map()和mapPartition()的区别</p>
+<ul>
+<li>map()：每次处理一条数据；mapPartition()：每次处一个分区的数据，可能导致OOM。 </li>
+<li>当内存空间较大的时候建议使用mapPartition()，以提高处理效率。</li>
+<li>mapPartitionsWithIndex类似mapPartitions，但func带有一个整数参数表示分片的索引值</li>
+</ul>
+</li>
+<li><p>glom</p>
+<ul>
+<li>glom会把每个批次每个分区的数据从Iterator类型转换为Array类型，所以如果每个分区的数据非常大的话会出现OOM的情况。</li>
+</ul>
+</li>
+<li><p>pipe</p>
+<ul>
+<li>每个分区一个脚本</li>
+</ul>
+</li>
+<li><p>比hive快</p>
+<ul>
+<li>HQL 引擎还比 Spark SQL 的引擎更快</li>
+<li>Hadoop 每次 shuffle 操作后，必须写到磁盘，spark内存</li>
+<li>消除了冗余的 MapReduce 阶段</li>
+<li>Hadoop 每次 MapReduce 操作，启动一个 Task 便会启动一次 JVM<br> Spark 基于线程，只在启动 Executor 是启动一次 JVM，内存的 Task 操作是在线程复用的。</li>
+</ul>
+</li>
+<li><p>aggregateByKey foldByKey combineByKey </p>
+<ul>
+<li>aggregateByKey <ul>
+<li><code>rdd.aggregateByKey(0)(math.max(_,_),_+_)</code></li>
+<li>每个分区的各个key的value和初始值0，进行max，获得到每个key对应value的max<br>  然后每个分区进行combine即相加</li>
+</ul>
+</li>
+<li> 计算相同key对应值的相加结果：<code>rdd.foldByKey(0)(_+_)</code></li>
+<li>combineByKey<ul>
+<li><code>input.combineByKey((_,1), (acc:(Int,Int),v)=&gt;(acc._1+v,acc._2+1),//v为当前值 (acc1:(Int,Int),acc2:(Int,Int))=&gt;(acc1._1+acc2._1,acc1._2+acc2._2))</code></li>
+<li>key对应的value先映射成一个二元组(value,1)，同一个分区内的相同key将二元组相加<br>再将不同分区的相同key的二元组相加。</li>
+<li>相加时，元组的第一位和第二位都分别累加</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>cogroup</p>
+<ul>
+<li>第一个RDD元素是(1,”Allen”)，(2,”Bob”)，(3,”Carl”)，第二个RDD元素是(1,10000)，(1,5000)，(2,11000)，(2,6000)，(3,12000)，(3,6000)</li>
+<li>join的结果是： (1,(Allen,10000)) (1,(Allen,5000)) (2,(Bob,11000)) (2,(Bob,6000)) (3,(Carl,12000)) (3,(Carl,6000)) </li>
+<li>cogroup的结果是： (1,([Allen],[10000, 5000])) (2,([Bob],[11000, 6000])) (3,([Carl],[12000, 6000])) </li>
+</ul>
+</li>
+<li><p>mapValues </p>
+<ul>
+<li>mapValues(_+”|||”)–每个value后加上”|||”</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>T级别数据</p>
+<ul>
+<li><p>单个executor进程内RDD的分片数据是用Iterator流式访问的</p>
+</li>
+<li><p>RDD lineage上各个transformation携带的闭包函数复合而成的Iterator，<br>  每访问一个元素，就对该元素应用相应的复合函数，得到的结果再流式地落地<br>  对于shuffle stage是落地到本地文件系统留待后续stage访问，<br>  对于result stage是落地到HDFS或送回driver端等等，视选用的action而定</p>
+</li>
+<li><p>用户要求Spark cache该RDD，且storage level要求在内存中cache时，<br>Iterator计算出的结果才会被保留，通过cache manager放入内存池</p>
+</li>
+<li><p><a href="https://www.zhihu.com/question/23079001/answer/23569986">内存有限的情况下 Spark 如何处理 T 级别的数据</a></p>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>大数据</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>tensorflow</title>
+    <url>/2021/04/05/tensorflow/</url>
+    <content><![CDATA[<br>
+
+<p>遇到的问题汇总</p>
+<a id="more"></a>
+
+<ul>
+<li>tensorflow的调试<ul>
+<li>nan灾难<ul>
+<li>Debugger V2</li>
+<li>tensorboard Debugger V2 GUI</li>
+<li>tf.print()</li>
+<li>tfdbg</li>
+</ul>
+</li>
+<li>显存不断增长<ul>
+<li>释放临时节点  auto reuse\是不是需要train的变量</li>
+<li>避免在run里面进行运算产生临时节点，即出了结果再计算</li>
+</ul>
+</li>
+<li>emb lookup耗时</li>
+<li>多个id统一hash </li>
+<li>gpu cpu copy</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
       </tags>
   </entry>
   <entry>
@@ -947,6 +2080,158 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>分布式mindroad</title>
+    <url>/2021/04/05/%E5%88%86%E5%B8%83%E5%BC%8Fmindroad/</url>
+    <content><![CDATA[<p><br> <br></p>
+<p><strong>汇总</strong></p>
+<a id="more"></a>
+
+<h2 id="分布式系统"><a href="#分布式系统" class="headerlink" title="分布式系统"></a>分布式系统</h2><p>1、层次结构</p>
+<p>2、通信协议<br>默认dobbo<br>还有rmi hessian http webservice </p>
+<p>3、序列化协议<br>默认hessian<br>java二进制序列化、json、soap</p>
+<p>4、hessian数据结构<br>8种原始、3种递归、一种特殊类型</p>
+<p>5、pb为什么最高性能<br>1编译器 2数据压缩</p>
+<p>6、负载均衡策略<br>随机–根据权重，大则流量高<br>自动感知<br>一致性hash</p>
+<p>7、集群容错<br>Failover<br>Failfast<br>Failsafe<br>Failback<br>Forking<br>Broadcast</p>
+<p>8、动态代理<br>动态字节码生成</p>
+<p>9、spi思想及扩展dubbo组件</p>
+<p>10、服务治理<br> 1接口的调用次数和耗时 TP50/90/99、调用成功率、失败的监控<br> 2全链路的次数和耗时<br> 3timeout和retry<br> 4 Mock中实现降级逻辑<br> 5 分布式服务接口的幂等：redis+插入unique key<br> 6 接口调用的顺序性：会提升系统复杂度，降低效率-热点压力。dubbo进行hash负载均衡，然后打到一台机器，将order_id相同的请求放到该机器的一个线程内存队列中。更好的策略是合并请求。</p>
+<hr>
+<p>11、rpc框架设计</p>
+<ul>
+<li>zookeeper注册中心，本地动态代理发出请求，hessian序列化、长连接协议，负载均衡，服务端动态代理监听并代理实现</li>
+<li>再加上 监控、配置化</li>
+</ul>
+<hr>
+<p>12、zookeeper使用场景<br>分布式协调、分布式锁、注册中心(元数据管理)、HA高可用</p>
+<ul>
+<li>zk<ul>
+<li>分布式协调<ul>
+<li>A系统在zk建立一个监听，当系统B从MQ消费完订单消息，将zk状态改掉，zk则通知监听的系统A</li>
+</ul>
+</li>
+<li>分布式锁<ul>
+<li>a获取锁（尝试创建临时节点），b没得到就注册监听器（zk会将变化情况反向推送b），释放则获取到</li>
+<li>临时节点保证，a宕机能够把临时节点自动删除，避免死锁</li>
+</ul>
+</li>
+<li>配置中心/元数据<ul>
+<li>dubbo的服务端地址都放到zk，消费从zk获取最新的地址，服务地址改动，zk及时地变化</li>
+</ul>
+</li>
+<li>高可用<ul>
+<li>a宕机了，删除zk的临时节点，监听的b及时发现则插入新的临时节点，a恢复发现有了b临时节点则注册监听</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>13、分布式锁及其效率<br>三点： 互斥、无死锁(业务意外情况下仍然可以获取锁)、高可用(锁的机子宕了，能够继续获取锁)</p>
+<ul>
+<li><p>zk</p>
+<ul>
+<li>while +  countdownlatch–await卡着 + 临时节点</li>
+<li>临时顺序节点更好</li>
+<li>创建临时的znode，别的客户端注册监听器，释放锁就是删除znode，释放了就会通知客户端</li>
+</ul>
+</li>
+<li><p>redis<br>1如何保证原子性：lua<br>2业务时间&gt;定期删除时间：守护线程延长定期时间并设置超时放弃<br>3锁的误删除：uuid+threadid<br>4防止死锁：key加上过期时间 setnx expire</p>
+</li>
+<li><p>set orderic:lock 随机值 nx 3000 （nx代表无锁才能set返回ok），其他nil的节点每隔1s看是否还能set成功</p>
+</li>
+<li><p>释放：lua获取value对比是否是自己的，如果是则删除，否则不处理</p>
+</li>
+<li><p>redis主从架构时，由于异步更新到从，可能导致set的分布式锁失效</p>
+</li>
+</ul>
+<p>5redis集群(三种:主从、哨兵、cluster)无法满足高可用：主从是为了读写分离，锁还是在master上面。哨兵机制的集群，当master上的锁没有同步到slave时，此时有加锁请求则仍能够获得锁，不满足互斥性。三主三从的cluster模式(hash槽分配)，超过了10w+的并发，则一个主的槽不可用，则该redis集群全不可用。</p>
+<p>6时间漂移：硬件解决</p>
+<p>7 redlock：多个实例，但是不是集群关系。锁的有效时间= ttl-时间漂移(所有实例加锁花费的时间)。</p>
+<p>获取锁只需要超过一半的实例获取成功。避免死锁：重试机制-加锁不成功则撤回请求(避免死锁)，并且在重试时加上随机时间，避免同时加锁的请求都重试结果都无法获得。避免不互斥：延迟重启-如果master挂了，延迟ttl时间对slave重启替换为master。<br>TTL&gt; 业务执行时间+redis加锁时间+时钟漂移<br>删除锁则所有实例都执行删除。</p>
+<ul>
+<li>redlock 不健壮、无效请求<ul>
+<li>至少一半以上节点set成功且在超时时间内，才算创建成功。否则说明失败，通过lua删除已经set的节点。</li>
+<li>没成功就每隔1s去看是否被释放</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>14、分布式接口幂等性</p>
+<ul>
+<li>数据库unique key</li>
+<li>redis ：set orderid payed</li>
+</ul>
+<hr>
+<p>15、分布式接口顺序性</p>
+<ul>
+<li>接入服务进行分发到(hash分发)不同机子，然后机子分发到一个线程的内存队列<br>  或者接入服务分发到MQ，然后其他机子从MQ拉消费</li>
+<li>但如果接入服收到的顺序不是你要的，那还是无法完全保证顺序</li>
+<li>完全保证顺序<ul>
+<li>分布式锁<ul>
+<li>不仅以orderid标识，还需要有标识请求序号的seq。<br>  请求先获取zookeeper锁，查库，如果seq不对则释放锁。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>16、分布式会话</p>
+<ul>
+<li>spring session + Redis，解耦web容器</li>
+</ul>
+<hr>
+<p>17、分布式事务</p>
+<ul>
+<li><p>事务ACID </p>
+<ul>
+<li>全部结束或者回滚、和5000转账不影响和、并发事务相互不影响(脏读(看到另一个事务的中间状态)、commit读、重复读、串行化)、宕机之后恢复数据和事务成功结束后一致</li>
+</ul>
+</li>
+<li><p>CAP </p>
+<ul>
+<li>获得准确数据、及时响应返回、单节点挂了不影响其他</li>
+<li>一般选择AP – 柔性事务 base理论，达到最终一致。CA是一个必须有分布式锁，一个可以没有</li>
+</ul>
+</li>
+<li><p>2pc</p>
+<ul>
+<li>依赖数据库、不适合高并发</li>
+<li>第一阶段，每个节点记录log，并且返回给总协调是否成功，第二阶段，有一个不成功则协调让所有的人回滚。</li>
+<li>SEATA <ul>
+<li>第一阶段各个节点就提交然后释放锁，第二阶段如果成功则删除log，否则按照log回滚。（全局事务id和分支事务id，定位到log）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>tcc</p>
+<ul>
+<li>转账的例子</li>
+<li>严格、业务代码繁琐</li>
+<li>try 系统a预留系统bc资源，锁</li>
+<li>confirm  rpc调用系统b扣减，调用系统c转账，本地记下log</li>
+<li>cancel 回滚</li>
+</ul>
+</li>
+<li><p>可靠消息最终一致性</p>
+<ul>
+<li>本地消息表<ul>
+<li>todo</li>
+</ul>
+</li>
+<li>rocketmq事务消息</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>分布式</category>
+      </categories>
+      <tags>
+        <tag>分布式</tag>
       </tags>
   </entry>
   <entry>
@@ -1215,6 +2500,89 @@
       </tags>
   </entry>
   <entry>
+    <title>协同过滤</title>
+    <url>/2021/04/05/%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4/</url>
+    <content><![CDATA[<ul>
+<li><p>user based</p>
+<a id="more"></a>
+<ul>
+<li>有一个行为user，列为item的打分矩阵，且得到每个用户的平均分</li>
+<li>对于矩阵中的空值：<br>  通过计算用户a和用户b\c\d等(对itemb有分数的)相似度(皮尔逊相关系数)，然后<br>  根据均分，计算出用户a对itemb的分数</li>
+</ul>
+</li>
+<li><p>item based</p>
+<ul>
+<li>由一条条访问记录得到一个个user*item的矩阵</li>
+<li>上述所有矩阵加和，得到item*item的共现矩阵</li>
+<li>根据共现矩阵，计算item和item的相似度，得到相似度的item*item矩阵</li>
+<li>item*item的相似度共现矩阵和某用户的浏览序列相乘，得到该用户的打分向量</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><a href="https://www.jianshu.com/p/5463ab162a58">协同过滤</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>推荐算法</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+        <tag>推荐算法</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>协程</title>
+    <url>/2021/04/05/%E5%8D%8F%E7%A8%8B/</url>
+    <content><![CDATA[<ul>
+<li>协程</li>
+</ul>
+<a id="more"></a>
+<pre><code>- 从隔离、通信、调度、切换开销角度分析
+- 进程
+    - 资源完全隔离、进程挂了不影响其他进程，通信需要Inter-Process Communication，有七中状态，os进行调度
+
+- 线程
+    - 每个进程可以有多个线程，共享进程资源、共享全局变量，但会引起多线程并发问题，需要锁机制，通信需要wait signal
+    - 切换
+        - 进程切换与线程切换的一个最主要区别就在于进程切换涉及到虚拟地址空间的切换而线程切换则不会。线程共享虚拟地址空间。
+        - 和进程一样涉及到内核状态、硬件上下文的切换
+
+    - 线程池里一个线程挂了
+        - 当执行方式是execute时,可以看到堆栈异常的输出。
+        - 当执行方式是submit时,堆栈异常没有输出。但是调用Future.get()方法时，可以捕获到异常。
+        - 不会影响线程池里面其他线程的正常执行。
+        - 线程池会把这个线程移除掉，并创建一个新的线程放到线程池中。
+
+- 协程
+    - 协程是属于线程的。协程程序是在线程里面跑的，因此协程又称微线程和纤程等.协没有线程的上下文切换消耗
+    - 不涉及内核，完全在用户态进行，不用锁
+    - 如python中的yield
+</code></pre>
+<ul>
+<li><p>多核的数据传递、总线</p>
+<ul>
+<li>不管别的CPU私有Cache是否缓存相同的数据，都需要发出一次广播事件。这在一定程度上加重了总线负载，也增加了读写延迟。<br>针对该问题，提出了一种状态机机制降低带宽压力。这就是MESI protocol（协议）。</li>
+<li>cache line具有4中状态，分别是Modified、Exclusive、Shared和Invalid。<br>当cache line状态是Modified或者Exclusive状态时，修改其数据不需要发送消息给其他CPU</li>
+<li>多核Cache一致性由硬件保证，对软件来说是透明</li>
+<li>MOESI Protocol。多一种Owned状态。多出来的状态也是为了更好的优化性能。</li>
+</ul>
+</li>
+<li><p>多cpu和单cpu多核</p>
+<ul>
+<li><a href="https://www.zhihu.com/question/20998226">cpu</a></li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>并发</category>
+      </categories>
+      <tags>
+        <tag>并发</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习模型的模式</title>
     <url>/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<p>伪代码的算法流程 + 数学逻辑 –&gt;才能真的掌握住这个模型的本质。<br>而其他都是表象。所以数学肯定是要啃的。矩阵论和概率统计，微积分，必然是需要的。<br>更多的应用和实践，会深化对于模型的认知。</p>
@@ -1277,6 +2645,69 @@
 <p>凸优化问题：</p>
 <p><img src="http://upload-images.jianshu.io/upload_images/8716089-0c145b1194ca5146.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="standard form for convex minimization problem.jpg"></p>
 <p>reference:<br>[1]<a href="https://cowles.yale.edu/sites/default/files/files/pub/d00/d0080.pdf">https://cowles.yale.edu/sites/default/files/files/pub/d00/d0080.pdf</a><br>[2]<a href="https://en.wikipedia.org/wiki/Convex_optimization">https://en.wikipedia.org/wiki/Convex_optimization</a></p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>常见算法复杂度</title>
+    <url>/2021/04/05/%E5%B8%B8%E8%A7%81%E7%AE%97%E6%B3%95%E5%A4%8D%E6%9D%82%E5%BA%A6/</url>
+    <content><![CDATA[<br>
+
+<ul>
+<li><p>复杂度</p>
+<a id="more"></a>
+<ul>
+<li><p>排序</p>
+<ul>
+<li>冒泡、直选、直插 n^2 – 对每个元素找位置、两个for循环嵌套</li>
+<li>快排、堆、希尔、归并 nlogn – 二分思想(树)</li>
+<li>计数 n+max – 先遍历放到max长度数组，再遍历数组取数</li>
+<li>基数 n*位数 – 每位都来来一遍分配</li>
+<li>不稳定算法： “快希选堆”（快牺牲稳定性） </li>
+</ul>
+</li>
+<li><p>查找</p>
+<ul>
+<li>分块、二分、二叉排序查找  logn</li>
+<li>顺序查找 n</li>
+<li>哈希  O(1)</li>
+</ul>
+</li>
+<li><p>遍历</p>
+<ul>
+<li>树遍历：时间复杂度为O(n)，同样空间复杂度也为O(n)，n为结点数。</li>
+<li>图遍历： 邻接表O(V+E) 邻接矩阵O(V^2)</li>
+</ul>
+</li>
+<li><p>红黑</p>
+<ul>
+<li>插入、删除、查找的最坏时间复杂度都为 O(logn)。</li>
+</ul>
+</li>
+<li><p>b树</p>
+<ul>
+<li>平衡二叉树没能充分利用磁盘预读功能<br>B树是为了充分利用磁盘预读功能来而创建的一种数据结构<br>专门做索引而发明</li>
+</ul>
+</li>
+<li><p>b+</p>
+<ul>
+<li>查找，(m/2) * log(m)n</li>
+</ul>
+</li>
+<li><p>b b+区别</p>
+<ul>
+<li>叶子才有数据-&gt;减少磁盘io</li>
+<li>利于范围查询</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 ]]></content>
       <categories>
         <category>ml</category>
@@ -1362,7 +2793,6 @@
 ]]></content>
       <categories>
         <category>模型框架</category>
-        <category>dl</category>
       </categories>
       <tags>
         <tag>dl</tag>
@@ -1420,6 +2850,74 @@
       </categories>
       <tags>
         <tag>历史</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>推荐系统</title>
+    <url>/2021/04/05/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/</url>
+    <content><![CDATA[<br>
+
+<p>推荐系统</p>
+<a id="more"></a>
+
+<ul>
+<li>冷启动<ul>
+<li>用户冷启动<ul>
+<li>热门</li>
+<li>内容品类 多样性探索</li>
+<li>用户画像</li>
+<li>快速探索(各个筛选的选择tab)</li>
+<li>主产品的用户迁移</li>
+</ul>
+</li>
+<li>作品冷启动<ul>
+<li>标的物跟用户行为的相似性</li>
+<li>利用标的物跟标的物的相似性</li>
+</ul>
+</li>
+<li>用户自己搜索、自己筛选、选择主题等</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>es向量召回</p>
+<ul>
+<li><p>订单规则太多，导致召回排序后没多少曝光    </p>
+<ul>
+<li>走es召回。先过滤再取topN</li>
+</ul>
+</li>
+<li><p>订单主页的日活100w 直播间dau30w 聊天室10w</p>
+</li>
+<li><p>冷门无机会曝光</p>
+<ul>
+<li>具体哪一个阶段导致，然后加入策略</li>
+</ul>
+</li>
+<li><p>item侧的embding隔天变化。user的emb实时更新<br>  请求来了去es的item里找top</p>
+</li>
+<li><p>es比fassi的好处</p>
+</li>
+<li><p>性能</p>
+<ul>
+<li>qps100左右，128的emb，召回压力不大</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>向量距离方法</p>
+<ul>
+<li>fassi</li>
+<li>kdtree</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>推荐系统</category>
+      </categories>
+      <tags>
+        <tag>推荐系统</tag>
       </tags>
   </entry>
   <entry>
@@ -1510,6 +3008,87 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>机器</title>
+    <url>/2021/04/05/%E6%9C%BA%E5%99%A8/</url>
+    <content><![CDATA[<p>物理cpu、逻辑cpu、内存、硬盘、gpu</p>
+<a id="more"></a>
+
+<p>命令：<br>cat /proc/cpuinfo | grep “physical id” | uniq | wc -l<br>cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c<br>cat /proc/cpuinfo | grep physical | uniq -c<br>grep MemTotal /proc/meminfo<br>df -h<br>nvidia-smi<br>lspci | grep -i nvidia</p>
+<p>1    prodbigdata-aitm-distributed-job001 10.111.20.180    [DATACOMMAND]           1<em>4c  8g 200g                                                                                 <br>2    prodbigdata-aitm-distributed-job002 10.111.20.181    [DATACOMMAND]              1</em>4c  8g 200g                                                                                 <br>3    prodbigdata-algo001                 10.111.4.208     [DATACOMMAND]                      1<em>16c  16g 200g                                                                         <br>4    prodbigdata-algo002                 10.111.51.113    [DATACOMMAND]                       1</em>8c  16g 256g                                                                      <br>5    prodbigdata-algo004                 10.111.4.204     [DATACOMMAND]                          1<em>16c  16g 200g                                                                      <br>6    prodbigdata-algo005                 10.111.4.205     [DATACOMMAND]                          1</em>16c  16g 200g                                                                      <br>7    prodbigdata-rec-algo-service001     10.111.106.61    [DATACOMMAND]                                                                                            <br>8    prodbigdata-rec-algo-train001       10.111.106.62    [DATACOMMAND]                       1<em>54c 500g   PB级别     8gpu 每个显存16g                                                              <br>9    prodbigdata-youtube-dnn001          10.111.22.113    [DATACOMMAND]                      1</em>16c 120g  1T             2gpu 每个显存16g                                                   <br>10   prodbigdata-ypp-keras-frcnn         10.111.3.220     [DATACOMMAND]                        1*16c 120g  1T             2gpu 每个显存16g                                                                          <br>11   testbigdata-kafka-streaming-job001  10.111.51.50     [DATACOMMAND]            </p>
+<p>Mon Mar 22 12:53:07 2021       <br>+—————————————————————————–+<br>| NVIDIA-SMI 430.40       Driver Version: 430.40       CUDA Version: 10.1     |<br>|——————————-+———————-+———————-+<br>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |<br>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |<br>|===============================+======================+======================|<br>|   0  Tesla P100-PCIE…  Off  | 00000000:00:09.0 Off |                    0 |<br>| N/A   29C    P0    32W / 250W |   1419MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   1  Tesla P100-PCIE…  Off  | 00000000:00:0A.0 Off |                    0 |<br>| N/A   28C    P0    25W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   2  Tesla P100-PCIE…  Off  | 00000000:00:0B.0 Off |                    0 |<br>| N/A   29C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   3  Tesla P100-PCIE…  Off  | 00000000:00:0C.0 Off |                    0 |<br>| N/A   34C    P0    27W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   4  Tesla P100-PCIE…  Off  | 00000000:00:0D.0 Off |                    0 |<br>| N/A   32C    P0    31W / 250W |   2384MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   5  Tesla P100-PCIE…  Off  | 00000000:00:0E.0 Off |                    0 |<br>| N/A   35C    P0    34W / 250W |    263MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   6  Tesla P100-PCIE…  Off  | 00000000:00:0F.0 Off |                    0 |<br>| N/A   27C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   7  Tesla P100-PCIE…  Off  | 00000000:00:10.0 Off |                    0 |<br>| N/A   29C    P0    31W / 250W |   1301MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+</p>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>样本</title>
+    <url>/2021/04/05/%E6%A0%B7%E6%9C%AC/</url>
+    <content><![CDATA[<ul>
+<li><p>正样本稀疏</p>
+<a id="more"></a>
+<ul>
+<li>欠采样、过采样</li>
+<li>集成<ul>
+<li>负例样本（类别中的大量样本集）随机分为100份（当然也可以分更多），每份100条数据<br>  然后每次形成训练集时使用所有的正样本（100条）和随机抽取的负样本（100条）形成新的数据集。如此反复可以得到100个训练集和对应的训练模型。</li>
+<li>这种解决问题的思路类似于随机森林</li>
+</ul>
+</li>
+<li>权重<ul>
+<li>不同样本数量的类别分别赋予不同的权重</li>
+</ul>
+</li>
+<li>一分类<ul>
+<li>把它看做一分类（one class learning） 或异常检测问题，这类方法的重点不在于捕捉类间的差别，而是为其中一类进行建模，比较有代表性的是 one-class-SVM。</li>
+<li>符合这些图像特征的就属于人脸，反之则不是。对比二分类，显著的区别就是，二分类不但能的出来这个图片不是人脸，他还能告诉你这个图片是猪脸。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>推荐之样本</p>
+<ul>
+<li><p>避免高度活跃用户对loss的影响</p>
+<ul>
+<li>训练集中对每个用户提取相同数量的训练样本</li>
+</ul>
+</li>
+<li><p>根据用户最后一次点击行为的位置，过滤掉最后一次点击之后的展示，可以人为认为用户没有看到。</p>
+</li>
+<li><p>一个用户对同一个内容点击与不点击并存的情况，如果多次曝光的间隙非常短，考虑只使用其中的一次曝光数据。</p>
+</li>
+<li><p>考虑去除只有曝光但没有点击操作的用户的样本（也就是说有的用户只有负样本，没有正样本），不过去除的话，那模型就只能够学习到活跃用户或者有意向用户的行为习惯</p>
+</li>
+<li><p>要求当线上模型在预测时，需要将喂给模型的特征做一次落地，比如传到kafka，后续再由相应程序进行解析生成之后的的训练样本。</p>
+</li>
+<li><p>同一个request中，如果收到某样本后面样本的展示或者点击事件，5min后还没有收到该样本的点击事件，则作为负样本进行训练；如果在作为负样本训练之后，在一段时间之后又收到该样本的正例行为，则需要作出补偿。</p>
+</li>
+<li><p>专家样本</p>
+</li>
+<li><p>坏样本</p>
+<ul>
+<li>样本偏差、模型敏感、无法代表全体、</li>
+</ul>
+</li>
+<li><p>在信用卡欺诈模型中，对于召回率的要求比较高（不希望漏掉一个欺诈用户），并且预测出来的数据还会经过人工审核，相对的对于准确率要求就低一些</p>
+</li>
+<li><p>但是在我们的原始数据中，正样本的比例本身就占比非常小了，或者正样本本身就是正太分布部分，但是在预测的时候，连长尾分布的部分也不能放过，（尽量的把所有欺诈用户召回），比如信用卡欺诈里有的超级用户虽然数量小，但是一次违约就是几十万，比几百个普通用户还严重，这种时候是否要用权值设置或者复制正样本的方式，来做识别增强。</p>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+        <tag>dl</tag>
       </tags>
   </entry>
   <entry>
@@ -1868,6 +3447,36 @@
       </categories>
       <tags>
         <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>零散问题repo</title>
+    <url>/2021/04/05/%E9%9B%B6%E6%95%A3%E9%97%AE%E9%A2%98repo/</url>
+    <content><![CDATA[<p><br> <br></p>
+<p><strong>无中心、碎片知识点</strong></p>
+<a id="more"></a>
+
+
+<ul>
+<li><p>get post</p>
+<ul>
+<li>GET请求是通过URL直接请求数据，而POST请求是放在请求头中</li>
+<li>GET提交有数据大小的限制，POST请求在HTTP协议中也没有做说明，一般来说是没有设置限制的，但是实际上浏览器也有默认值</li>
+<li>登录操作的时候，尽量使用HTTPS请求，安全性更好</li>
+</ul>
+</li>
+<li><p>gmv gtv</p>
+<ul>
+<li>总销售额，总交易额</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>零散知识点</category>
+      </categories>
+      <tags>
+        <tag>零散知识点</tag>
       </tags>
   </entry>
   <entry>
