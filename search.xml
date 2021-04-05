@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>AB分流</title>
-    <url>/2021/03/11/AB%E5%88%86%E6%B5%81/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>Apriori_fptree</title>
     <url>/2021/03/11/Apriori-fptree/</url>
     <content><![CDATA[<h2 id="Apriori"><a href="#Apriori" class="headerlink" title="Apriori"></a>Apriori</h2><ul>
@@ -630,79 +625,6 @@
       </tags>
   </entry>
   <entry>
-    <title>hive</title>
-    <url>/2021/03/03/hive/</url>
-    <content><![CDATA[<br>
-
-
-<ul>
-<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
-<a id="more"></a>
-<blockquote>
-<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
-</blockquote>
-</li>
-<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
-</li>
-<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
-</li>
-<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
-</li>
-<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
-</li>
-<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
-</li>
-<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
-</li>
-<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
-</li>
-</ul>
-<ul>
-<li> Making Multiple Passes over the Same Data<blockquote>
-<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
-</blockquote>
-</li>
-</ul>
-<p>因此如下方式更加高效,并且可开启并行：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
-<ul>
-<li><p>日期处理<br>查看N天前的日期：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
-<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
-<li><p>left outer join</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
-</li>
-<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
-</li>
-<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
-<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
-</li>
-<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
-</li>
-<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
-<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure></li>
-<li><p><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></p>
-</li>
-<li><p>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>大数据</category>
-      </categories>
-      <tags>
-        <tag>大数据</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>graphsage</title>
     <url>/2021/03/08/graphsage/</url>
     <content><![CDATA[<h4 id="GCN"><a href="#GCN" class="headerlink" title="GCN"></a>GCN</h4><ul>
@@ -778,6 +700,79 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hive</title>
+    <url>/2021/03/03/hive/</url>
+    <content><![CDATA[<br>
+
+
+<ul>
+<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
+<a id="more"></a>
+<blockquote>
+<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
+</blockquote>
+</li>
+<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
+</li>
+<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
+</li>
+<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
+</li>
+<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
+</li>
+<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
+</li>
+<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
+</li>
+<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
+</li>
+</ul>
+<ul>
+<li> Making Multiple Passes over the Same Data<blockquote>
+<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
+</blockquote>
+</li>
+</ul>
+<p>因此如下方式更加高效,并且可开启并行：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>日期处理<br>查看N天前的日期：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
+<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
+<li><p>left outer join</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
+</li>
+<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
+</li>
+<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
+<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
+</li>
+<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
+</li>
+<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
+<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure></li>
+<li><p><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></p>
+</li>
+<li><p>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -1828,29 +1823,6 @@
       </tags>
   </entry>
   <entry>
-    <title>笛卡尔积</title>
-    <url>/2021/03/11/%E9%9B%86%E5%90%88%E7%9A%84%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF/</url>
-    <content><![CDATA[<br>
-<br>
-
-
-<h2 id="笛卡尔积"><a href="#笛卡尔积" class="headerlink" title="笛卡尔积"></a>笛卡尔积</h2><a id="more"></a>
-
-<br>
-
-
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static String cartesianProduct(final String[][] inputs) &#123;</span><br><span class="line">        if (inputs &#x3D;&#x3D; null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        final StringBuilder sb &#x3D; new StringBuilder();</span><br><span class="line">        </span><br><span class="line">        product(&quot;&quot;, 0, inputs, sb);</span><br><span class="line">        </span><br><span class="line">        return sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">public void product(String prefix,int index, String[][] input,StringBuilder sb)&#123;</span><br><span class="line">        for (int i &#x3D; 0; i &lt; input[index].length; i++) &#123;</span><br><span class="line">            if (index &gt;&#x3D; input.length - 1) &#123;</span><br><span class="line">                sb.append(prefix + input[index][i]);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                product(prefix + input[index][i], index + 1, input, sb);</span><br><span class="line">            &#125;</span><br><span class="line">            if (i &lt; input[index].length - 1) &#123;</span><br><span class="line">                sb.append(&quot;, &quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>两个变量关键prefix和index，作为递归方法的参数时进行变化<code>prefix + input[index][i]</code>和<code>index+1</code>。</p>
-<p>从数列角度看，sb(j) = sb(j-1) + charAt(i) ,charAt(i)需要一个for循环即<code>for (int i = 0; i &lt; input[index].length; i++)</code>。sb(j-1)为<code>prefix</code>，下一步需要<code>prefix + input[index][i]</code>；其中<code>j-1</code>为<code>index</code>，进入下一步需要<code>index+1</code>。</p>
-]]></content>
-      <categories>
-        <category>leetcode</category>
-      </categories>
-      <tags>
-        <tag>leetcode</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>银行拨备</title>
     <url>/2021/02/17/%E9%93%B6%E8%A1%8C%E6%8B%A8%E5%A4%87/</url>
     <content><![CDATA[<p><br> <br></p>
@@ -1873,6 +1845,29 @@
       <tags>
         <tag>货银</tag>
         <tag>商业银行</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>笛卡尔积</title>
+    <url>/2021/03/11/%E9%9B%86%E5%90%88%E7%9A%84%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+<h2 id="笛卡尔积"><a href="#笛卡尔积" class="headerlink" title="笛卡尔积"></a>笛卡尔积</h2><a id="more"></a>
+
+<br>
+
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static String cartesianProduct(final String[][] inputs) &#123;</span><br><span class="line">        if (inputs &#x3D;&#x3D; null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        final StringBuilder sb &#x3D; new StringBuilder();</span><br><span class="line">        </span><br><span class="line">        product(&quot;&quot;, 0, inputs, sb);</span><br><span class="line">        </span><br><span class="line">        return sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">public void product(String prefix,int index, String[][] input,StringBuilder sb)&#123;</span><br><span class="line">        for (int i &#x3D; 0; i &lt; input[index].length; i++) &#123;</span><br><span class="line">            if (index &gt;&#x3D; input.length - 1) &#123;</span><br><span class="line">                sb.append(prefix + input[index][i]);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                product(prefix + input[index][i], index + 1, input, sb);</span><br><span class="line">            &#125;</span><br><span class="line">            if (i &lt; input[index].length - 1) &#123;</span><br><span class="line">                sb.append(&quot;, &quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>两个变量关键prefix和index，作为递归方法的参数时进行变化<code>prefix + input[index][i]</code>和<code>index+1</code>。</p>
+<p>从数列角度看，sb(j) = sb(j-1) + charAt(i) ,charAt(i)需要一个for循环即<code>for (int i = 0; i &lt; input[index].length; i++)</code>。sb(j-1)为<code>prefix</code>，下一步需要<code>prefix + input[index][i]</code>；其中<code>j-1</code>为<code>index</code>，进入下一步需要<code>index+1</code>。</p>
+]]></content>
+      <categories>
+        <category>leetcode</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
       </tags>
   </entry>
   <entry>
