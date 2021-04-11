@@ -979,68 +979,6 @@
       </tags>
   </entry>
   <entry>
-    <title>juc</title>
-    <url>/2021/04/05/juc/</url>
-    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
-<a id="more"></a>
-
-
-<ul>
-<li><p>线程池</p>
-<ul>
-<li>阻塞队列<ul>
-<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
-<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
-</ul>
-</li>
-<li>任务类型<ul>
-<li>CPU密集型任务<ul>
-<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
-</ul>
-</li>
-<li>IO密集型任务<ul>
-<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
-</ul>
-</li>
-<li>混合<ul>
-<li>分别用不同的线程池去处理</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>4类<ul>
-<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>乐观锁 悲观锁</p>
-<ul>
-<li>悲观<ul>
-<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
-</ul>
-</li>
-<li>乐观<ul>
-<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
-<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>编程语言</category>
-        <category>java</category>
-        <category>并发</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>java</tag>
-        <tag>并发</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ml基础</title>
     <url>/2021/04/05/ml%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<br>
@@ -1150,6 +1088,68 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>juc</title>
+    <url>/2021/04/05/juc/</url>
+    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
+<a id="more"></a>
+
+
+<ul>
+<li><p>线程池</p>
+<ul>
+<li>阻塞队列<ul>
+<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
+<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
+</ul>
+</li>
+<li>任务类型<ul>
+<li>CPU密集型任务<ul>
+<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
+</ul>
+</li>
+<li>IO密集型任务<ul>
+<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
+</ul>
+</li>
+<li>混合<ul>
+<li>分别用不同的线程池去处理</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>4类<ul>
+<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>乐观锁 悲观锁</p>
+<ul>
+<li>悲观<ul>
+<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
+</ul>
+</li>
+<li>乐观<ul>
+<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
+<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程语言</category>
+        <category>java</category>
+        <category>并发</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>java</tag>
+        <tag>并发</tag>
       </tags>
   </entry>
   <entry>
@@ -2534,31 +2534,41 @@
   <entry>
     <title>协程</title>
     <url>/2021/04/05/%E5%8D%8F%E7%A8%8B/</url>
-    <content><![CDATA[<ul>
-<li>协程</li>
-</ul>
+    <content><![CDATA[<p>协程、多核与cpu</p>
 <a id="more"></a>
-<pre><code>- 从隔离、通信、调度、切换开销角度分析
-- 进程
-    - 资源完全隔离、进程挂了不影响其他进程，通信需要Inter-Process Communication，有七中状态，os进行调度
 
-- 线程
-    - 每个进程可以有多个线程，共享进程资源、共享全局变量，但会引起多线程并发问题，需要锁机制，通信需要wait signal
-    - 切换
-        - 进程切换与线程切换的一个最主要区别就在于进程切换涉及到虚拟地址空间的切换而线程切换则不会。线程共享虚拟地址空间。
-        - 和进程一样涉及到内核状态、硬件上下文的切换
-
-    - 线程池里一个线程挂了
-        - 当执行方式是execute时,可以看到堆栈异常的输出。
-        - 当执行方式是submit时,堆栈异常没有输出。但是调用Future.get()方法时，可以捕获到异常。
-        - 不会影响线程池里面其他线程的正常执行。
-        - 线程池会把这个线程移除掉，并创建一个新的线程放到线程池中。
-
-- 协程
-    - 协程是属于线程的。协程程序是在线程里面跑的，因此协程又称微线程和纤程等.协没有线程的上下文切换消耗
-    - 不涉及内核，完全在用户态进行，不用锁
-    - 如python中的yield
-</code></pre>
+<ul>
+<li>协程<ul>
+<li>从隔离、通信、调度、切换开销角度分析</li>
+<li>进程<ul>
+<li>资源完全隔离、进程挂了不影响其他进程，通信需要Inter-Process Communication，有七中状态，os进行调度</li>
+</ul>
+</li>
+<li>线程<ul>
+<li>每个进程可以有多个线程，共享进程资源、共享全局变量，但会引起多线程并发问题，需要锁机制，通信需要wait signal</li>
+<li>切换<ul>
+<li>进程切换与线程切换的一个最主要区别就在于进程切换涉及到虚拟地址空间的切换而线程切换则不会。线程共享虚拟地址空间。</li>
+<li>和进程一样涉及到内核状态、硬件上下文的切换</li>
+</ul>
+</li>
+<li>线程池里一个线程挂了<ul>
+<li>当执行方式是execute时,可以看到堆栈异常的输出。</li>
+<li>当执行方式是submit时,堆栈异常没有输出。但是调用Future.get()方法时，可以捕获到异常。</li>
+<li>不会影响线程池里面其他线程的正常执行。</li>
+<li>线程池会把这个线程移除掉，并创建一个新的线程放到线程池中。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>协程<ul>
+<li>协程是属于线程的。协程程序是在线程里面跑的，因此协程又称微线程和纤程等.协没有线程的上下文切换消耗</li>
+<li>不涉及内核，完全在用户态进行，不用锁</li>
+<li>如python中的yield</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <ul>
 <li><p>多核的数据传递、总线</p>
 <ul>
@@ -3011,23 +3021,6 @@
       </tags>
   </entry>
   <entry>
-    <title>机器</title>
-    <url>/2021/04/05/%E6%9C%BA%E5%99%A8/</url>
-    <content><![CDATA[<p>物理cpu、逻辑cpu、内存、硬盘、gpu</p>
-<a id="more"></a>
-
-<p>命令：<br>cat /proc/cpuinfo | grep “physical id” | uniq | wc -l<br>cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c<br>cat /proc/cpuinfo | grep physical | uniq -c<br>grep MemTotal /proc/meminfo<br>df -h<br>nvidia-smi<br>lspci | grep -i nvidia</p>
-<p>1    prodbigdata-aitm-distributed-job001 10.111.20.180    [DATACOMMAND]           1<em>4c  8g 200g                                                                                 <br>2    prodbigdata-aitm-distributed-job002 10.111.20.181    [DATACOMMAND]              1</em>4c  8g 200g                                                                                 <br>3    prodbigdata-algo001                 10.111.4.208     [DATACOMMAND]                      1<em>16c  16g 200g                                                                         <br>4    prodbigdata-algo002                 10.111.51.113    [DATACOMMAND]                       1</em>8c  16g 256g                                                                      <br>5    prodbigdata-algo004                 10.111.4.204     [DATACOMMAND]                          1<em>16c  16g 200g                                                                      <br>6    prodbigdata-algo005                 10.111.4.205     [DATACOMMAND]                          1</em>16c  16g 200g                                                                      <br>7    prodbigdata-rec-algo-service001     10.111.106.61    [DATACOMMAND]                                                                                            <br>8    prodbigdata-rec-algo-train001       10.111.106.62    [DATACOMMAND]                       1<em>54c 500g   PB级别     8gpu 每个显存16g                                                              <br>9    prodbigdata-youtube-dnn001          10.111.22.113    [DATACOMMAND]                      1</em>16c 120g  1T             2gpu 每个显存16g                                                   <br>10   prodbigdata-ypp-keras-frcnn         10.111.3.220     [DATACOMMAND]                        1*16c 120g  1T             2gpu 每个显存16g                                                                          <br>11   testbigdata-kafka-streaming-job001  10.111.51.50     [DATACOMMAND]            </p>
-<p>Mon Mar 22 12:53:07 2021       <br>+—————————————————————————–+<br>| NVIDIA-SMI 430.40       Driver Version: 430.40       CUDA Version: 10.1     |<br>|——————————-+———————-+———————-+<br>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |<br>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |<br>|===============================+======================+======================|<br>|   0  Tesla P100-PCIE…  Off  | 00000000:00:09.0 Off |                    0 |<br>| N/A   29C    P0    32W / 250W |   1419MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   1  Tesla P100-PCIE…  Off  | 00000000:00:0A.0 Off |                    0 |<br>| N/A   28C    P0    25W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   2  Tesla P100-PCIE…  Off  | 00000000:00:0B.0 Off |                    0 |<br>| N/A   29C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   3  Tesla P100-PCIE…  Off  | 00000000:00:0C.0 Off |                    0 |<br>| N/A   34C    P0    27W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   4  Tesla P100-PCIE…  Off  | 00000000:00:0D.0 Off |                    0 |<br>| N/A   32C    P0    31W / 250W |   2384MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   5  Tesla P100-PCIE…  Off  | 00000000:00:0E.0 Off |                    0 |<br>| N/A   35C    P0    34W / 250W |    263MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   6  Tesla P100-PCIE…  Off  | 00000000:00:0F.0 Off |                    0 |<br>| N/A   27C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   7  Tesla P100-PCIE…  Off  | 00000000:00:10.0 Off |                    0 |<br>| N/A   29C    P0    31W / 250W |   1301MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+</p>
-]]></content>
-      <categories>
-        <category>dl</category>
-      </categories>
-      <tags>
-        <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>样本</title>
     <url>/2021/04/05/%E6%A0%B7%E6%9C%AC/</url>
     <content><![CDATA[<ul>
@@ -3092,6 +3085,23 @@
       </tags>
   </entry>
   <entry>
+    <title>机器</title>
+    <url>/2021/04/05/%E6%9C%BA%E5%99%A8/</url>
+    <content><![CDATA[<p>物理cpu、逻辑cpu、内存、硬盘、gpu</p>
+<a id="more"></a>
+
+<p>命令：<br>cat /proc/cpuinfo | grep “physical id” | uniq | wc -l<br>cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c<br>cat /proc/cpuinfo | grep physical | uniq -c<br>grep MemTotal /proc/meminfo<br>df -h<br>nvidia-smi<br>lspci | grep -i nvidia</p>
+<p>1    prodbigdata-aitm-distributed-job001 10.111.20.180    [DATACOMMAND]           1<em>4c  8g 200g                                                                                 <br>2    prodbigdata-aitm-distributed-job002 10.111.20.181    [DATACOMMAND]              1</em>4c  8g 200g                                                                                 <br>3    prodbigdata-algo001                 10.111.4.208     [DATACOMMAND]                      1<em>16c  16g 200g                                                                         <br>4    prodbigdata-algo002                 10.111.51.113    [DATACOMMAND]                       1</em>8c  16g 256g                                                                      <br>5    prodbigdata-algo004                 10.111.4.204     [DATACOMMAND]                          1<em>16c  16g 200g                                                                      <br>6    prodbigdata-algo005                 10.111.4.205     [DATACOMMAND]                          1</em>16c  16g 200g                                                                      <br>7    prodbigdata-rec-algo-service001     10.111.106.61    [DATACOMMAND]                                                                                            <br>8    prodbigdata-rec-algo-train001       10.111.106.62    [DATACOMMAND]                       1<em>54c 500g   PB级别     8gpu 每个显存16g                                                              <br>9    prodbigdata-youtube-dnn001          10.111.22.113    [DATACOMMAND]                      1</em>16c 120g  1T             2gpu 每个显存16g                                                   <br>10   prodbigdata-ypp-keras-frcnn         10.111.3.220     [DATACOMMAND]                        1*16c 120g  1T             2gpu 每个显存16g                                                                          <br>11   testbigdata-kafka-streaming-job001  10.111.51.50     [DATACOMMAND]            </p>
+<p>Mon Mar 22 12:53:07 2021       <br>+—————————————————————————–+<br>| NVIDIA-SMI 430.40       Driver Version: 430.40       CUDA Version: 10.1     |<br>|——————————-+———————-+———————-+<br>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |<br>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |<br>|===============================+======================+======================|<br>|   0  Tesla P100-PCIE…  Off  | 00000000:00:09.0 Off |                    0 |<br>| N/A   29C    P0    32W / 250W |   1419MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   1  Tesla P100-PCIE…  Off  | 00000000:00:0A.0 Off |                    0 |<br>| N/A   28C    P0    25W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   2  Tesla P100-PCIE…  Off  | 00000000:00:0B.0 Off |                    0 |<br>| N/A   29C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   3  Tesla P100-PCIE…  Off  | 00000000:00:0C.0 Off |                    0 |<br>| N/A   34C    P0    27W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   4  Tesla P100-PCIE…  Off  | 00000000:00:0D.0 Off |                    0 |<br>| N/A   32C    P0    31W / 250W |   2384MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   5  Tesla P100-PCIE…  Off  | 00000000:00:0E.0 Off |                    0 |<br>| N/A   35C    P0    34W / 250W |    263MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   6  Tesla P100-PCIE…  Off  | 00000000:00:0F.0 Off |                    0 |<br>| N/A   27C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   7  Tesla P100-PCIE…  Off  | 00000000:00:10.0 Off |                    0 |<br>| N/A   29C    P0    31W / 250W |   1301MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+</p>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>梯度</title>
     <url>/2021/02/04/%E6%A2%AF%E5%BA%A6/</url>
     <content><![CDATA[<h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
@@ -3123,6 +3133,13 @@
 <h4 id="LSTM为什么有助于解决梯度消失和爆炸问题？"><a href="#LSTM为什么有助于解决梯度消失和爆炸问题？" class="headerlink" title="LSTM为什么有助于解决梯度消失和爆炸问题？"></a>LSTM为什么有助于解决梯度消失和爆炸问题？</h4><p><a href="https://www.zhihu.com/question/34878706">https://www.zhihu.com/question/34878706</a></p>
 <p>RNN 中总的梯度是不会消失的。即便梯度越传越弱，那也只是远距离的梯度消失，由于近距离的梯度不会消失，所有梯度之和便不会消失。RNN 所谓梯度消失的真正含义是，梯度被近距离梯度主导，导致模型难以学到远距离的依赖关系。</p>
 <p>其一是遗忘门接近 1（例如模型初始化时会把 forget bias 设置成较大的正数，让遗忘门饱和），这时候远距离梯度不消失；其二是遗忘门接近 0，但这时模型是故意阻断梯度流的，这不是 bug 而是 feature（例如情感分析任务中有一条样本 “A，但是 B”，模型读到“但是”后选择把遗忘门设置成 0，遗忘掉内容 A，这是合理的）。当然，常常也存在 f 介于 [0, 1] 之间的情况，在这种情况下只能说 LSTM 改善（而非解决）了梯度消失的状况。</p>
+<h4 id="激活函数"><a href="#激活函数" class="headerlink" title="激活函数"></a>激活函数</h4><p>1、优秀激活函数的性质<br>非线性–多层后能够逼近所有函数<br>可导–优化器大多用梯度下降更新参数<br>单调–能够保证单层网络的损失函数是凸函数<br>近似恒等性– f(x)近似=x，参数初始化为随机小值时，神经网络更稳定<br>输出均值为0 – 能够加速收敛</p>
+<p>2、激活函数输出范围<br>有限 – 基于梯度更新参数更稳定<br>无限 – 调小学习率</p>
+<p>3、sigmoid<br>导数范围在0-1/4，梯度消失问题<br>输出均值不为0，收敛慢<br>幂运算耗时高</p>
+<p>4、tanh<br>梯度消失<br>幂运算耗时高</p>
+<p>5、 relu<br>缺点：<br>输出均值非0<br>dead relu – 某些神经元永远不被激活，导致相应的参数无法更新</p>
+<p>6、dead relu改进<br>负数输入过多导致，改变参数初始化避免过多的负数特征送入relu，设置更小的学习率，避免参数分布巨大变化<br>leaky – 虽然能解决dead，但实际效果中没有证明出比relu更好</p>
+<h4 id="初始化建议"><a href="#初始化建议" class="headerlink" title="初始化建议"></a>初始化建议</h4><p>均值为0<br>标准差为 sqrt(2/当前层输入特征个数)的正太分布</p>
 ]]></content>
       <categories>
         <category>dl</category>

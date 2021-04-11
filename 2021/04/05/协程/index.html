@@ -8,15 +8,15 @@
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
   <title>协程 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="协程">
+  <meta name="description" content="协程、多核与cpu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="协程">
 <meta property="og:url" content="https://satyrswang.github.io/2021/04/05/%E5%8D%8F%E7%A8%8B/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="协程">
+<meta property="og:description" content="协程、多核与cpu">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-04-05T11:57:34.000Z">
-<meta property="article:modified_time" content="2021-04-05T12:07:57.628Z">
+<meta property="article:modified_time" content="2021-04-08T03:06:11.150Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="并发">
 <meta name="twitter:card" content="summary">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">55.6k</span>
+    总字数 <span class="post-count">55.9k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,35 +186,45 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：528字 | 预计阅读时长：1分钟
+    字数：534字 | 预计阅读时长：1分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <ul>
-<li>协程</li>
-</ul>
+        <p>协程、多核与cpu</p>
 <a id="more"></a>
-<pre><code>- 从隔离、通信、调度、切换开销角度分析
-- 进程
-    - 资源完全隔离、进程挂了不影响其他进程，通信需要Inter-Process Communication，有七中状态，os进行调度
 
-- 线程
-    - 每个进程可以有多个线程，共享进程资源、共享全局变量，但会引起多线程并发问题，需要锁机制，通信需要wait signal
-    - 切换
-        - 进程切换与线程切换的一个最主要区别就在于进程切换涉及到虚拟地址空间的切换而线程切换则不会。线程共享虚拟地址空间。
-        - 和进程一样涉及到内核状态、硬件上下文的切换
-
-    - 线程池里一个线程挂了
-        - 当执行方式是execute时,可以看到堆栈异常的输出。
-        - 当执行方式是submit时,堆栈异常没有输出。但是调用Future.get()方法时，可以捕获到异常。
-        - 不会影响线程池里面其他线程的正常执行。
-        - 线程池会把这个线程移除掉，并创建一个新的线程放到线程池中。
-
-- 协程
-    - 协程是属于线程的。协程程序是在线程里面跑的，因此协程又称微线程和纤程等.协没有线程的上下文切换消耗
-    - 不涉及内核，完全在用户态进行，不用锁
-    - 如python中的yield
-</code></pre>
+<ul>
+<li>协程<ul>
+<li>从隔离、通信、调度、切换开销角度分析</li>
+<li>进程<ul>
+<li>资源完全隔离、进程挂了不影响其他进程，通信需要Inter-Process Communication，有七中状态，os进行调度</li>
+</ul>
+</li>
+<li>线程<ul>
+<li>每个进程可以有多个线程，共享进程资源、共享全局变量，但会引起多线程并发问题，需要锁机制，通信需要wait signal</li>
+<li>切换<ul>
+<li>进程切换与线程切换的一个最主要区别就在于进程切换涉及到虚拟地址空间的切换而线程切换则不会。线程共享虚拟地址空间。</li>
+<li>和进程一样涉及到内核状态、硬件上下文的切换</li>
+</ul>
+</li>
+<li>线程池里一个线程挂了<ul>
+<li>当执行方式是execute时,可以看到堆栈异常的输出。</li>
+<li>当执行方式是submit时,堆栈异常没有输出。但是调用Future.get()方法时，可以捕获到异常。</li>
+<li>不会影响线程池里面其他线程的正常执行。</li>
+<li>线程池会把这个线程移除掉，并创建一个新的线程放到线程池中。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>协程<ul>
+<li>协程是属于线程的。协程程序是在线程里面跑的，因此协程又称微线程和纤程等.协没有线程的上下文切换消耗</li>
+<li>不涉及内核，完全在用户态进行，不用锁</li>
+<li>如python中的yield</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <ul>
 <li><p>多核的数据传递、总线</p>
 <ul>
