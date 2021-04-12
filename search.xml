@@ -477,6 +477,28 @@
       </tags>
   </entry>
   <entry>
+    <title>c++tips</title>
+    <url>/2021/04/11/c-tips/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+<p>基础汇总</p>
+<a id="more"></a>
+
+<br>
+
+
+<p>- </p>
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>dssm</title>
     <url>/2021/03/08/dssm/</url>
     <content><![CDATA[<h4 id="DSSM"><a href="#DSSM" class="headerlink" title="DSSM"></a>DSSM</h4><ul>
@@ -979,6 +1001,68 @@
       </tags>
   </entry>
   <entry>
+    <title>juc</title>
+    <url>/2021/04/05/juc/</url>
+    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
+<a id="more"></a>
+
+
+<ul>
+<li><p>线程池</p>
+<ul>
+<li>阻塞队列<ul>
+<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
+<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
+</ul>
+</li>
+<li>任务类型<ul>
+<li>CPU密集型任务<ul>
+<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
+</ul>
+</li>
+<li>IO密集型任务<ul>
+<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
+</ul>
+</li>
+<li>混合<ul>
+<li>分别用不同的线程池去处理</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>4类<ul>
+<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>乐观锁 悲观锁</p>
+<ul>
+<li>悲观<ul>
+<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
+</ul>
+</li>
+<li>乐观<ul>
+<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
+<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程语言</category>
+        <category>java</category>
+        <category>并发</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>java</tag>
+        <tag>并发</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ml基础</title>
     <url>/2021/04/05/ml%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<br>
@@ -1088,68 +1172,6 @@
       </categories>
       <tags>
         <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>juc</title>
-    <url>/2021/04/05/juc/</url>
-    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
-<a id="more"></a>
-
-
-<ul>
-<li><p>线程池</p>
-<ul>
-<li>阻塞队列<ul>
-<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
-<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
-</ul>
-</li>
-<li>任务类型<ul>
-<li>CPU密集型任务<ul>
-<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
-</ul>
-</li>
-<li>IO密集型任务<ul>
-<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
-</ul>
-</li>
-<li>混合<ul>
-<li>分别用不同的线程池去处理</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>4类<ul>
-<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>乐观锁 悲观锁</p>
-<ul>
-<li>悲观<ul>
-<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
-</ul>
-</li>
-<li>乐观<ul>
-<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
-<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>编程语言</category>
-        <category>java</category>
-        <category>并发</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>java</tag>
-        <tag>并发</tag>
       </tags>
   </entry>
   <entry>
@@ -1913,7 +1935,7 @@
     <url>/2021/04/05/tensorflow/</url>
     <content><![CDATA[<br>
 
-<p>遇到的问题汇总</p>
+<p>基础、遇到的问题、源码相关汇总</p>
 <a id="more"></a>
 
 <ul>
@@ -1935,6 +1957,10 @@
 <li>gpu cpu copy</li>
 </ul>
 </li>
+</ul>
+<ul>
+<li>神经网络八股<br>就不搞了。太多人做过了。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">checkpoint_save_path &#x3D; &quot;.&#x2F;checkpoint&#x2F;fashion.ckpt&quot;</span><br><span class="line">if os.path.exists(checkpoint_save_path + &#39;.index&#39;):</span><br><span class="line">    print(&#39;-------------load the model-----------------&#39;)</span><br><span class="line">    model.load_weights(checkpoint_save_path)</span><br><span class="line"></span><br><span class="line">cp_callback &#x3D; tf.keras.callbacks.ModelCheckpoint(filepath&#x3D;checkpoint_save_path,</span><br><span class="line">                                                 save_weights_only&#x3D;True,</span><br><span class="line">                                                 save_best_only&#x3D;True)</span><br><span class="line"></span><br><span class="line">history &#x3D; model.fit(x_train, y_train, batch_size&#x3D;32, epochs&#x3D;5, validation_data&#x3D;(x_test, y_test), validation_freq&#x3D;1,</span><br><span class="line">                    callbacks&#x3D;[cp_callback])</span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">print(model.trainable_variables)</span><br><span class="line">file &#x3D; open(&#39;.&#x2F;weights.txt&#39;, &#39;w&#39;)</span><br><span class="line">for v in model.trainable_variables:</span><br><span class="line">    file.write(str(v.name) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.shape) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.numpy()) + &#39;\n&#39;)</span><br><span class="line">file.close()</span><br><span class="line"></span><br><span class="line"># 显示训练集和验证集的acc和loss曲线</span><br><span class="line">acc &#x3D; history.history[&#39;sparse_categorical_accuracy&#39;]</span><br><span class="line">val_acc &#x3D; history.history[&#39;val_sparse_categorical_accuracy&#39;]</span><br><span class="line">loss &#x3D; history.history[&#39;loss&#39;]</span><br><span class="line">val_loss &#x3D; history.history[&#39;val_loss&#39;]</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 1)</span><br><span class="line">plt.plot(acc, label&#x3D;&#39;Training Accuracy&#39;)</span><br><span class="line">plt.plot(val_acc, label&#x3D;&#39;Validation Accuracy&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Accuracy&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 2)</span><br><span class="line">plt.plot(loss, label&#x3D;&#39;Training Loss&#39;)</span><br><span class="line">plt.plot(val_loss, label&#x3D;&#39;Validation Loss&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Loss&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure></li>
+<li></li>
 </ul>
 ]]></content>
       <categories>
@@ -2593,6 +2619,11 @@
       </tags>
   </entry>
   <entry>
+    <title>历史中国宪制</title>
+    <url>/2021/04/11/%E5%8E%86%E5%8F%B2%E4%B8%AD%E5%9B%BD%E5%AE%AA%E5%88%B6/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>学习模型的模式</title>
     <url>/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<p>伪代码的算法流程 + 数学逻辑 –&gt;才能真的掌握住这个模型的本质。<br>而其他都是表象。所以数学肯定是要啃的。矩阵论和概率统计，微积分，必然是需要的。<br>更多的应用和实践，会深化对于模型的认知。</p>
@@ -3021,6 +3052,23 @@
       </tags>
   </entry>
   <entry>
+    <title>机器</title>
+    <url>/2021/04/05/%E6%9C%BA%E5%99%A8/</url>
+    <content><![CDATA[<p>物理cpu、逻辑cpu、内存、硬盘、gpu</p>
+<a id="more"></a>
+
+<p>命令：<br>cat /proc/cpuinfo | grep “physical id” | uniq | wc -l<br>cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c<br>cat /proc/cpuinfo | grep physical | uniq -c<br>grep MemTotal /proc/meminfo<br>df -h<br>nvidia-smi<br>lspci | grep -i nvidia</p>
+<p>1    prodbigdata-aitm-distributed-job001 10.111.20.180    [DATACOMMAND]           1<em>4c  8g 200g                                                                                 <br>2    prodbigdata-aitm-distributed-job002 10.111.20.181    [DATACOMMAND]              1</em>4c  8g 200g                                                                                 <br>3    prodbigdata-algo001                 10.111.4.208     [DATACOMMAND]                      1<em>16c  16g 200g                                                                         <br>4    prodbigdata-algo002                 10.111.51.113    [DATACOMMAND]                       1</em>8c  16g 256g                                                                      <br>5    prodbigdata-algo004                 10.111.4.204     [DATACOMMAND]                          1<em>16c  16g 200g                                                                      <br>6    prodbigdata-algo005                 10.111.4.205     [DATACOMMAND]                          1</em>16c  16g 200g                                                                      <br>7    prodbigdata-rec-algo-service001     10.111.106.61    [DATACOMMAND]                                                                                            <br>8    prodbigdata-rec-algo-train001       10.111.106.62    [DATACOMMAND]                       1<em>54c 500g   PB级别     8gpu 每个显存16g                                                              <br>9    prodbigdata-youtube-dnn001          10.111.22.113    [DATACOMMAND]                      1</em>16c 120g  1T             2gpu 每个显存16g                                                   <br>10   prodbigdata-ypp-keras-frcnn         10.111.3.220     [DATACOMMAND]                        1*16c 120g  1T             2gpu 每个显存16g                                                                          <br>11   testbigdata-kafka-streaming-job001  10.111.51.50     [DATACOMMAND]            </p>
+<p>Mon Mar 22 12:53:07 2021       <br>+—————————————————————————–+<br>| NVIDIA-SMI 430.40       Driver Version: 430.40       CUDA Version: 10.1     |<br>|——————————-+———————-+———————-+<br>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |<br>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |<br>|===============================+======================+======================|<br>|   0  Tesla P100-PCIE…  Off  | 00000000:00:09.0 Off |                    0 |<br>| N/A   29C    P0    32W / 250W |   1419MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   1  Tesla P100-PCIE…  Off  | 00000000:00:0A.0 Off |                    0 |<br>| N/A   28C    P0    25W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   2  Tesla P100-PCIE…  Off  | 00000000:00:0B.0 Off |                    0 |<br>| N/A   29C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   3  Tesla P100-PCIE…  Off  | 00000000:00:0C.0 Off |                    0 |<br>| N/A   34C    P0    27W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   4  Tesla P100-PCIE…  Off  | 00000000:00:0D.0 Off |                    0 |<br>| N/A   32C    P0    31W / 250W |   2384MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   5  Tesla P100-PCIE…  Off  | 00000000:00:0E.0 Off |                    0 |<br>| N/A   35C    P0    34W / 250W |    263MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   6  Tesla P100-PCIE…  Off  | 00000000:00:0F.0 Off |                    0 |<br>| N/A   27C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   7  Tesla P100-PCIE…  Off  | 00000000:00:10.0 Off |                    0 |<br>| N/A   29C    P0    31W / 250W |   1301MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+</p>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>样本</title>
     <url>/2021/04/05/%E6%A0%B7%E6%9C%AC/</url>
     <content><![CDATA[<ul>
@@ -3085,23 +3133,6 @@
       </tags>
   </entry>
   <entry>
-    <title>机器</title>
-    <url>/2021/04/05/%E6%9C%BA%E5%99%A8/</url>
-    <content><![CDATA[<p>物理cpu、逻辑cpu、内存、硬盘、gpu</p>
-<a id="more"></a>
-
-<p>命令：<br>cat /proc/cpuinfo | grep “physical id” | uniq | wc -l<br>cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c<br>cat /proc/cpuinfo | grep physical | uniq -c<br>grep MemTotal /proc/meminfo<br>df -h<br>nvidia-smi<br>lspci | grep -i nvidia</p>
-<p>1    prodbigdata-aitm-distributed-job001 10.111.20.180    [DATACOMMAND]           1<em>4c  8g 200g                                                                                 <br>2    prodbigdata-aitm-distributed-job002 10.111.20.181    [DATACOMMAND]              1</em>4c  8g 200g                                                                                 <br>3    prodbigdata-algo001                 10.111.4.208     [DATACOMMAND]                      1<em>16c  16g 200g                                                                         <br>4    prodbigdata-algo002                 10.111.51.113    [DATACOMMAND]                       1</em>8c  16g 256g                                                                      <br>5    prodbigdata-algo004                 10.111.4.204     [DATACOMMAND]                          1<em>16c  16g 200g                                                                      <br>6    prodbigdata-algo005                 10.111.4.205     [DATACOMMAND]                          1</em>16c  16g 200g                                                                      <br>7    prodbigdata-rec-algo-service001     10.111.106.61    [DATACOMMAND]                                                                                            <br>8    prodbigdata-rec-algo-train001       10.111.106.62    [DATACOMMAND]                       1<em>54c 500g   PB级别     8gpu 每个显存16g                                                              <br>9    prodbigdata-youtube-dnn001          10.111.22.113    [DATACOMMAND]                      1</em>16c 120g  1T             2gpu 每个显存16g                                                   <br>10   prodbigdata-ypp-keras-frcnn         10.111.3.220     [DATACOMMAND]                        1*16c 120g  1T             2gpu 每个显存16g                                                                          <br>11   testbigdata-kafka-streaming-job001  10.111.51.50     [DATACOMMAND]            </p>
-<p>Mon Mar 22 12:53:07 2021       <br>+—————————————————————————–+<br>| NVIDIA-SMI 430.40       Driver Version: 430.40       CUDA Version: 10.1     |<br>|——————————-+———————-+———————-+<br>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |<br>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |<br>|===============================+======================+======================|<br>|   0  Tesla P100-PCIE…  Off  | 00000000:00:09.0 Off |                    0 |<br>| N/A   29C    P0    32W / 250W |   1419MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   1  Tesla P100-PCIE…  Off  | 00000000:00:0A.0 Off |                    0 |<br>| N/A   28C    P0    25W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   2  Tesla P100-PCIE…  Off  | 00000000:00:0B.0 Off |                    0 |<br>| N/A   29C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   3  Tesla P100-PCIE…  Off  | 00000000:00:0C.0 Off |                    0 |<br>| N/A   34C    P0    27W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   4  Tesla P100-PCIE…  Off  | 00000000:00:0D.0 Off |                    0 |<br>| N/A   32C    P0    31W / 250W |   2384MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   5  Tesla P100-PCIE…  Off  | 00000000:00:0E.0 Off |                    0 |<br>| N/A   35C    P0    34W / 250W |    263MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   6  Tesla P100-PCIE…  Off  | 00000000:00:0F.0 Off |                    0 |<br>| N/A   27C    P0    26W / 250W |     10MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+<br>|   7  Tesla P100-PCIE…  Off  | 00000000:00:10.0 Off |                    0 |<br>| N/A   29C    P0    31W / 250W |   1301MiB / 16280MiB |      0%      Default |<br>+——————————-+———————-+———————-+</p>
-]]></content>
-      <categories>
-        <category>dl</category>
-      </categories>
-      <tags>
-        <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>梯度</title>
     <url>/2021/02/04/%E6%A2%AF%E5%BA%A6/</url>
     <content><![CDATA[<h2 id="梯度消失和爆炸"><a href="#梯度消失和爆炸" class="headerlink" title="梯度消失和爆炸"></a>梯度消失和爆炸</h2><ul>
@@ -3140,6 +3171,33 @@
 <p>5、 relu<br>缺点：<br>输出均值非0<br>dead relu – 某些神经元永远不被激活，导致相应的参数无法更新</p>
 <p>6、dead relu改进<br>负数输入过多导致，改变参数初始化避免过多的负数特征送入relu，设置更小的学习率，避免参数分布巨大变化<br>leaky – 虽然能解决dead，但实际效果中没有证明出比relu更好</p>
 <h4 id="初始化建议"><a href="#初始化建议" class="headerlink" title="初始化建议"></a>初始化建议</h4><p>均值为0<br>标准差为 sqrt(2/当前层输入特征个数)的正太分布</p>
+<h4 id="指数加权平均（Exponentially-weighted-average）"><a href="#指数加权平均（Exponentially-weighted-average）" class="headerlink" title="指数加权平均（Exponentially weighted average）"></a>指数加权平均（Exponentially weighted average）</h4><p>V_t=β*V_t−1+(1−β)*θ_t</p>
+<p>1、当 β 较大时（β = 0.98 相当于每一点前50天的平均气温)。曲线波动相对较小更加平滑，因为对很多天的气温做了平均处理，正因为如此，曲线还会右移。</p>
+<p>​较小，0.5时，曲线波动相对激烈，但是它可以更快的适应温度的变化。</p>
+<p>2、当 β = 0.9时，我们可以近似的认为当前的数值是过去10天的平均值，但是显然如果我们直接计算过去10天的平均值，要比用指数加权平均来的更加准确。但是如果直接计算过去10天的平均值，我们要存储过去10天的数值，而加权平均只要存储V_t−1</p>
+<p>3、指数加权平均 不能很好地拟合前几天的数据，因此需要 偏差修正<br>在机器学习中，多数的指数加权平均运算并不会使用偏差修正。因为大多数人更愿意在初始阶段，用一个捎带偏差的值进行运算。不过，如果在初试阶段就开始考虑偏差，指数加权移动均值仍处于预热阶段，偏差修正可以做出更好的估计。<br>​<br>V_t = V_t / (1 - β_t)</p>
+<h4 id="优化器"><a href="#优化器" class="headerlink" title="优化器"></a>优化器</h4><p>GD 到 BGD 到 SGD–即minibatch的SGD(现在说SGD一般都指MBGD)，<br>BGD即每次权值调整发生在批量样本输入之后，而不是每输入一个样本就更新一次模型参数。这样就会大大加快训练速度。<br>SGD即每次从百万数据样本中，取几百个数据点，算一个SGD梯度，更新一下模型参数。</p>
+<p>步骤：<br>1、计算 t时刻损失函数关于当前参数的梯度 g_t = ▽loss<br>2、计算 t时刻的一阶动量m_t和二阶动量 v_t<br>3、计算 t时刻下降梯度 n_t = lr * m_t/sqrt(v_t)<br>4、计算t+1时刻的梯度即 w_t+1 =  w_t - n_t</p>
+<p>其中一阶动量是，梯度相关的函数<br>二阶动量是，梯度平方相关的函数</p>
+<p>1、SGD<br>m_t = g_t<br>v_t = 1</p>
+<p>SGD每次都会在当前位置上沿着负梯度方向更新（下降，沿着正梯度则为上升），并不考虑之前的方向梯度大小等。<br>动量（moment）通过引入新的变量去积累之前的梯度（通过指数衰减平均得到），得到加速学习过程的目的。</p>
+<p>若当前的梯度方向与累积的历史梯度方向一致，则当前的梯度会被加强，从而这一步下降的幅度更大。若当前的梯度方向与累积的梯度方向不一致，则会减弱当前下降的梯度幅度。如下图</p>
+<p>2、SGDM 含有momentum的SGD</p>
+<p>m_t = θ * m_t-1 + (1 - θ) * g_t   – 指数加权平均<br>v_t = 1 </p>
+<p>初始化，m_t = 0</p>
+<p><img src="/2021/02/04/%E6%A2%AF%E5%BA%A6/momentum.png" alt="momentum"></p>
+<p>3、Ada 引入了二阶动量<br>m_t = g_t<br>v_t = ∑ g_t^2</p>
+<p>优点：对于梯度较大的参数，意味着学习率会变得较小。而对于梯度较小的参数，则效果相反。这样就可以使得参数在平缓的地方下降的稍微快些，不至于徘徊不前。<br>缺点：由于是累积梯度的平方，到后面累积的比较大，会导致梯度消失。</p>
+<p>在凸优化中，AdaGrad算法具有一些令人满意的理论性质。但是，在实际使用中已经发现，对于训练深度神经网络模型而言，从训练开始时累积梯度平方会导致学习率过早过量的减少。AdaGrad算法在某些深度学习模型上效果不错，但不是全部。</p>
+<p>Adadelta<br>Adadelta是对Adagrad的改进，主要是为了克服Adagrad的两个缺点（摘自Adadelta论文《AdaDelta: An Adaptive Learning Rate Method》）：<br>the continual decay of learning rates throughout training<br>the need for a manually selected global learning rate</p>
+<p>4、RMSProp<br>m_t = g_t<br>v_t = θ * v_t-1 + (1 - θ) * g_t^2</p>
+<p>RMSprop也是对Adagrad的扩展，以在非凸的情况下效果更好。和Adadelta一样，RMSprop使用指数加权平均（指数衰减平均）只保留过去给定窗口大小的梯度，使其能够在找到凸碗状结构后快速收敛。</p>
+<p>在实际使用过程中，RMSprop已被证明是一种有效且实用的深度神经网络优化算法。目前它是深度学习人员经常采用的优化算法之一。keras文档中关于RMSprop写到：This optimizer is usually a good choice for recurrent neural networks.</p>
+<p><img src="/2021/02/04/%E6%A2%AF%E5%BA%A6/rmsprop.png" alt="rmsprop"></p>
+<p>5、Adam</p>
+<p>Adam实际上是把momentum和RMSprop结合起来的一种算法<br><img src="/2021/02/04/%E6%A2%AF%E5%BA%A6/adam.png" alt="adam"><br><img src="/2021/02/04/%E6%A2%AF%E5%BA%A6/adamformula.png" alt="adamformula"></p>
+<p>reference:</p>
+<p><a href="https://ruder.io/optimizing-gradient-descent/index.html">https://ruder.io/optimizing-gradient-descent/index.html</a></p>
 ]]></content>
       <categories>
         <category>dl</category>
@@ -3487,6 +3545,11 @@
 <li>总销售额，总交易额</li>
 </ul>
 </li>
+</ul>
+<ul>
+<li><p>感受野<br>如果两个3<em>3和一个5</em>5对原始输入后卷积都得到了1<em>1的输出<br>那么哪个filter好呢？<br>从计算量和参数个数来看，选择多层卷积，而每个卷积为3</em>3的更好。</p>
+</li>
+<li></li>
 </ul>
 ]]></content>
       <categories>

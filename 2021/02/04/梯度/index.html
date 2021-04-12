@@ -15,11 +15,16 @@
 <meta property="og:site_name" content="satyrswang">
 <meta property="og:description" content="梯度消失和爆炸 deep后带来的信息传递&#x2F;梯度传递问题  层数过多导致？sigmoid和tanh为什么会导致梯度消失？  直观解释：从深层网络角度来讲，不同的层学习的速度差异很大，表现为网络中靠近输出的层学习的情况很好，靠近输入的层学习的很慢，有时甚至训练了很久，前几层的权值和刚开始随机初始化的值差不多。 反向传播角度解释：由于反向传播过程中，前面网络权重的偏导数的计算是逐渐从后往前累乘的，如果使">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://satyrswang.github.io/2021/02/04/%E6%A2%AF%E5%BA%A6/momentum.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/02/04/%E6%A2%AF%E5%BA%A6/rmsprop.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/02/04/%E6%A2%AF%E5%BA%A6/adam.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/02/04/%E6%A2%AF%E5%BA%A6/adamformula.png">
 <meta property="article:published_time" content="2021-02-04T03:48:05.000Z">
-<meta property="article:modified_time" content="2021-04-11T05:58:09.515Z">
+<meta property="article:modified_time" content="2021-04-11T10:13:02.426Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="dl">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://satyrswang.github.io/2021/02/04/%E6%A2%AF%E5%BA%A6/momentum.png">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
   
@@ -86,7 +91,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">55.9k</span>
+    总字数 <span class="post-count">57.4k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,7 +191,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：1.2k字 | 预计阅读时长：4分钟
+    字数：2.3k字 | 预计阅读时长：8分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -226,6 +231,33 @@
 <p>5、 relu<br>缺点：<br>输出均值非0<br>dead relu – 某些神经元永远不被激活，导致相应的参数无法更新</p>
 <p>6、dead relu改进<br>负数输入过多导致，改变参数初始化避免过多的负数特征送入relu，设置更小的学习率，避免参数分布巨大变化<br>leaky – 虽然能解决dead，但实际效果中没有证明出比relu更好</p>
 <h4 id="初始化建议"><a href="#初始化建议" class="headerlink" title="初始化建议"></a>初始化建议</h4><p>均值为0<br>标准差为 sqrt(2/当前层输入特征个数)的正太分布</p>
+<h4 id="指数加权平均（Exponentially-weighted-average）"><a href="#指数加权平均（Exponentially-weighted-average）" class="headerlink" title="指数加权平均（Exponentially weighted average）"></a>指数加权平均（Exponentially weighted average）</h4><p>V_t=β*V_t−1+(1−β)*θ_t</p>
+<p>1、当 β 较大时（β = 0.98 相当于每一点前50天的平均气温)。曲线波动相对较小更加平滑，因为对很多天的气温做了平均处理，正因为如此，曲线还会右移。</p>
+<p>​较小，0.5时，曲线波动相对激烈，但是它可以更快的适应温度的变化。</p>
+<p>2、当 β = 0.9时，我们可以近似的认为当前的数值是过去10天的平均值，但是显然如果我们直接计算过去10天的平均值，要比用指数加权平均来的更加准确。但是如果直接计算过去10天的平均值，我们要存储过去10天的数值，而加权平均只要存储V_t−1</p>
+<p>3、指数加权平均 不能很好地拟合前几天的数据，因此需要 偏差修正<br>在机器学习中，多数的指数加权平均运算并不会使用偏差修正。因为大多数人更愿意在初始阶段，用一个捎带偏差的值进行运算。不过，如果在初试阶段就开始考虑偏差，指数加权移动均值仍处于预热阶段，偏差修正可以做出更好的估计。<br>​<br>V_t = V_t / (1 - β_t)</p>
+<h4 id="优化器"><a href="#优化器" class="headerlink" title="优化器"></a>优化器</h4><p>GD 到 BGD 到 SGD–即minibatch的SGD(现在说SGD一般都指MBGD)，<br>BGD即每次权值调整发生在批量样本输入之后，而不是每输入一个样本就更新一次模型参数。这样就会大大加快训练速度。<br>SGD即每次从百万数据样本中，取几百个数据点，算一个SGD梯度，更新一下模型参数。</p>
+<p>步骤：<br>1、计算 t时刻损失函数关于当前参数的梯度 g_t = ▽loss<br>2、计算 t时刻的一阶动量m_t和二阶动量 v_t<br>3、计算 t时刻下降梯度 n_t = lr * m_t/sqrt(v_t)<br>4、计算t+1时刻的梯度即 w_t+1 =  w_t - n_t</p>
+<p>其中一阶动量是，梯度相关的函数<br>二阶动量是，梯度平方相关的函数</p>
+<p>1、SGD<br>m_t = g_t<br>v_t = 1</p>
+<p>SGD每次都会在当前位置上沿着负梯度方向更新（下降，沿着正梯度则为上升），并不考虑之前的方向梯度大小等。<br>动量（moment）通过引入新的变量去积累之前的梯度（通过指数衰减平均得到），得到加速学习过程的目的。</p>
+<p>若当前的梯度方向与累积的历史梯度方向一致，则当前的梯度会被加强，从而这一步下降的幅度更大。若当前的梯度方向与累积的梯度方向不一致，则会减弱当前下降的梯度幅度。如下图</p>
+<p>2、SGDM 含有momentum的SGD</p>
+<p>m_t = θ * m_t-1 + (1 - θ) * g_t   – 指数加权平均<br>v_t = 1 </p>
+<p>初始化，m_t = 0</p>
+<p><img src="/2021/02/04/%E6%A2%AF%E5%BA%A6/momentum.png" alt="momentum"></p>
+<p>3、Ada 引入了二阶动量<br>m_t = g_t<br>v_t = ∑ g_t^2</p>
+<p>优点：对于梯度较大的参数，意味着学习率会变得较小。而对于梯度较小的参数，则效果相反。这样就可以使得参数在平缓的地方下降的稍微快些，不至于徘徊不前。<br>缺点：由于是累积梯度的平方，到后面累积的比较大，会导致梯度消失。</p>
+<p>在凸优化中，AdaGrad算法具有一些令人满意的理论性质。但是，在实际使用中已经发现，对于训练深度神经网络模型而言，从训练开始时累积梯度平方会导致学习率过早过量的减少。AdaGrad算法在某些深度学习模型上效果不错，但不是全部。</p>
+<p>Adadelta<br>Adadelta是对Adagrad的改进，主要是为了克服Adagrad的两个缺点（摘自Adadelta论文《AdaDelta: An Adaptive Learning Rate Method》）：<br>the continual decay of learning rates throughout training<br>the need for a manually selected global learning rate</p>
+<p>4、RMSProp<br>m_t = g_t<br>v_t = θ * v_t-1 + (1 - θ) * g_t^2</p>
+<p>RMSprop也是对Adagrad的扩展，以在非凸的情况下效果更好。和Adadelta一样，RMSprop使用指数加权平均（指数衰减平均）只保留过去给定窗口大小的梯度，使其能够在找到凸碗状结构后快速收敛。</p>
+<p>在实际使用过程中，RMSprop已被证明是一种有效且实用的深度神经网络优化算法。目前它是深度学习人员经常采用的优化算法之一。keras文档中关于RMSprop写到：This optimizer is usually a good choice for recurrent neural networks.</p>
+<p><img src="/2021/02/04/%E6%A2%AF%E5%BA%A6/rmsprop.png" alt="rmsprop"></p>
+<p>5、Adam</p>
+<p>Adam实际上是把momentum和RMSprop结合起来的一种算法<br><img src="/2021/02/04/%E6%A2%AF%E5%BA%A6/adam.png" alt="adam"><br><img src="/2021/02/04/%E6%A2%AF%E5%BA%A6/adamformula.png" alt="adamformula"></p>
+<p>reference:</p>
+<p><a target="_blank" rel="noopener" href="https://ruder.io/optimizing-gradient-descent/index.html">https://ruder.io/optimizing-gradient-descent/index.html</a></p>
 
       
 
@@ -529,6 +561,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
