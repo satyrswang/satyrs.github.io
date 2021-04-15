@@ -8,27 +8,34 @@
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
   <title>CRF | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="本文主要介绍 线性链的CRF。应用于标注问题。介绍：概率图模型、CRF的定义和表示方法，以及三个基本问题：概率计算、学习和预测。">
+  <meta name="description" content="本文主要介绍 线性链的CRF。应用于标注问题。介绍：概率图、MEMM问题、势函数、CRF的定义和表示方法，以及基本问题。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CRF">
 <meta property="og:url" content="https://satyrswang.github.io/2021/03/09/CRF/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="本文主要介绍 线性链的CRF。应用于标注问题。介绍：概率图模型、CRF的定义和表示方法，以及三个基本问题：概率计算、学习和预测。">
+<meta property="og:description" content="本文主要介绍 线性链的CRF。应用于标注问题。介绍：概率图、MEMM问题、势函数、CRF的定义和表示方法，以及基本问题。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/crf.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/lccrf.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/bias.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%901.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%902.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/crftu.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/crfp.jpg">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A2_1.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A2_2.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E8%A7%92%E5%BA%A6.png">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%901.png">
-<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%902.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/hebing1.jpg">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/hebingscore.jpg">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E6%8E%A8%E5%AF%BC.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/wenti.jpg">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/learning%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/sumproduct.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/09/CRF/sumproduct2.png">
+<meta property="og:image" content="https://static.arxiv.org/static/browse/0.3.2.6/images/icons/favicon.ico">
 <meta property="article:published_time" content="2021-03-09T04:46:00.000Z">
-<meta property="article:modified_time" content="2021-03-09T08:38:17.000Z">
+<meta property="article:modified_time" content="2021-04-15T07:20:58.723Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="ml">
 <meta name="twitter:card" content="summary">
@@ -99,7 +106,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">57.4k</span>
+    总字数 <span class="post-count">66.2k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -199,18 +206,20 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：534字 | 预计阅读时长：1分钟
+    字数：1.9k字 | 预计阅读时长：7分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
         <br>
 
-<p>本文主要介绍 线性链的CRF。应用于标注问题。<br>介绍：概率图模型、CRF的定义和表示方法，以及三个基本问题：概率计算、学习和预测。</p>
+<p>本文主要介绍 线性链的CRF。应用于标注问题。<br>介绍：概率图、MEMM问题、势函数、CRF的定义和表示方法，以及基本问题。</p>
 <a id="more"></a>
 
 <br>
 
-<h3 id="概率无向图模型"><a href="#概率无向图模型" class="headerlink" title="概率无向图模型"></a>概率无向图模型</h3><p>1、无向图表示的随机变量之间：成对马尔科夫性、局部马尔科夫性、全局马尔科夫性。</p>
+
+
+<h3 id="00概率无向图模型"><a href="#00概率无向图模型" class="headerlink" title="00概率无向图模型"></a>00概率无向图模型</h3><p>1、无向图表示的随机变量之间：成对马尔科夫性、局部马尔科夫性、全局马尔科夫性。</p>
 <p>2、概率无向图模型定义：<br>联合概率满足上面的三个马尔科夫性，则称此联合概率分布为概率无向图模型或者马尔科夫随机出。</p>
 <p>3、团与最大团</p>
 <p>4、因子分解<br>联合分布表示为 最大团上的随机变量的函数的乘积形式的操作，称为概率无向图模型的因子分解。</p>
@@ -225,49 +234,103 @@
 <p><img src="/2021/03/09/CRF/lccrf.png" alt="lccrf"></p>
 <!-- <img src=lccrf.png width=80% height=300> -->
 
-
 <br>
 
 <br>
 
-<h3 id="三种表达形式"><a href="#三种表达形式" class="headerlink" title="三种表达形式"></a>三种表达形式</h3><p>1、参数化形式</p>
+
+
+<h3 id="01引入"><a href="#01引入" class="headerlink" title="01引入"></a>01引入</h3><p>MEMM有的缺陷是标签偏向。</p>
+<p>标签偏向问题的原因是 – MEMM在每一步都用softmax进行了归一化</p>
+<p>CRF通过全局归一化解决了标签偏向问题。</p>
+<p>这样讲是比较费解的。论文里的例子容易理解。两个词，rib rob。</p>
+<p>概率图如下(来自论文)</p>
+<p><img src="/2021/03/09/CRF/bias.png" alt="img"></p>
+<p>这里隐状态1到2只有一条路，4到5也只有一条路，所以整个模型没有考虑观测值i 和 o不同，所以导致词性标注过程中，不考虑观测变量。这个就不符合逻辑了。</p>
+<p>因此局部的归一化，容易受隐变量影响，而不去考虑观测变量。这个带来的问题是：</p>
+<p>如果training数据，3个都是rib，一个是rob。那么在预测过程中，求max P(y1y2y3|rob)时，viterbi算法走出来的，将会是0-&gt;1-&gt;2-&gt;3。</p>
+<p>即，<strong>如果上一个状态是低熵的，那么很容易忽略观测变量，而在预测时，受样本影响较大。</strong></p>
+<p>即，无论观测值，当State1比State2转移少，State1会一直转移到State1，即使全局看转移到State2概率更高。即有更少转移的状态、拥有的转移概率普遍偏高，概率最大路径更容易出现转移少的状态。</p>
+<h3 id="02CRF解决label-bias"><a href="#02CRF解决label-bias" class="headerlink" title="02CRF解决label bias"></a>02CRF解决label bias</h3><p>一，crf将输入序列和输出标注映射为一个d维实数向量，而MEMM的特征函数拥有的信息只是输入序列和当前状态以及上一个状态，也就是说CRF的特征函数掌握信息量更多，从而表达能力更强。</p>
+<p>第二个的改进是它不再每一次状态转移进行归一化，而是在全局进行归一化，这样完美解决Label Bias问题。即CRF统计了全局概率，在做归一化时考虑了数据在全局的分布，而不是仅仅在局部归一化，这样就解决了MEMM中的标记偏置的问题。使得序列标注的解码变得最优解。</p>
+<p>有得必有失，注意到模型的分母需要罗列所有的状态序列，对于序列长度为n的输入序列，状态序列的个数为S^n ，对于这种指数增长问题，在实际应用中一般都是intractable的，只能付诸于近似求解，比如我们之前提过的Variational Bayes或者Gibbs Sampling等等。</p>
+<p>不过有一种特殊结构的CRF – linear chain crf，精确快速求解的方式是存在的。</p>
+<p>(注：马尔科夫随机场就是概率无向图，而crf是马尔科夫随机场特殊一种，而线性链是crf的特殊一种。隐状态是随机场，而观测变量是条件。条件随机场还有其他多种形式。)</p>
+<br>
+
+<br>
+
+
+
+<h3 id="03最大图、势函数"><a href="#03最大图、势函数" class="headerlink" title="03最大图、势函数"></a>03最大图、势函数</h3><h4 id="举个例子"><a href="#举个例子" class="headerlink" title="举个例子"></a>举个例子</h4><p>例子更清楚：<br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%901.png" alt="矩阵形式例子1"><br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%902.png" alt="矩阵形式例子2"></p>
+<h4 id="linear-crf-是如何定义特征函数的？如何将原来intractable的问题变为tractable？"><a href="#linear-crf-是如何定义特征函数的？如何将原来intractable的问题变为tractable？" class="headerlink" title="linear crf 是如何定义特征函数的？如何将原来intractable的问题变为tractable？"></a>linear crf 是如何定义特征函数的？如何将原来intractable的问题变为tractable？</h4><p>linear让最大团的个数为序列长度-1，并且，最大团内部的特征函数为 t1 个状态特征函数 和 t2个转移特征函数 之和的形式。</p>
+<h4 id="那，无向图的条件概率怎么表达呢？"><a href="#那，无向图的条件概率怎么表达呢？" class="headerlink" title="那，无向图的条件概率怎么表达呢？"></a>那，无向图的条件概率怎么表达呢？</h4><p>从MEMM可见，本质上有两点，一是x到y的函数，即自定义的特征函数，二是loss。和MEMM不同的是，CRF是无向图。无向图的条件概率怎么表达呢？</p>
+<p>来自google图片</p>
+<p><img src="/2021/03/09/CRF/crftu.png" alt="img"></p>
+<p>这里就引入了最大图概念。由上文介绍。得到</p>
+<p><img src="/2021/03/09/CRF/crfp.jpg" alt="img"></p>
+<p>这个公式，本质是求 观测变量下隐状态序列的概率。c为最大团个数，k为自定义的k个特征函数。</p>
+<p>对于CRF，可以为他定义两款特征函数：转移特征&amp;状态特征。 即将建模总公式展开，见下面👇的参数化表达。</p>
+<p>省得写了，下面大量贴图。</p>
+<br>
+
+<br>
+
+
+
+
+
+<h3 id="04三种表达形式"><a href="#04三种表达形式" class="headerlink" title="04三种表达形式"></a>04三种表达形式</h3><p>1、参数化形式</p>
 <p>公式：<br><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F.png" alt="参数化公式"></p>
-<!-- <img src=参数化公式.png width=70% height=200> -->
-
-
 <p>解释如下：<br><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A2_1.png" alt="参数化公式解释2_1"></p>
-<!-- <img src=参数化公式解释2_1.png width=70% height=200> -->
-
 <p><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A2_2.png" alt="参数化公式解释2_2"></p>
-<!-- <img src=参数化公式解释2_2.png width=70% height=200> -->
-
-
 <p>即：<br><img src="/2021/03/09/CRF/%E8%A7%92%E5%BA%A6.png" alt="角度"></p>
-<!-- <img src=角度.png width=70% height=200> -->
-
+<p>把两种特征合在一起：</p>
+<p><img src="/2021/03/09/CRF/hebing1.jpg" alt="1"></p>
+<p>合并的公式中，我们并没有显示将边和节点区分开来，而只是写出了边的特征函数，因为从某种程度上边包含的信息已经涵盖了节点所拥有的信息，将两者统一起来可以有利于我们数学公式表达的方便性，另一方面，将边和节点进行单独讨论，从理论上可能有一点冗余，但是从实际效果中，节点信息可以充当一种backoff，起到一定的平滑效果(Smoothing)。</p>
+<p>特征函数部分和MEMM一样记做score：</p>
+<p><img src="/2021/03/09/CRF/hebingscore.jpg" alt="2"></p>
+<p>可见：</p>
+<p>我们为 token(隐状态) 打分，满足条件的就有所贡献。最后将所得的分数进行log线性表示，求和后归一化，即可得到概率值。对数线性的思路。</p>
+<p>这个的推导在视频里去看。<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV19t411R7QU?p=4">https://www.bilibili.com/video/BV19t411R7QU?p=4</a></p>
+<br>
 
 <p>2、参数化简化的形式推导<br>略</p>
-<p>3、矩阵形式<br>例子更清楚：<br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%901.png" alt="矩阵形式例子1"><br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%902.png" alt="矩阵形式例子2"></p>
-<!-- <img src=矩阵形式例子1.png width=70% height=100>
-<img src=矩阵形式例子2.png width=70% height=700> -->
+<br>
 
-
+<p>3、矩阵形式</p>
 <p>矩阵形式推导：<br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E6%8E%A8%E5%AF%BC.png" alt="矩阵推导"></p>
 <!-- <img src=矩阵推导.png width=70% height=500> -->
 
-
 <br>
 <br>
 
 
-<h3 id="三个问题"><a href="#三个问题" class="headerlink" title="三个问题"></a>三个问题</h3><h4 id="模型基本问题"><a href="#模型基本问题" class="headerlink" title="模型基本问题"></a>模型基本问题</h4><p>模型问题包含 learning 和 inference。<br>learning即 parameter estimation。求 θ。<br>inference：<br>(以下 y 为隐变量)<br>1 marginal prob ： 当建模对象为joint dist，求p(xt)即求边缘概率问题。<br>2 conditional prob ： 求 p(x|y)<br>3 MAP inference ： decoding ， 求  y = argmax p(y|x)</p>
+<h3 id="05三个问题"><a href="#05三个问题" class="headerlink" title="05三个问题"></a>05三个问题</h3><h4 id="模型基本问题"><a href="#模型基本问题" class="headerlink" title="模型基本问题"></a>模型基本问题</h4><p>模型问题包含 learning 和 inference。<br>learning即 parameter estimation。求 θ。<br>inference：<br>(以下 y 为隐变量)<br>1 marginal prob ： 当建模对象为joint distribution，求p(y_t|x)即求边缘概率问题。<br>2 conditional prob ： 求 p(x|y)  –此为生成模型才有的问题，在crf中不考虑<br>3 MAP inference ： decoding ， 求  y_pred = argmax p(y|x)          其中y_pred = y_1y_2y_3 …</p>
+<p><img src="/2021/03/09/CRF/wenti.jpg" alt="问题定义"></p>
+<br>
+
 <h4 id="CRF-learning"><a href="#CRF-learning" class="headerlink" title="CRF learning"></a>CRF learning</h4><p>1、问题定义<br><img src="/2021/03/09/CRF/learning%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89.png" alt="learning问题定义"></p>
+<p>CRF也是极大似然估计方法、梯度下降、牛顿迭代、拟牛顿下降、IIS、BFGS、L-BFGS等等。能用在log-linear models上的求参方法都可以用过来。</p>
 <p>2、todo – 数学推导</p>
+<br>
+
+
+
+
 <h4 id="CRF-marginal-prob"><a href="#CRF-marginal-prob" class="headerlink" title="CRF marginal prob"></a>CRF marginal prob</h4><p>1、即求 P(yt = i | x)<br>给定x条件下的 隐变量yt 的边缘概率。<br>即 词性标注中，给定一句话，判断出 y1(第一个词)是动词(i)的概率是多少。</p>
 <p>2、硬算，复杂度高。指数级计算不可行。<br>简化：</p>
 <p>数学转化。<br>用到了变量消除法， sum+product，又叫信念传播，belief propagate。<br>HMM的前向 后向传播也就是belief propagate。</p>
 <p><img src="/2021/03/09/CRF/sumproduct.png" alt="sumproduct"><br><img src="/2021/03/09/CRF/sumproduct2.png" alt="sumproduct2"></p>
-<h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。</p>
+<h4 id><a href="#" class="headerlink" title></a><br></h4><h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。vertbi，既然是dp，核心要梳理清楚dp的转移函数。</p>
+<p>我们就定义i处的局部状态为 f(I) ,表示在位置i处的隐状态的各种取值可能为 I，然后递推位置i+1处的隐状态，写出来DP转移公式。</p>
+<br>
+
+<p>reference</p>
+<p><img src="https://static.arxiv.org/static/browse/0.3.2.6/images/icons/favicon.ico" alt="img"><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1011.4088">https://arxiv.org/abs/1011.4088</a> </p>
+<p><a target="_blank" rel="noopener" href="http://www.ai.mit.edu/courses/6.891-nlp/ASSIGNMENT1/t11.1.pdf">http://www.ai.mit.edu/courses/6.891-nlp/ASSIGNMENT1/t11.1.pdf</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/en-heng/p/6201893.html">https://www.cnblogs.com/en-heng/p/6201893.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/aws3217150/article/details/68935789">https://blog.csdn.net/aws3217150/article/details/68935789</a></p>
 
       
 
@@ -578,6 +641,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">gpu</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">cuda</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
               </li>
              
@@ -595,6 +666,18 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">并发</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">linux</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">mac</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -635,6 +718,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">推荐系统</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">tensorflow</a>
               </li>
              
               <li class="article-tag-list-item">

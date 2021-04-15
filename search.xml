@@ -56,12 +56,14 @@
     <url>/2021/03/09/CRF/</url>
     <content><![CDATA[<br>
 
-<p>本文主要介绍 线性链的CRF。应用于标注问题。<br>介绍：概率图模型、CRF的定义和表示方法，以及三个基本问题：概率计算、学习和预测。</p>
+<p>本文主要介绍 线性链的CRF。应用于标注问题。<br>介绍：概率图、MEMM问题、势函数、CRF的定义和表示方法，以及基本问题。</p>
 <a id="more"></a>
 
 <br>
 
-<h3 id="概率无向图模型"><a href="#概率无向图模型" class="headerlink" title="概率无向图模型"></a>概率无向图模型</h3><p>1、无向图表示的随机变量之间：成对马尔科夫性、局部马尔科夫性、全局马尔科夫性。</p>
+
+
+<h3 id="00概率无向图模型"><a href="#00概率无向图模型" class="headerlink" title="00概率无向图模型"></a>00概率无向图模型</h3><p>1、无向图表示的随机变量之间：成对马尔科夫性、局部马尔科夫性、全局马尔科夫性。</p>
 <p>2、概率无向图模型定义：<br>联合概率满足上面的三个马尔科夫性，则称此联合概率分布为概率无向图模型或者马尔科夫随机出。</p>
 <p>3、团与最大团</p>
 <p>4、因子分解<br>联合分布表示为 最大团上的随机变量的函数的乘积形式的操作，称为概率无向图模型的因子分解。</p>
@@ -76,49 +78,245 @@
 <p><img src="/2021/03/09/CRF/lccrf.png" alt="lccrf"></p>
 <!-- <img src=lccrf.png width=80% height=300> -->
 
-
 <br>
 
 <br>
 
-<h3 id="三种表达形式"><a href="#三种表达形式" class="headerlink" title="三种表达形式"></a>三种表达形式</h3><p>1、参数化形式</p>
+
+
+<h3 id="01引入"><a href="#01引入" class="headerlink" title="01引入"></a>01引入</h3><p>MEMM有的缺陷是标签偏向。</p>
+<p>标签偏向问题的原因是 – MEMM在每一步都用softmax进行了归一化</p>
+<p>CRF通过全局归一化解决了标签偏向问题。</p>
+<p>这样讲是比较费解的。论文里的例子容易理解。两个词，rib rob。</p>
+<p>概率图如下(来自论文)</p>
+<p><img src="/2021/03/09/CRF/bias.png" alt="img"></p>
+<p>这里隐状态1到2只有一条路，4到5也只有一条路，所以整个模型没有考虑观测值i 和 o不同，所以导致词性标注过程中，不考虑观测变量。这个就不符合逻辑了。</p>
+<p>因此局部的归一化，容易受隐变量影响，而不去考虑观测变量。这个带来的问题是：</p>
+<p>如果training数据，3个都是rib，一个是rob。那么在预测过程中，求max P(y1y2y3|rob)时，viterbi算法走出来的，将会是0-&gt;1-&gt;2-&gt;3。</p>
+<p>即，<strong>如果上一个状态是低熵的，那么很容易忽略观测变量，而在预测时，受样本影响较大。</strong></p>
+<p>即，无论观测值，当State1比State2转移少，State1会一直转移到State1，即使全局看转移到State2概率更高。即有更少转移的状态、拥有的转移概率普遍偏高，概率最大路径更容易出现转移少的状态。</p>
+<h3 id="02CRF解决label-bias"><a href="#02CRF解决label-bias" class="headerlink" title="02CRF解决label bias"></a>02CRF解决label bias</h3><p>一，crf将输入序列和输出标注映射为一个d维实数向量，而MEMM的特征函数拥有的信息只是输入序列和当前状态以及上一个状态，也就是说CRF的特征函数掌握信息量更多，从而表达能力更强。</p>
+<p>第二个的改进是它不再每一次状态转移进行归一化，而是在全局进行归一化，这样完美解决Label Bias问题。即CRF统计了全局概率，在做归一化时考虑了数据在全局的分布，而不是仅仅在局部归一化，这样就解决了MEMM中的标记偏置的问题。使得序列标注的解码变得最优解。</p>
+<p>有得必有失，注意到模型的分母需要罗列所有的状态序列，对于序列长度为n的输入序列，状态序列的个数为S^n ，对于这种指数增长问题，在实际应用中一般都是intractable的，只能付诸于近似求解，比如我们之前提过的Variational Bayes或者Gibbs Sampling等等。</p>
+<p>不过有一种特殊结构的CRF – linear chain crf，精确快速求解的方式是存在的。</p>
+<p>(注：马尔科夫随机场就是概率无向图，而crf是马尔科夫随机场特殊一种，而线性链是crf的特殊一种。隐状态是随机场，而观测变量是条件。条件随机场还有其他多种形式。)</p>
+<br>
+
+<br>
+
+
+
+<h3 id="03最大图、势函数"><a href="#03最大图、势函数" class="headerlink" title="03最大图、势函数"></a>03最大图、势函数</h3><h4 id="举个例子"><a href="#举个例子" class="headerlink" title="举个例子"></a>举个例子</h4><p>例子更清楚：<br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%901.png" alt="矩阵形式例子1"><br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%902.png" alt="矩阵形式例子2"></p>
+<h4 id="linear-crf-是如何定义特征函数的？如何将原来intractable的问题变为tractable？"><a href="#linear-crf-是如何定义特征函数的？如何将原来intractable的问题变为tractable？" class="headerlink" title="linear crf 是如何定义特征函数的？如何将原来intractable的问题变为tractable？"></a>linear crf 是如何定义特征函数的？如何将原来intractable的问题变为tractable？</h4><p>linear让最大团的个数为序列长度-1，并且，最大团内部的特征函数为 t1 个状态特征函数 和 t2个转移特征函数 之和的形式。</p>
+<h4 id="那，无向图的条件概率怎么表达呢？"><a href="#那，无向图的条件概率怎么表达呢？" class="headerlink" title="那，无向图的条件概率怎么表达呢？"></a>那，无向图的条件概率怎么表达呢？</h4><p>从MEMM可见，本质上有两点，一是x到y的函数，即自定义的特征函数，二是loss。和MEMM不同的是，CRF是无向图。无向图的条件概率怎么表达呢？</p>
+<p>来自google图片</p>
+<p><img src="/2021/03/09/CRF/crftu.png" alt="img"></p>
+<p>这里就引入了最大图概念。由上文介绍。得到</p>
+<p><img src="/2021/03/09/CRF/crfp.jpg" alt="img"></p>
+<p>这个公式，本质是求 观测变量下隐状态序列的概率。c为最大团个数，k为自定义的k个特征函数。</p>
+<p>对于CRF，可以为他定义两款特征函数：转移特征&amp;状态特征。 即将建模总公式展开，见下面👇的参数化表达。</p>
+<p>省得写了，下面大量贴图。</p>
+<br>
+
+<br>
+
+
+
+
+
+<h3 id="04三种表达形式"><a href="#04三种表达形式" class="headerlink" title="04三种表达形式"></a>04三种表达形式</h3><p>1、参数化形式</p>
 <p>公式：<br><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F.png" alt="参数化公式"></p>
-<!-- <img src=参数化公式.png width=70% height=200> -->
-
-
 <p>解释如下：<br><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A2_1.png" alt="参数化公式解释2_1"></p>
-<!-- <img src=参数化公式解释2_1.png width=70% height=200> -->
-
 <p><img src="/2021/03/09/CRF/%E5%8F%82%E6%95%B0%E5%8C%96%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A2_2.png" alt="参数化公式解释2_2"></p>
-<!-- <img src=参数化公式解释2_2.png width=70% height=200> -->
-
-
 <p>即：<br><img src="/2021/03/09/CRF/%E8%A7%92%E5%BA%A6.png" alt="角度"></p>
-<!-- <img src=角度.png width=70% height=200> -->
-
+<p>把两种特征合在一起：</p>
+<p><img src="/2021/03/09/CRF/hebing1.jpg" alt="1"></p>
+<p>合并的公式中，我们并没有显示将边和节点区分开来，而只是写出了边的特征函数，因为从某种程度上边包含的信息已经涵盖了节点所拥有的信息，将两者统一起来可以有利于我们数学公式表达的方便性，另一方面，将边和节点进行单独讨论，从理论上可能有一点冗余，但是从实际效果中，节点信息可以充当一种backoff，起到一定的平滑效果(Smoothing)。</p>
+<p>特征函数部分和MEMM一样记做score：</p>
+<p><img src="/2021/03/09/CRF/hebingscore.jpg" alt="2"></p>
+<p>可见：</p>
+<p>我们为 token(隐状态) 打分，满足条件的就有所贡献。最后将所得的分数进行log线性表示，求和后归一化，即可得到概率值。对数线性的思路。</p>
+<p>这个的推导在视频里去看。<a href="https://www.bilibili.com/video/BV19t411R7QU?p=4">https://www.bilibili.com/video/BV19t411R7QU?p=4</a></p>
+<br>
 
 <p>2、参数化简化的形式推导<br>略</p>
-<p>3、矩阵形式<br>例子更清楚：<br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%901.png" alt="矩阵形式例子1"><br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E5%BD%A2%E5%BC%8F%E4%BE%8B%E5%AD%902.png" alt="矩阵形式例子2"></p>
-<!-- <img src=矩阵形式例子1.png width=70% height=100>
-<img src=矩阵形式例子2.png width=70% height=700> -->
+<br>
 
-
+<p>3、矩阵形式</p>
 <p>矩阵形式推导：<br><img src="/2021/03/09/CRF/%E7%9F%A9%E9%98%B5%E6%8E%A8%E5%AF%BC.png" alt="矩阵推导"></p>
 <!-- <img src=矩阵推导.png width=70% height=500> -->
 
-
 <br>
 <br>
 
 
-<h3 id="三个问题"><a href="#三个问题" class="headerlink" title="三个问题"></a>三个问题</h3><h4 id="模型基本问题"><a href="#模型基本问题" class="headerlink" title="模型基本问题"></a>模型基本问题</h4><p>模型问题包含 learning 和 inference。<br>learning即 parameter estimation。求 θ。<br>inference：<br>(以下 y 为隐变量)<br>1 marginal prob ： 当建模对象为joint dist，求p(xt)即求边缘概率问题。<br>2 conditional prob ： 求 p(x|y)<br>3 MAP inference ： decoding ， 求  y = argmax p(y|x)</p>
+<h3 id="05三个问题"><a href="#05三个问题" class="headerlink" title="05三个问题"></a>05三个问题</h3><h4 id="模型基本问题"><a href="#模型基本问题" class="headerlink" title="模型基本问题"></a>模型基本问题</h4><p>模型问题包含 learning 和 inference。<br>learning即 parameter estimation。求 θ。<br>inference：<br>(以下 y 为隐变量)<br>1 marginal prob ： 当建模对象为joint distribution，求p(y_t|x)即求边缘概率问题。<br>2 conditional prob ： 求 p(x|y)  –此为生成模型才有的问题，在crf中不考虑<br>3 MAP inference ： decoding ， 求  y_pred = argmax p(y|x)          其中y_pred = y_1y_2y_3 …</p>
+<p><img src="/2021/03/09/CRF/wenti.jpg" alt="问题定义"></p>
+<br>
+
 <h4 id="CRF-learning"><a href="#CRF-learning" class="headerlink" title="CRF learning"></a>CRF learning</h4><p>1、问题定义<br><img src="/2021/03/09/CRF/learning%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89.png" alt="learning问题定义"></p>
+<p>CRF也是极大似然估计方法、梯度下降、牛顿迭代、拟牛顿下降、IIS、BFGS、L-BFGS等等。能用在log-linear models上的求参方法都可以用过来。</p>
 <p>2、todo – 数学推导</p>
+<br>
+
+
+
+
 <h4 id="CRF-marginal-prob"><a href="#CRF-marginal-prob" class="headerlink" title="CRF marginal prob"></a>CRF marginal prob</h4><p>1、即求 P(yt = i | x)<br>给定x条件下的 隐变量yt 的边缘概率。<br>即 词性标注中，给定一句话，判断出 y1(第一个词)是动词(i)的概率是多少。</p>
 <p>2、硬算，复杂度高。指数级计算不可行。<br>简化：</p>
 <p>数学转化。<br>用到了变量消除法， sum+product，又叫信念传播，belief propagate。<br>HMM的前向 后向传播也就是belief propagate。</p>
 <p><img src="/2021/03/09/CRF/sumproduct.png" alt="sumproduct"><br><img src="/2021/03/09/CRF/sumproduct2.png" alt="sumproduct2"></p>
-<h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。</p>
+<h4 id><a href="#" class="headerlink" title></a><br></h4><h4 id="CRF-decoding"><a href="#CRF-decoding" class="headerlink" title="CRF decoding"></a>CRF decoding</h4><p>求 y的序列，使得 argmax p(y|x)<br>– 类似于 HMM 问题。vertbi，既然是dp，核心要梳理清楚dp的转移函数。</p>
+<p>我们就定义i处的局部状态为 f(I) ,表示在位置i处的隐状态的各种取值可能为 I，然后递推位置i+1处的隐状态，写出来DP转移公式。</p>
+<br>
+
+<p>reference</p>
+<p><img src="https://static.arxiv.org/static/browse/0.3.2.6/images/icons/favicon.ico" alt="img"><a href="https://arxiv.org/abs/1011.4088">https://arxiv.org/abs/1011.4088</a> </p>
+<p><a href="http://www.ai.mit.edu/courses/6.891-nlp/ASSIGNMENT1/t11.1.pdf">http://www.ai.mit.edu/courses/6.891-nlp/ASSIGNMENT1/t11.1.pdf</a></p>
+<p><a href="https://www.cnblogs.com/en-heng/p/6201893.html">https://www.cnblogs.com/en-heng/p/6201893.html</a></p>
+<p><a href="https://blog.csdn.net/aws3217150/article/details/68935789">https://blog.csdn.net/aws3217150/article/details/68935789</a></p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CRF前续知识</title>
+    <url>/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/</url>
+    <content><![CDATA[<br>
+
+<p>从HMM MEMM介绍概率图、生成和判别模型</p>
+<br>
+
+<a id="more"></a>
+
+<h2 id="简述"><a href="#简述" class="headerlink" title="简述"></a>简述</h2><p>我理解，机器学习，本质是一种反向求解过程。数据的具象世界里找到抽象的规律。比由规律推演出具象要复杂。</p>
+<p>并且反向求解还有各种现实的局限，数据上、算力上、可行性上、性能约束上。就会有各种trick。就像工程中缓存击穿穿透问题，通过小trick来避免。而其根基还是在于统计。</p>
+<p>由机器学习到深度学习，根基和理论框架都没有变。</p>
+<p>CRF即是一种对序列数据的建模。放松了HMM的1-gram依赖假设和观测独立假设。转移和发射矩阵也进一步抽象为函数。因此就比HMM更实际些。也由于放松， 需要各种理论(和SVM一样涉及到了许多定理，更多是概率统计里分布相关的定理)支持，就比HMM 更加复杂。</p>
+<p>很容易从概率图，看到机器学习为何向深度转化。本质都是对现实世界里的学习任务进行建模。</p>
+<h2 id="00-生成和判别模型"><a href="#00-生成和判别模型" class="headerlink" title="00 生成和判别模型"></a>00 生成和判别模型</h2><p>概率图为什么那么难。核心在 是否理解 生成和判别模型的区别。</p>
+<p>神经网络模型、SVM、perceptron、LR、DT……</p>
+<p>NB、LDA ……</p>
+<p>核心区别在于： 对 联合概率  还是对 条件概率 建模。</p>
+<p><strong>角度一</strong>用inference过程举例：假设我知道P(X) P(X,Y) ，那我就根据条件概率公式预测出来y_pred 了。</p>
+<p>这个是 生成模型。</p>
+<p>而判别 ： 假设我知道P(Y|X) ，那我直接代入X就可得到y_pred</p>
+<p><strong>角度二</strong>用learning过程举例：生成我要对 P(X,Y) 建模，判别我要对P(Y|X) 建模。</p>
+<p>其实是很简单的。但是我们 对于不同模型去整体把握的时候 ，忽略了top down思维方式。bottom up的确是不容易想清楚。</p>
+<p>进一步： 你能从这里思考出，生成和判别的各自局限吗？</p>
+<p>判别边界和(结果的)生成过程、先验假设、数据量和性能</p>
+<h2 id="01-概率图"><a href="#01-概率图" class="headerlink" title="01 概率图"></a>01 概率图</h2><p>序列数据 – 标注 分类 走势分析 –&gt;其中概率图解决标注和分类</p>
+<p>概率图的话，需要去学习基本的有向图表示含义，图画出来(如下)则能判断，给出隐状态c，a\b之间是否独立。</p>
+<p>来自知乎某文：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/tu.png" alt="img"></p>
+<p>focus在HMM MEMM CRF –&gt;如何解决标注问题</p>
+<h2 id="02-马尔科夫随机场定义-概率无向图定义"><a href="#02-马尔科夫随机场定义-概率无向图定义" class="headerlink" title="02 马尔科夫随机场定义(概率无向图定义)"></a>02 马尔科夫随机场定义(概率无向图定义)</h2><p>马尔科夫假设 – 马尔科夫模型的前提与局限</p>
+<p>马尔科夫性质 – a. 成对，b. 局部，c. 全局。</p>
+<p>这个性质主要有助于无向图里势函数的推导。不在乎数学，可忽略。势函数见下04。</p>
+<h2 id="03-有向图和无向图"><a href="#03-有向图和无向图" class="headerlink" title="03 有向图和无向图"></a>03 有向图和无向图</h2><p>图模型 – 有向(贝叶斯网络)和无向(马尔科夫网络)  </p>
+<p>HMM、 Karman filter是有向，boltzman 、CRF是无向</p>
+<p>核心区别：在于建模过程如何求 node 代表的token ，该随机变量的联合概率</p>
+<h2 id="04-无向图的联合概率-–-势函数"><a href="#04-无向图的联合概率-–-势函数" class="headerlink" title="04 无向图的联合概率 – 势函数"></a>04 无向图的联合概率 – 势函数</h2><p>势函数哪里来的or为啥这个样子？ – 或者说为啥无向图的联合概率是这个样子的因子分解？</p>
+<p>： 由 Hammersley-Clifford定理 保证。</p>
+<h2 id="05-HMM"><a href="#05-HMM" class="headerlink" title="05 HMM"></a>05 HMM</h2><h3 id="HMM之前的NB"><a href="#HMM之前的NB" class="headerlink" title="HMM之前的NB"></a>HMM之前的NB</h3><p>来自google图片：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/nb.png" alt="img"></p>
+<h3 id="HMM五要素"><a href="#HMM五要素" class="headerlink" title="HMM五要素"></a>HMM五要素</h3><p>第一个隐状态的概率分布、转移矩阵、发射矩阵、状态集、观测集</p>
+<p>来自google图片：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/hmm.png" alt="img"></p>
+<p>进一步： 你能从这里思考出，HMM是生成还是判别？</p>
+<p>这也是HMM痛点。假设不合实际、生成自身局限、没有更多特征信息。</p>
+<h3 id="HMM问题"><a href="#HMM问题" class="headerlink" title="HMM问题"></a>HMM问题</h3><p>1、学习过程 ，即计算出五要素(建模过程)</p>
+<p>监督学习：</p>
+<p>MLE – 本质就是频率来估计概率</p>
+<p>非监督学习：</p>
+<p> Baum-Welch– 本质即EM</p>
+<p>2、概率计算过程 ，即建好的模型下(五要素已知下)，当前观测序列的联合概率</p>
+<p>直接计算 – 本质就是个暴力穷举</p>
+<p>前向算法、后向算法  – 本质和viterbi一样也是DP优化</p>
+<p>3、预测过程 ，即预测出当前时刻，哪个隐状态概率最大</p>
+<p>近似算法 – 复杂度高且是局部最优：即使当转移概率为0时，仍可能出现在预测出来的状态序列里</p>
+<p>viterbi算法 – 本质就是个动态规划</p>
+<p>4、filter问题</p>
+<p>略</p>
+<p>5、smoothing问题</p>
+<p>略</p>
+<p>这些算法并不需要太复杂的证明，都比较直观。这也是HMM好理解的原因。</p>
+<p>感兴趣来bili  一键三连。</p>
+<h2 id="06-MEMM最大熵马尔科夫模型"><a href="#06-MEMM最大熵马尔科夫模型" class="headerlink" title="06 MEMM最大熵马尔科夫模型"></a>06 MEMM最大熵马尔科夫模型</h2><p>整个模型的框架和HMM一样，不同之处在于：</p>
+<p>1、观测独立的假设被打破</p>
+<p>2、局部采用LR(最大熵模型)</p>
+<p>3、因为2，建模过程就通过梯度下降</p>
+<h3 id="MEMM的概率图"><a href="#MEMM的概率图" class="headerlink" title="MEMM的概率图"></a>MEMM的概率图</h3><p>来自google图片：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memm.png" alt="img"></p>
+<p>从图中可见：</p>
+<p>1、根据01概率图的基础知识，MEMM中，当y_t已知，这种是个v字形的有向图，则x_t和y_t-1 、x_t-1 是相关的–即路径是连通的。因此打破了HMM的观测独立假设。</p>
+<p>2、这里是判别模型，因此对P(Y|X,θ)建模</p>
+<p>3、“x_t-&gt;y_t” 每个这个箭头的过程，都是一个逻辑回归LR。因此，每一个这样的局部都需要进行一次softmax，而softmax中e的指数是：w*f( h, y_t) ，也叫做质量分数(mass score)(这个mass来自pmf的m)，其中h是 (y_t-1, x_1:t)</p>
+<p>4、概率计算：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memmp.jpg" alt="img"></p>
+<p>这里，就是softmax得到的隐状态y的概率，加上log就是最大似然</p>
+<p>其中，t为第几个隐状态，i为隐状态值，o为观测值，a为不同特征函数个数–自定义，Z为softmax的归一化。</p>
+<p>特征函数是自己定义的，可求导即可。(本质即为，从某个词到某个词性的函数)。特征函数权重是可训练参数。</p>
+<p>相当于dfm的子网、graphsage或者GCN的聚合子网。</p>
+<p>又找到了一个图，这个更清楚：👈🏻左边为HMM 右边👉🏻为MEMM</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memm3.png" alt="img"></p>
+<h3 id="MEMM问题"><a href="#MEMM问题" class="headerlink" title="MEMM问题"></a>MEMM问题</h3><p>和HMM一样，涉及到建模、预测。</p>
+<p>区别的地方是：</p>
+<p>建模：MEMM的loss是-log极大似然，然后梯度下降去求。</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memmloss.png" alt="img"></p>
+<p>这里，对n个样本，每个样本长度为mi，的softmax结果求log，然后加了正则。</p>
+<p>最大熵推导出softmax。整个loss的本质框架是MLE。</p>
+<h2 id="END"><a href="#END" class="headerlink" title="END"></a>END</h2><p>补充：</p>
+<p>来自google图片：</p>
+<p>NB在sequence建模下拓展到了HMM；LR在sequence建模下拓展到了CRF。</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/more.png" alt="img"></p>
+<p>reference：</p>
+<p><a href="http://www.cs.columbia.edu/~mcollins/fall2014-loglineartaggers.pdf">http://www.cs.columbia.edu/~mcollins/fall2014-loglineartaggers.pdf</a></p>
+<p><a href="http://www.ai.mit.edu/courses/6.891-nlp/READINGS/maxent.pdf">http://www.ai.mit.edu/courses/6.891-nlp/READINGS/maxent.pdf</a></p>
+<p><a href="https://blog.csdn.net/taoqick/article/details/102672110">https://blog.csdn.net/taoqick/article/details/102672110</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/37163081">https://zhuanlan.zhihu.com/p/37163081</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/33397147">https://zhuanlan.zhihu.com/p/33397147</a></p>
+<p><a href="https://www.quora.com/What-is-the-best-resource-to-understand-Conditional-Random-Fields">https://www.quora.com/What-is-the-best-resource-to-understand-Conditional-Random-Fields</a></p>
+<p>谷歌图片</p>
+<p><a href="https://zhuanlan.zhihu.com/p/113187662">https://zhuanlan.zhihu.com/p/113187662</a></p>
+<p><a href="https://repository.upenn.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&amp;httpsredir=1&amp;article=1162&amp;context=cis_papers">https://repository.upenn.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&amp;httpsredir=1&amp;article=1162&amp;context=cis_papers</a></p>
+<p><a href="https://www.bilibili.com/video/BV19t411R7QU?p=3">https://www.bilibili.com/video/BV19t411R7QU?p=3</a></p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CRF后续</title>
+    <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
+    <content><![CDATA[<br>
+
+<p>介绍下BiLSTM+CRF吧</p>
+<br>
+
+<a id="more"></a>
+
+
+
+<h4 id="Q1、为啥搞一个LSTM-CRF的hybrid-model"><a href="#Q1、为啥搞一个LSTM-CRF的hybrid-model" class="headerlink" title="Q1、为啥搞一个LSTM+CRF的hybrid model?"></a>Q1、为啥搞一个LSTM+CRF的hybrid model?</h4><p>用LSTM，整体的预测accuracy是不错indeed, 但是会出现上述的错误：在B之后再来一个B。这个错误在CRF中是不存在的，因为CRF的特征函数的存在就是为了对given序列观察学习各种特征（n-gram，窗口），这些特征就是在限定窗口size下的各种词之间的关系。然后一般都会学到这样的一条规律（特征）：B后面接E，不会出现E。这个限定特征会使得CRF的预测结果不出现上述例子的错误。</p>
+<p>那就把CRF接到LSTM上面，把LSTM在time<em>step上把每一个hidden</em>state的tensor输入给CRF，让LSTM负责在CRF的特征限定下，依照新的loss function，学习出一套新的非线性变换空间。</p>
+<h4 id="Q2、CRF-源码"><a href="#Q2、CRF-源码" class="headerlink" title="Q2、CRF++源码"></a>Q2、CRF++源码</h4><ul>
+<li>输入</li>
+</ul>
+<p>He reckons the current account deficit will narrow to only #1.8 billion in September .”代表一个训练句子xx，而CRF++要求将这样的句子拆成 <strong>每一个词一行并且是固定列数的数据</strong>，其中列除了原始输入，还可以包含一些其他信息，比如第二列包含了POS信息，最后一列是Label信息。而不同的训练序列与序列之间的相隔，就靠一个空白行来区分。</p>
+<ul>
+<li>特征模版</li>
+</ul>
+<p>1、“%x[row, column]” 代表获得<strong>当前指向位置向上或向下偏移|row|行</strong>，并指向第column列的值。</p>
+<p>2、CRF++中主要有两种特征模版，<strong>Unigram和Bigram 模版</strong>，注意Unigram和Bigram是<strong>相对于输出序列</strong>而言，而不是相对于输入序列。对于”U01:%x[0,1]”这样一个模版，上面例子的输入数据会产生如下的特征函数：</p>
+<p>3、</p>
 ]]></content>
       <categories>
         <category>ml</category>
@@ -195,14 +393,30 @@
 <h4 id="Q5：what-DeepFm？"><a href="#Q5：what-DeepFm？" class="headerlink" title="Q5：what DeepFm？"></a>Q5：what DeepFm？</h4><p>1、有两种融合方式，分别为串行和并行的结构。<br>这里介绍并行结构。</p>
 <p><img src="/2021/03/08/DeepFm/structure.png" alt="structure"><br><img src="/2021/03/08/DeepFm/deepfm.png" alt="deepfm"></p>
 <p>2、emb部分</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">#embeddings</span><br><span class="line">#weights[&#39;feature_embeddings&#39;] 存放的每一个值其实就是FM中的vik</span><br><span class="line">weights[&#39;feature_embeddings&#39;] &#x3D; tf.Variable(</span><br><span class="line">    tf.random_normal([self.feature_size,self.embedding_size],0.0,0.01),</span><br><span class="line">    name&#x3D;&#39;feature_embeddings&#39;)</span><br><span class="line"></span><br><span class="line">weights[&#39;feature_bias&#39;] &#x3D; tf.Variable(tf.random_normal([self.feature_size,1],0.0,1.0),name&#x3D;&#39;feature_bias&#39;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># model</span><br><span class="line">self.embeddings &#x3D; tf.nn.embedding_lookup(self.weights[&#39;feature_embeddings&#39;],self.feat_index) # N * F * K</span><br><span class="line">feat_value &#x3D; tf.reshape(self.feat_value,shape&#x3D;[-1,self.field_size,1])</span><br><span class="line">self.embeddings &#x3D; tf.multiply(self.embeddings,feat_value)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">#embeddings</span></span><br><span class="line"><span class="comment">#weights[&#x27;feature_embeddings&#x27;] 存放的每一个值其实就是FM中的vik</span></span><br><span class="line">weights[<span class="string">&#x27;feature_embeddings&#x27;</span>] = tf.Variable(</span><br><span class="line">    tf.random_normal([self.feature_size,self.embedding_size],<span class="number">0.0</span>,<span class="number">0.01</span>),</span><br><span class="line">    name=<span class="string">&#x27;feature_embeddings&#x27;</span>)</span><br><span class="line"></span><br><span class="line">weights[<span class="string">&#x27;feature_bias&#x27;</span>] = tf.Variable(tf.random_normal([self.feature_size,<span class="number">1</span>],<span class="number">0.0</span>,<span class="number">1.0</span>),name=<span class="string">&#x27;feature_bias&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># model</span></span><br><span class="line">self.embeddings = tf.nn.embedding_lookup(self.weights[<span class="string">&#x27;feature_embeddings&#x27;</span>],self.feat_index) <span class="comment"># N * F * K</span></span><br><span class="line">feat_value = tf.reshape(self.feat_value,shape=[-<span class="number">1</span>,self.field_size,<span class="number">1</span>])</span><br><span class="line">self.embeddings = tf.multiply(self.embeddings,feat_value)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>如果是离散值，则embedding lookup之后，每个维度✖️1，连续值则✖️连续值。<br>✖️后的结果就是公式里的 Vi,f · Xi</p>
 <p>3、dnn部分<br>为了更好的发挥DNN模型学习high-order特征的能力，文中设计了一套子网络结构，将原始的稀疏表示特征映射为稠密的特征向量。<br>子网络设计时的两个要点：</p>
 <p>不同field特征长度不同，但是子网络输出的向量需具有相同维度；<br>利用FM模型的隐特征向量V作为网络权重初始化来获得子网络输出向量。文中将FM的预训练V向量作为网络权重初始化替换为直接将FM和DNN进行整体联合训练，从而实现了一个端到端的模型。 （即lookup）</p>
 <p>4、fm</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># second order term</span><br><span class="line"># sum-square-part</span><br><span class="line">self.summed_features_emb &#x3D; tf.reduce_sum(self.embeddings,1) # None * k</span><br><span class="line">self.summed_features_emb_square &#x3D; tf.square(self.summed_features_emb) # None * K</span><br><span class="line"></span><br><span class="line"># squre-sum-part</span><br><span class="line">self.squared_features_emb &#x3D; tf.square(self.embeddings)</span><br><span class="line">self.squared_sum_features_emb &#x3D; tf.reduce_sum(self.squared_features_emb, 1)  # None * K</span><br><span class="line"></span><br><span class="line">#second order</span><br><span class="line">self.y_second_order &#x3D; 0.5 * tf.subtract(self.summed_features_emb_square,self.squared_sum_features_emb)</span><br><span class="line">self.y_second_order &#x3D; tf.nn.dropout(self.y_second_order,self.dropout_keep_fm[1])</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># second order term</span></span><br><span class="line"><span class="comment"># sum-square-part</span></span><br><span class="line">self.summed_features_emb = tf.reduce_sum(self.embeddings,<span class="number">1</span>) <span class="comment"># None * k</span></span><br><span class="line">self.summed_features_emb_square = tf.square(self.summed_features_emb) <span class="comment"># None * K</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># squre-sum-part</span></span><br><span class="line">self.squared_features_emb = tf.square(self.embeddings)</span><br><span class="line">self.squared_sum_features_emb = tf.reduce_sum(self.squared_features_emb, <span class="number">1</span>)  <span class="comment"># None * K</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#second order</span></span><br><span class="line">self.y_second_order = <span class="number">0.5</span> * tf.subtract(self.summed_features_emb_square,self.squared_sum_features_emb)</span><br><span class="line">self.y_second_order = tf.nn.dropout(self.y_second_order,self.dropout_keep_fm[<span class="number">1</span>])</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<h4 id="Q6：扩展，自定义算子？"><a href="#Q6：扩展，自定义算子？" class="headerlink" title="Q6：扩展，自定义算子？"></a>Q6：扩展，自定义算子？</h4><p>我们需要找到所有的特征，one-hot后的可能性取值。然后才能构建用来lookup的table。<br>这里就可以对tensorflow里的hashtable算子进行扩展。</p>
+<h4 id="Q6：扩展，自定义算子？"><a href="#Q6：扩展，自定义算子？" class="headerlink" title="Q6：扩展，自定义算子？"></a>Q6：扩展，自定义算子？</h4><p>比如我们输入是每个item的idor一些离散特征时候。需要对离散特征的各个值–&gt;index构建一个table。然后每次输入转换成对应的index，再根据index去tf.nn.embedding_lookup。离散特征对应的weight dict大小，需要给个预估值，大一些，囊括各种离散、连续的取值总数。</p>
+<p>这里就可以对tensorflow里的hashtable算子进行扩展。构建一个table，动态增长index，来了一个新的取值，就对应index++。</p>
+<p>实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">Status <span class="title">Find</span><span class="params">(OpKernelContext* ctx, <span class="keyword">const</span> Tensor&amp; key, Tensor* value,</span></span></span><br><span class="line"><span class="function"><span class="params">              <span class="keyword">const</span> Tensor&amp; default_value)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Grab the input tensor</span></span><br><span class="line">	<span class="keyword">const</span> V default_val = default_value.flat&lt;V&gt;()(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> A = key.flat&lt;K&gt;();</span><br><span class="line">    <span class="comment">// Create an output tensor</span></span><br><span class="line">	<span class="keyword">auto</span> output_flat = value-&gt;flat&lt;V&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set all but the first element of the output tensor to 0.</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> N = A.size();</span><br><span class="line">    <span class="keyword">int</span> pos = <span class="number">0</span>;</span><br><span class="line">  </span><br><span class="line">    K find_key;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function">tf_shared_lock <span class="title">sl</span><span class="params">(mu_)</span></span>;</span><br><span class="line">        <span class="keyword">for</span> (; pos &lt; N; pos++) &#123;</span><br><span class="line">            find_key = SubtleMustCopyIfIntegral(A(pos));</span><br><span class="line">            <span class="keyword">auto</span> it = table_.find(find_key);</span><br><span class="line">            <span class="keyword">if</span>(it == table_.end()) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                output_flat(pos) = it-&gt;second;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(pos &lt; N) &#123;</span><br><span class="line">        <span class="keyword">int64_t</span> hsize;</span><br><span class="line">        <span class="function">mutex_lock <span class="title">l</span><span class="params">(mu_)</span></span>;</span><br><span class="line">        <span class="keyword">for</span>(; pos &lt; N; pos++) &#123;</span><br><span class="line">            find_key = SubtleMustCopyIfIntegral(A(pos));</span><br><span class="line">            <span class="keyword">auto</span> it = table_.find(find_key);</span><br><span class="line">            <span class="keyword">if</span>(it == table_.end()) &#123;</span><br><span class="line">               hsize = table_.size();</span><br><span class="line">               <span class="keyword">if</span>(hsize &gt;= max_size_) &#123;</span><br><span class="line">                <span class="keyword">return</span> errors::ResourceExhausted(<span class="string">&quot;max size limit&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">               table_.insert(&#123;find_key, hsize&#125;);</span><br><span class="line">               output_flat(pos) = hsize;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                output_flat(pos) = it-&gt;second;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Status::OK();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<p>测试：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">from</span> dynamic_unique_table <span class="keyword">import</span> DynamicUniqueTable</span><br><span class="line"></span><br><span class="line">table = DynamicUniqueTable(key_dtype=tf.string,</span><br><span class="line">                     value_dtype=tf.int64,</span><br><span class="line">                     default_value=-<span class="number">1</span>,</span><br><span class="line">                     max_ids=<span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">    sess.run(tf.global_variables_initializer())</span><br><span class="line">    print(sess.run(table.lookup(<span class="string">&quot;asdfetryuijkn&quot;</span>)))</span><br><span class="line">    print(sess.run(table.lookup(<span class="string">&quot;hahahahah&quot;</span>)))</span><br><span class="line">    print(sess.run(table.export()))</span><br><span class="line">    tf.train.Saver().save(sess, <span class="string">&#x27;index_test_model2/&#x27;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+<p>相关命令</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">本地：</span><br><span class="line">python pai&#x2F;main.py --train_tables&#x3D;.&#x2F;dub_train.csv --test_tables&#x3D;.&#x2F;dub_test.csv --data_type&#x3D;file --discrete_size&#x3D;15 --continue_size&#x3D;14 --epoch&#x3D;30 --buckets&#x3D;.&#x2F; --save_predict&#x3D;True</span><br><span class="line">pai:</span><br><span class="line">组件无法支持多张表输入， 直接在odps的sql页面执行：</span><br><span class="line"></span><br><span class="line">PAI-name tensorflow1120_ext</span><br><span class="line"></span><br><span class="line">-project algo_public</span><br><span class="line">-Dscript&#x3D;&#39;oss:&#x2F;&#x2F;datadrive.oss-cn-shanghai-internal.aliyuncs.com&#x2F;tmp&#x2F;tl_deepfm.tar.gz&#39;</span><br><span class="line">-DentryFile&#x3D;&#39;pai&#x2F;main.py&#39;</span><br><span class="line">-DgpuRequired&#x3D;100</span><br><span class="line">-Dtables&#x3D;&#39;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_fit_normal,odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_eval_normal&#39;</span><br><span class="line">-Dbuckets&#x3D;&#39;oss:&#x2F;&#x2F;datadrive.oss-cn-shanghai-internal.aliyuncs.com&#x2F;tmp&#x2F;&#39;</span><br><span class="line">-Darn&#x3D;&#39;acs:ram::1872928906167841:role&#x2F;aliyunodpspaidefaultrole&#39;</span><br><span class="line">-DossHost&#x3D;&quot;oss-cn-shanghai-internal.aliyuncs.com&quot;</span><br><span class="line">-DuserDefinedParameters&#x3D;&quot;--train_tables&#x3D;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_fit_normal--test_tables&#x3D;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_eval_normal--discrete_size&#x3D;20 --continue_size&#x3D;49 --data_type&#x3D;odps --input_need_hash&#x3D;True --use_input_bn&#x3D;False --epoch&#x3D;100&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
 ]]></content>
       <categories>
         <category>dl</category>
@@ -477,7 +691,7 @@
       </tags>
   </entry>
   <entry>
-    <title>c++tips</title>
+    <title>c++tips上</title>
     <url>/2021/04/11/c-tips/</url>
     <content><![CDATA[<br>
 <br>
@@ -489,13 +703,185 @@
 <br>
 
 
-<p>- </p>
+
+<ul>
+<li><p>内存对齐</p>
+</li>
+<li><p>构造与析构函数</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、是否在析构函数抛出异常：</span><br><span class="line">	1异常点之后的程序如果有释放资源，会造成诸如资源泄漏</span><br><span class="line">	2通常异常发生时，c++的机制会调用已经构造对象的析构函数来释放资源，此时若析构函数本身也抛出异常，则前一个异常尚未处理，又有新的异常，会造成程序崩溃的问题。</span><br><span class="line">	3把异常完全封装在析构函数内部，决不让异常抛出函数之外</span><br><span class="line">	</span><br><span class="line">2、构造函数是否可以抛出异常：</span><br><span class="line">	1构造函数可以抛出异常。构造函数中尽量不要抛出异常。</span><br><span class="line">	2既需要分配内存，又需要抛出异常时要特别注意防止内存泄露的情况发生。因为在构造函数中抛出异常，在概念上将被视为该对象没有被成功构造，因此当前对象的析构函数就不会被调用，就会造成内存泄漏。</span><br><span class="line">	3同时，由于构造函数本身也是一个函数，在函数体内抛出异常将导致当前函数运行结束，并释放已经构造的成员对象，包括其基类的成员，即执行直接基类和成员对象的析构函数</span><br><span class="line">	</span><br><span class="line">3、构造函数和析构函数可以调用虚函数吗：</span><br><span class="line">	1当创建某个派生类的对象时，如果在它的基类的构造函数中调用虚函数，那么此时派生类的构造函数并未执行，所调用的函数可能操作还没有被初始化的成员，将导致灾难的发生。</span><br><span class="line">	2即使想在构造函数中实现动态联编，在实现上也会遇到困难。这涉及到对象虚指针（vptr）的建立问题。一个类的构造函数在执行时，并不能保证该函数所能访问到的虚指针就是当前被构造对象最后所拥有的虚指针，因为后面派生类的构造函数会对当前被构造对象的虚指针进行重写，因此无法完成动态联编</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>堆栈</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、堆栈和缓存的区别</span><br><span class="line">	1栈使用的是一级缓存， 他们通常都是被调用时处于存储空间中，调用完毕立即释放；</span><br><span class="line">	2堆是存放在二级缓存中，堆的首地址放在一级缓存缓存中，分配和释放会产生系统调用，由用户态进入内核态，所以速度会慢一些</span><br></pre></td></tr></table></figure></li>
+<li><p>安全漏洞、内存越界</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">  </span><br></pre></td></tr></table></figure></li>
+<li><p>野指针</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">“野指针”不是NULL指针，是指指向“垃圾”内存的指针。即指针指向的内容是不确定的。</span><br><span class="line">产生的原因：</span><br><span class="line">1）指针变量没有初始化。因此，创建指针变量时，该变量要被置为NULL或者指向合法的内存单元。</span><br><span class="line">2）指针p被free之后，没有置为NULL，让人误以为p是个合法的指针。</span><br><span class="line">3）指针跨越合法范围操作。不要返回指向栈内存(非静态局部变量）的指针或引用。</span><br><span class="line"></span><br><span class="line">可能后果：</span><br><span class="line">若操作系统将这部分已经释放的内存重新分配给另外一个进程，而原来的程序重新引用现在的迷途指针，向其中写入数据，则这部分程序内容将被破坏，而导致程序错误。这种类型的程序错误，通常会导致segment fault和一般的保护错误。</span><br><span class="line">其他常见错误：</span><br><span class="line">返回一个基于栈分配的局部变量的地址时，一旦调用的函数返回，分配给这些变量的空间将回收，此时它们拥有的是垃圾值，如return &amp;num，如果要使它的生命周期加长，应该将其声明为static</span><br></pre></td></tr></table></figure></li>
+<li><p>STL容器及常见算法</p>
+</li>
+</ul>
+<blockquote>
+<p><a href="http://vernlium.github.io/2019/12/29/C-STL%E5%B8%B8%E7%94%A8%E5%AE%B9%E5%99%A8API%E6%80%BB%E7%BB%93/">http://vernlium.github.io/2019/12/29/C-STL%E5%B8%B8%E7%94%A8%E5%AE%B9%E5%99%A8API%E6%80%BB%E7%BB%93/</a></p>
+<p><a href="https://blog.csdn.net/weixin_43150428/article/details/82469933">https://blog.csdn.net/weixin_43150428/article/details/82469933</a></p>
+</blockquote>
+<ul>
+<li><p>tuple</p>
+</li>
+<li><p>array container</p>
+</li>
+<li><p>range-base for</p>
+</li>
+<li><p>initializer lists</p>
+</li>
+<li><p>delegate/inheriting constructors</p>
+</li>
+<li><p>nullptr</p>
+</li>
+<li><p>inline</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、内联展开避免函数中断调用开销</span><br><span class="line">2、宏：内联函数在运行时可调试，而宏定义不可以；编译器会对内联函数的参数类型做安全检查或自动类型转换（同普通函数），而宏定义则不会；内联函数可以访问类的成员变量，宏定义则不能；在类中声明同时定义的成员函数，自动转化为内联函数</span><br><span class="line"></span><br><span class="line">inline一般只用于如下情况：</span><br><span class="line">一个函数不断被重复调用函数只有简单的几行，且函数不包含for、while、switch语句，递归。</span><br></pre></td></tr></table></figure></li>
+<li><p>unordered_table</p>
+</li>
+<li><p>shared_ptr/weak_ptr</p>
+</li>
+<li><p> regexp</p>
+</li>
+<li><p>cost of exception handling</p>
+</li>
+<li><p>type trait</p>
+</li>
+<li><p>strong exception gaurantee</p>
+</li>
+<li><p>CRTP</p>
+</li>
+<li><p>smart pointer</p>
+</li>
+<li><p>std::function and function pointer</p>
+</li>
+<li><p>runtime cost of lambda function</p>
+</li>
+<li><p>虚继承</p>
+</li>
+<li><p>Rvalue reference</p>
+</li>
+<li><p>function/bind</p>
+</li>
+<li><p>Lambda expression and closure</p>
+</li>
+<li><p>auto/decltype</p>
+</li>
+<li><p>static_assert</p>
+</li>
+<li><p>可变模板参数</p>
+</li>
+<li><p>指针和引用</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、指针可以是null，是对象</span><br><span class="line">2、引用必须初始化，不是对象，且不能重新赋值</span><br><span class="line">3、传入函数时带上&amp; 如s(&amp;a)，则对形参的修改其实就是对实参的修改。传入的是变量a的地址。而s(int* x)里，*x即为a的值，x为传入的a的地址。</span><br><span class="line">4、double &amp;b &#x3D; a中，b引用和变量a本质是是同一块内存</span><br><span class="line">5、引用最主要的作用是减少了内存拷贝的过程</span><br><span class="line"></span><br><span class="line">而当我们通过引用减少内存拷贝，传入的则为实参本身时，加上const可以保证，函数体内对实参不进行修改</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p>全局作用域</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">::</span><br></pre></td></tr></table></figure></li>
+<li><p>static</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">面向过程：</span><br><span class="line">静态全局变量</span><br><span class="line">静态局部变量</span><br><span class="line">静态函数</span><br><span class="line"></span><br><span class="line">面向对象：</span><br><span class="line">静态成员变量</span><br><span class="line">静态成员函数</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p>malloc free 和new delete</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、malloc只分配指定大小的堆内存空间，而new可以根据对象类型分配合适的堆内存空间，当然还可以通过重载operator new 自定义内存分配策略，其次还能够构造对象</span><br><span class="line">2、free释放对应的堆内存空间，delete,先执行对象的析构函数，在释放对象所占空间。</span><br><span class="line">3、malloc与free是C++&#x2F;C 语言的标准库函数，new&#x2F;delete 是C++的运算符。</span><br><span class="line">4、malloc返回类型是void*,使用时需要类型转换，而new在分配时，编译器能够根据对象类型自动计算出大小，返回类型是指向对象类型的指针，其封装了sizeof和类型转换功能，实际上new分为两步，第一步是通过调用operator new函数分配一块合适，原始的，未命名的内存空间，返回类型也是void *,而且operator new可以重载，可以自定义内存分配策略，甚至不做内存分配，甚至分配到非内存设备上，而malloc无能为力，第二步，调用构造函数构造对象，new将调用constructor，而malloc不能；delete将调用destructor，而free不能</span><br><span class="line"></span><br><span class="line">总结：1、大小or分配策略是否可自定义 2、析构和构造函数 3、库函数和运算符(重载) </span><br></pre></td></tr></table></figure></li>
+<li><p>const</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、变量 初始化后，不被改变</span><br><span class="line"></span><br><span class="line">2、函数 </span><br><span class="line">1. 修饰返回值 const int func() -- 不能改变返回值</span><br><span class="line">2. 修饰参数 int func(const ) -- 函数体内不能改变参数</span><br><span class="line">3. 修饰成员函数 int func() const -- 函数体内不能改变成员变量的值</span><br><span class="line"></span><br><span class="line">3、指针</span><br><span class="line">1. const int* -- 常量指针，pointer指向的变量的值不能变，pointer可指向其他对象</span><br><span class="line">2. int const* -- 指针常量，可以改变指针指向变量的值，pointer不能指向其他对象</span><br><span class="line"></span><br><span class="line">4、对象 const对象只能调用const成员函数，不能调用普通函数</span><br></pre></td></tr></table></figure></li>
+<li><p>多态</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、虚函数的类 至少有一个(多继承会有多个)一维的虚函数表叫做虚表(virtual table)，属于类成员，虚表的元素值是虚函数的入口地址，在编译时就已经为其在数据端分配了空间</span><br><span class="line"></span><br><span class="line">2、确定的虚函数对应virtual table中一个固定位置n，n是一个在编译时期就确定的常量，所以，使用vptr加上对应的n，就可以得到对应的函数入口地址。C++采用的这种绝对地址+偏移量的方法调用虚函数，查找速度快执行效率高，时间复杂度为O(1)</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/11/c-tips/vptr.jpg" alt="vptr"></p>
+</li>
+<li><p>c++ 与java .NET</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">第一，C++的难不仅仅在于其静态结构体系，还有很多源于语言设计上的包袱，比如对C的兼容，比如没有垃圾收集机制，比如对效率的强调，等等。一旦把这些包袱丢掉，设计的难度确实可以大大下降。</span><br><span class="line"></span><br><span class="line">第二，Java和.NET的核心类库是在C++十几年成功和失败的经验教训基础之上，结合COM体系优点设计实现的，自然要好上一大块。事实上，在Java和.NET核心类库的设计中很多地方，体现的是基于接口的设计，和真正的基于对象的设计。有了这两个主角站台，“面向类的设计”不能喧宾夺主，也能发挥一些好的作用。</span><br><span class="line"></span><br><span class="line">第三，Java和.NET中分别对C++最大的问题——缺少对象级别的delegate机制做出了自己的回应，这就大大弥补了原来的问题。</span><br><span class="line"></span><br><span class="line">尽管如此，Java还是沾染上了“面向类设计”的癌症，基础类库里就有很多架床叠屋的设计，而J2EE&#x2F;Java EE当中，这种形而上学的设计也很普遍，所以也引发了好几次轻量化的运动。</span><br><span class="line"></span><br><span class="line">至于.NET，我听陈榕介绍过，在设计.NET的时候，微软内部对于是否允许继承爆发了非常激烈的争论。很多资深高人都强烈反对继承。至于最后引入继承，很大程度上是营销需要压倒了技术理性。尽管如此，由于有COM的基础，又实现了非常彻底的delegate，所以 .NET 的设计水平还是很高的。它的主要问题不在这，在于太急于求胜，更新速度太快，基础不牢。当然，根本问题还是微软没有能够在Web和Mobile领域里占到多大的优势，也就使得.NET没有用武之地。</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>c++ 与 c</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、C面向过程，C++面向对象</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>reference：<br><a href="https://blog.csdn.net/myan/article/details/5928531">https://blog.csdn.net/myan/article/details/5928531</a></p>
 ]]></content>
       <categories>
         <category>c++</category>
       </categories>
       <tags>
         <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>cmake</title>
+    <url>/2021/04/13/cmake/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>cuda编程</title>
+    <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B/</url>
+    <content><![CDATA[<br>
+
+<p>cuda c的hello world</p>
+<a id="more"></a>
+
+<br> 
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">*hello_world.cu</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function">__global__ <span class="keyword">void</span> <span class="title">hello_world</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;GPU: Hello world!\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> **argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;CPU: Hello world!\n&quot;</span>);</span><br><span class="line">  hello_world&lt;&lt;&lt;<span class="number">1</span>,<span class="number">10</span>&gt;&gt;&gt;();</span><br><span class="line">  cudaDeviceReset();<span class="comment">//if no this line ,it can not output hello world from gpu</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+
+<h4 id="异构计算"><a href="#异构计算" class="headerlink" title="异构计算"></a>异构计算</h4><p>1、一台 intel i7-4790 CPU加上两台Titan x GPU构成的工作站，GPU插在主板的PCIe卡口上，运行程序的时候，CPU像是一个控制者，指挥两台Titan完成工作后进行汇总，和下一步工作安排，所以CPU我们可以把它看做一个指挥者，主机端，host，而完成大量计算的GPU是我们的计算设备，device。</p>
+<p>2、一个四核CPU一般有四个ALU，ALU是完成逻辑计算的核心，也是我们平时说四核八核的核，控制单元，缓存也在片上，DRAM是内存，一般不在片上，CPU通过总线访问内存。</p>
+<p>3、GPU，排列成行的一组ALU 公用一个Control单元和Cache，这个部分相当于一个完整的多核CPU。但是不同的是ALU多了，control部分变小，可见计算能力提升了，控制能力减弱了。</p>
+<p>4、CPU和GPU之间通过PCIe总线连接，用于传递指令和数据，这部分也是后面要讨论的性能瓶颈之一。</p>
+<p>5、低并行逻辑复杂的程序适合用CPU；高并行逻辑简单的大数据计算适合GPU</p>
+<h4 id="衡量GPU计算能力"><a href="#衡量GPU计算能力" class="headerlink" title="衡量GPU计算能力"></a><br>衡量GPU计算能力</h4><p>容量：CUDA核心数量（越多越好）；内存大小（越大越好）</p>
+<p>性能：峰值计算能力；内存带宽</p>
+<br>
+
+<h4 id="CPU和GPU线程的区别："><a href="#CPU和GPU线程的区别：" class="headerlink" title="CPU和GPU线程的区别："></a>CPU和GPU线程的区别：</h4><p>1、CPU线程是重量级实体，操作系统交替执行线程，线程上下文切换花销很大</p>
+<p>2、GPU线程是轻量级的，GPU应用一般包含成千上万的线程，多数在排队状态，线程之间切换基本没有开销。</p>
+<p>3、CPU的核被设计用来尽可能减少一个或两个线程运行时间的延迟，而GPU核则是大量线程，最大幅度提高吞吐量</p>
+<br>
+
+<h4 id="cuda-c"><a href="#cuda-c" class="headerlink" title="cuda c"></a>cuda c</h4><p>1、CUDA C 是标准ANSI C语言的扩展，扩展出一些语法和关键字来编写设备端代码，而且CUDA库本身提供了大量API来操作设备完成计算。</p>
+<p>2、驱动API是低级的API，使用相对困难，运行时API是高级API使用简单，其实现基于驱动API。<br>这两种API是互斥的，也就是你只能用一个，两者之间的函数不可以混合调用，只能用其中的一个库。</p>
+<p>3、一个CUDA应用通常可以分解为两部分</p>
+<p>CPU 主机端代码和GPU 设备端代码</p>
+<p>4、nvcc 是从LLVM开源编译系统为基础开发的。CUDA nvcc编译器会自动分离你代码里面的不同部分，如图中主机代码用C写成，使用本地的C语言编译器编译，设备端代码，也就是核函数，用CUDA C编写，通过nvcc编译，链接阶段，在内核程序调用或者明显的GPU设备操作时，添加运行时库。</p>
+<h4 id="cuda程序步骤"><a href="#cuda程序步骤" class="headerlink" title="cuda程序步骤"></a><br>cuda程序步骤</h4><ol>
+<li>分配GPU内存</li>
+<li>拷贝内存到设备</li>
+<li>调用CUDA内核函数来执行计算</li>
+<li>把计算完成数据拷贝回主机端</li>
+<li>内存销毁</li>
+</ol>
+<br>
+
+<h4 id="CUDA抽象了硬件实现"><a href="#CUDA抽象了硬件实现" class="headerlink" title="CUDA抽象了硬件实现"></a>CUDA抽象了硬件实现</h4><ol>
+<li>线程组的层次结构</li>
+<li>内存的层次结构</li>
+<li>障碍同步</li>
+</ol>
+<br>
+
+<h4 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h4><ul>
+<li>Nvidia Nsight集成开发环境</li>
+<li>CUDA-GDB 命令行调试器</li>
+<li>性能分析可视化工具</li>
+<li>CUDA-MEMCHECK工具</li>
+<li>GPU设备管理工具</li>
+</ul>
+]]></content>
+      <categories>
+        <category>gpu</category>
+      </categories>
+      <tags>
+        <tag>gpu</tag>
+        <tag>cuda</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>cuda编程模型</title>
+    <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>gpu</category>
+      </categories>
+      <tags>
+        <tag>gpu</tag>
+        <tag>cuda</tag>
       </tags>
   </entry>
   <entry>
@@ -850,6 +1236,11 @@
       </tags>
   </entry>
   <entry>
+    <title>git命令</title>
+    <url>/2021/04/13/git%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>graphsage</title>
     <url>/2021/03/08/graphsage/</url>
     <content><![CDATA[<h4 id="GCN"><a href="#GCN" class="headerlink" title="GCN"></a>GCN</h4><ul>
@@ -1060,6 +1451,50 @@
         <tag>编程语言</tag>
         <tag>java</tag>
         <tag>并发</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>linux&amp;mac命令</title>
+    <url>/2021/04/13/linux%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<br> 
+
+<p>记录常见linux mac命令</p>
+<a id="more"></a>
+
+<br> 
+
+<h4 id="端口、进程"><a href="#端口、进程" class="headerlink" title="端口、进程"></a>端口、进程</h4><p>1、查看进程号</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps -ef | grep 进程名</span><br></pre></td></tr></table></figure>
+
+
+<p>2、查看端口被哪个进程监听</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -i :端口</span><br></pre></td></tr></table></figure>
+
+
+<p>3、查看进程监听的端口</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -nP -p 进程号 | grep LISTEN</span><br><span class="line">sudo lsof -nP | grep LISTEN | grep 进程号</span><br></pre></td></tr></table></figure>
+
+
+<p>4、查看监听端口的进程</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -nP | grep LISTEN | grep 端口号</span><br></pre></td></tr></table></figure>
+
+
+<p>5、看到一个新的方法（MacOS统计TCP/UDP端口号与对应服务）</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">echo &quot;### TCP LISTEN ###&quot;</span><br><span class="line">lsof -nP -iTCP -sTCP:LISTEN</span><br></pre></td></tr></table></figure>
+
+
+<p>6、关于环境变量</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Mac系统的环境变量，加载顺序为：</span><br><span class="line">&#x2F;etc&#x2F;profile &#x2F;etc&#x2F;paths ~&#x2F;.bash_profile ~&#x2F;.bash_login ~&#x2F;.profile ~&#x2F;.bashrc</span><br><span class="line"></span><br><span class="line">&#x2F;etc&#x2F;profile和&#x2F;etc&#x2F;paths是系统级别的，系统启动就会加载，后面几个是当前用户级的环境变量。后面3个按照从前往后的顺序读取，如果&#x2F;.bash_profile文件存在，则后面的几个文件就会被忽略不读了，如果&#x2F;.bash_profile文件不存在，才会以此类推读取后面的文件。~&#x2F;.bashrc没有上述规则，它是bash shell打开的时候载入的。</span><br><span class="line"></span><br><span class="line">&#x2F;etc&#x2F;bashrc （一般在这个文件中添加系统级环境变量）</span><br><span class="line">全局（公有）配置，bash shell执行时，不管是何种方式，都会读取此文件</span><br><span class="line"></span><br><span class="line">https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;acb1f062a925</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>linux</tag>
+        <tag>mac</tag>
+        <tag>cheetsheet</tag>
       </tags>
   </entry>
   <entry>
@@ -2624,6 +3059,11 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
+    <title>回溯</title>
+    <url>/2021/04/13/%E5%9B%9E%E6%BA%AF/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>学习模型的模式</title>
     <url>/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<p>伪代码的算法流程 + 数学逻辑 –&gt;才能真的掌握住这个模型的本质。<br>而其他都是表象。所以数学肯定是要啃的。矩阵论和概率统计，微积分，必然是需要的。<br>更多的应用和实践，会深化对于模型的认知。</p>
@@ -3173,7 +3613,7 @@
 <h4 id="初始化建议"><a href="#初始化建议" class="headerlink" title="初始化建议"></a>初始化建议</h4><p>均值为0<br>标准差为 sqrt(2/当前层输入特征个数)的正太分布</p>
 <h4 id="指数加权平均（Exponentially-weighted-average）"><a href="#指数加权平均（Exponentially-weighted-average）" class="headerlink" title="指数加权平均（Exponentially weighted average）"></a>指数加权平均（Exponentially weighted average）</h4><p>V_t=β*V_t−1+(1−β)*θ_t</p>
 <p>1、当 β 较大时（β = 0.98 相当于每一点前50天的平均气温)。曲线波动相对较小更加平滑，因为对很多天的气温做了平均处理，正因为如此，曲线还会右移。</p>
-<p>​较小，0.5时，曲线波动相对激烈，但是它可以更快的适应温度的变化。</p>
+<p>较小，0.5时，曲线波动相对激烈，但是它可以更快的适应温度的变化。</p>
 <p>2、当 β = 0.9时，我们可以近似的认为当前的数值是过去10天的平均值，但是显然如果我们直接计算过去10天的平均值，要比用指数加权平均来的更加准确。但是如果直接计算过去10天的平均值，我们要存储过去10天的数值，而加权平均只要存储V_t−1</p>
 <p>3、指数加权平均 不能很好地拟合前几天的数据，因此需要 偏差修正<br>在机器学习中，多数的指数加权平均运算并不会使用偏差修正。因为大多数人更愿意在初始阶段，用一个捎带偏差的值进行运算。不过，如果在初试阶段就开始考虑偏差，指数加权移动均值仍处于预热阶段，偏差修正可以做出更好的估计。<br>​<br>V_t = V_t / (1 - β_t)</p>
 <h4 id="优化器"><a href="#优化器" class="headerlink" title="优化器"></a>优化器</h4><p>GD 到 BGD 到 SGD–即minibatch的SGD(现在说SGD一般都指MBGD)，<br>BGD即每次权值调整发生在批量样本输入之后，而不是每输入一个样本就更新一次模型参数。这样就会大大加快训练速度。<br>SGD即每次从百万数据样本中，取几百个数据点，算一个SGD梯度，更新一下模型参数。</p>
@@ -3231,6 +3671,79 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>编译tensorflow</title>
+    <url>/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/</url>
+    <content><![CDATA[<br> 
+
+<p>记录编译过程</p>
+<a id="more"></a>
+
+<br> 
+
+<h4 id="前序安装"><a href="#前序安装" class="headerlink" title="前序安装"></a>前序安装</h4><p>1、bazel 2.0.0 通过sh安装，需要chmod，然后export环境变量。我的路径在/var/root/bin，添加到source ~/.bash_profile。把这句source添加到 vi .zshrc ，然后source ~/.zshrc ，重启也有bazel了。</p>
+<p>2、tensorflow v2.2.0 </p>
+<p>3、conda环境，选择了python2.7，然后安装requirements (tensorflow-2.2.0/tensorflow/tools/pip_package/setup.py )如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">future</span><br><span class="line">absl-py &gt;&#x3D; 0.7.0</span><br><span class="line">astunparse &#x3D;&#x3D; 1.6.3</span><br><span class="line">backports.weakref &gt;&#x3D; 1.0rc1</span><br><span class="line">enum34 &gt;&#x3D; 1.1.6</span><br><span class="line">gast &#x3D;&#x3D; 0.3.3</span><br><span class="line">google_pasta &gt;&#x3D; 0.1.8</span><br><span class="line">h5py &#x3D;&#x3D; 2.10.0</span><br><span class="line">keras_preprocessing &gt;&#x3D; 1.1.0</span><br><span class="line">numpy &#x3D;&#x3D; 1.16.0</span><br><span class="line">opt_einsum &gt;&#x3D; 2.3.2</span><br><span class="line">protobuf &gt;&#x3D; 3.8.0</span><br><span class="line">tensorboard &#x3D;&#x3D; 2.1.0</span><br><span class="line">tensorflow_estimator &#x3D;&#x3D; 2.2.0</span><br><span class="line">termcolor &gt;&#x3D; 1.1.0</span><br><span class="line">wrapt &gt;&#x3D; 1.11.1</span><br><span class="line"></span><br><span class="line"># python3 requires wheel 0.26</span><br><span class="line">wheel &gt;&#x3D; 0.26</span><br><span class="line"></span><br><span class="line"># mock comes with unittest.mock for python3 need to install for python2</span><br><span class="line">mock &gt;&#x3D; 2.0.0</span><br><span class="line"></span><br><span class="line"># functools comes with python3 need to install the backport for python2</span><br><span class="line">functools32 &gt;&#x3D; 3.2.3</span><br><span class="line">six &gt;&#x3D; 1.12.0</span><br><span class="line"></span><br><span class="line"># scipy &lt; 1.4.1 causes segfaults due to pybind11</span><br><span class="line"># Latest scipy pip for py2 is scipy&#x3D;&#x3D;1.2.2</span><br><span class="line">scipy &#x3D;&#x3D; 1.2.2</span><br></pre></td></tr></table></figure>
+
+
+<p>4、如果需要gpu，则还要安装cuda 10.1 和 cudnn 7.6.5</p>
+<br> 
+
+<h4 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h4><p>1、配置基本选择N，需要gpu则在CUDAsupport选择y</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">cd tensorflow-2.2.0</span><br><span class="line">.&#x2F;configure</span><br></pre></td></tr></table></figure>
+<p>2、bazel</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048  &#x2F;&#x2F;tensorflow&#x2F;tools&#x2F;pip_package:build_pip_package</span><br><span class="line"></span><br><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048 &#x2F;&#x2F;tensorflow:libtensorflow_cc.so</span><br></pre></td></tr></table></figure>
+
+
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/inprogress.jpg" alt="过程"></p>
+<br>
+
+
+
+<p>编译成功，花了12个小时多。</p>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/success.jpg" alt="success"></p>
+<br>
+
+<h4 id="生成whl"><a href="#生成whl" class="headerlink" title="生成whl"></a>生成whl</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo .&#x2F;tensorflow&#x2F;tools&#x2F;pip_package&#x2F;build_pip_package.sh &#x2F;tmp&#x2F;tensorflow_pkg</span><br><span class="line">#接着我切了conda环境</span><br><span class="line">pip install --upgrade pip</span><br><span class="line">pip uninstall tensorflow</span><br><span class="line">pip uninstall tensorboard</span><br><span class="line">pip uninstall tensorflow-tensorboard</span><br><span class="line">#pip3 install tensorboard&#x3D;&#x3D;2.2.1  #有个巨坑。pip3才能安装2.2.1，但是我们环境用的都是python2.7</span><br><span class="line">#要么把之前的切到3，要么下载下来site-package 装到目录里。我是选择粘贴到目录 #&#x2F;Users&#x2F;wyq&#x2F;anaconda2&#x2F;lib&#x2F;python2.7&#x2F;site-packages&#x2F;tensorboard</span><br><span class="line">pip install -U --ignore-installed wrapt  </span><br><span class="line">#又是坑。wrapt：ERROR: Cannot uninstall &#39;wrapt&#39;. It is a distutils installed project and thus #we cannot accurately determine which files belong to it which would lead to only a partial #uninstall.</span><br><span class="line">pip3 install &#x2F;tmp&#x2F;tensorflow_pkg&#x2F;tensorflow-2.2.0-cp27-cp27m-macosx_10_14_x86_64.whl</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl0.jpg" alt="whl0"></p>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl.jpg" alt="whl"></p>
+<h4 id="python验证"><a href="#python验证" class="headerlink" title="python验证"></a><br>python验证</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#打开ipython </span><br><span class="line">#如果遇到这个问题 ImportError: cannot import name pywrap_tensorflow</span><br><span class="line">#看这个issue </span><br><span class="line"># https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;35953210&#x2F;error-running-basic-tensorflow-example</span><br><span class="line">import tensorflow as tf</span><br><span class="line">tf.__version__</span><br><span class="line">tf.test.is_gpu_available()</span><br></pre></td></tr></table></figure>
+<br>
+
+<p>终于成功了</p>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whlsuccess.jpg" alt="whlsuccess"></p>
+<br>
+
+<h4 id="c-验证"><a href="#c-验证" class="headerlink" title="c++验证"></a>c++验证</h4><p>选择了vscode，下次clion可以也试试</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#在tf根目录下运行</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:tutorials_example_trainer</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:client_client_session_test￼</span><br><span class="line"></span><br><span class="line">#然后运行程序</span><br><span class="line">.&#x2F;bazel-bin&#x2F;tensorflow&#x2F;cc&#x2F;client_client_session_test￼</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/csuccess.jpg" alt="csuccess"></p>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/clienttest.jpg" alt="demo"></p>
+<br>
+
+<h4 id><a href="#" class="headerlink" title></a></h4><h4 id="c-demo"><a href="#c-demo" class="headerlink" title="c++demo"></a>c++demo</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;main.cpp</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;client&#x2F;client_session.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;ops&#x2F;standard_ops.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;core&#x2F;framework&#x2F;tensor.h&quot;</span><br><span class="line"></span><br><span class="line">using namespace tensorflow;</span><br><span class="line">using namespace tensorflow::ops;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    Scope root &#x3D; Scope::NewRootScope();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Matrix A &#x3D; [3 2; -1 0]</span><br><span class="line">    auto A &#x3D; Const(root, &#123; &#123;3.f, 2.f&#125;, &#123;-1.f, 0.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; Vector b &#x3D; [3 5]</span><br><span class="line">    auto b &#x3D; Const(root, &#123; &#123;3.f, 5.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; v &#x3D; Ab^T</span><br><span class="line">    auto v &#x3D; MatMul(root.WithOpName(&quot;v&quot;), A, b, MatMul::TransposeB(true));</span><br><span class="line"></span><br><span class="line">    std::vector&lt;Tensor&gt; outputs;</span><br><span class="line">    ClientSession session(root);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Run and fetch v</span><br><span class="line">    TF_CHECK_OK(session.Run(&#123;v&#125;, &amp;outputs));</span><br><span class="line">    std::cout &lt;&lt; &quot;tensorflow session run ok&quot; &lt;&lt; std::endl;</span><br><span class="line">    &#x2F;&#x2F; Expect outputs[0] &#x3D;&#x3D; [19; -3]</span><br><span class="line">    std::cout &lt;&lt; outputs[0].matrix&lt;float&gt;();</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;BUILD file</span><br><span class="line"></span><br><span class="line">load(&quot;&#x2F;&#x2F;tensorflow:tensorflow.bzl&quot;, &quot;tf_cc_binary&quot;)</span><br><span class="line">tf_cc_binary(</span><br><span class="line">     name &#x3D; &quot;main&quot;, #目标文件名</span><br><span class="line">     srcs &#x3D; [&quot;main.cpp&quot;], #源代码文件名</span><br><span class="line">     deps &#x3D; [</span><br><span class="line">        &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:cc_ops&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:client_session&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;core:tensorflow&quot;</span><br><span class="line">         ],</span><br><span class="line"> )</span><br><span class="line"> </span><br><span class="line"> &#x2F;&#x2F;执行</span><br><span class="line"> bazel build &#x2F;&#x2F;tensorflow&#x2F;demo:main</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/demo.jpg" alt="demo"></p>
+<br>
+
+<p>来bili 看跳转~</p>
+<p><a href="https://www.bilibili.com/video/BV1Q54y1b74n">https://www.bilibili.com/video/BV1Q54y1b74n</a></p>
+<h4 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h4><p>相关编译、过程中error issue、cmake、bazel以及用c++ api构建线上服务</p>
+<p><a href="https://github.com/tensorflow/tensorflow/issues/43654">https://github.com/tensorflow/tensorflow/issues/43654</a></p>
+<p><a href="https://xugaoxiang.com/2020/05/22/compile-tensorflow2-with-gpu/">https://xugaoxiang.com/2020/05/22/compile-tensorflow2-with-gpu/</a></p>
+<p><a href="https://www.tensorflow.org/install/errors">https://www.tensorflow.org/install/errors</a></p>
+<p><a href="https://www.javatt.com/p/43568">https://www.javatt.com/p/43568</a></p>
+<p><a href="https://www.jianshu.com/p/72b228223804">https://www.jianshu.com/p/72b228223804</a></p>
+<p><a href="http://sixerwang.github.io/2018/12/24/cpp-call-tf/">http://sixerwang.github.io/2018/12/24/cpp-call-tf/</a></p>
+<p><a href="https://github.com/hemajun815/tutorial/blob/master/tensorflow/compilling-tensorflow-source-code-into-C%2B%2B-library-file.md">https://github.com/hemajun815/tutorial/blob/master/tensorflow/compilling-tensorflow-source-code-into-C%2B%2B-library-file.md</a></p>
+<p><a href="https://cmake.org/cmake/help/latest/guide/tutorial/index.html">https://cmake.org/cmake/help/latest/guide/tutorial/index.html</a></p>
+]]></content>
+      <categories>
+        <category>tensorflow</category>
+      </categories>
+      <tags>
+        <tag>tensorflow</tag>
       </tags>
   </entry>
   <entry>
@@ -3315,61 +3828,6 @@
       </categories>
       <tags>
         <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>通货膨胀-下</title>
-    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
-    <content><![CDATA[<p><strong>摘要</strong></p>
-<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
-<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><a id="more"></a>
-<ul>
-<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
-</li>
-<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
-</li>
-<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
-</li>
-<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
-</li>
-</ul>
-<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
-<li>微观</li>
-</ul>
-<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
-<ul>
-<li>宏观<br>1、对于产出的影响<ul>
-<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
-<li>促退论:通胀造成微观效率损失;</li>
-<li>中性论:“二分法”</li>
-</ul>
-</li>
-</ul>
-<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
-<p>3、对利率、汇率等重要经济变量的影响</p>
-<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
-<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
-<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
-<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
-<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
-</ul>
-<br>
-而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
-
-
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
-<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
-<p>3、价格的绝对值无意义，房价回不到过去。</p>
-<p>4、一般来说，批发价上涨幅度高于零售。</p>
-]]></content>
-      <categories>
-        <category>货银</category>
-        <category>货币政策</category>
-      </categories>
-      <tags>
-        <tag>货银</tag>
-        <tag>货币政策</tag>
       </tags>
   </entry>
   <entry>
@@ -3466,6 +3924,61 @@
 <p>=&gt;<br>惊人的数字让人记忆犹新。德国现在仍会谨慎。</p>
 <h4 id="俄国计划经济"><a href="#俄国计划经济" class="headerlink" title="俄国计划经济"></a>俄国计划经济</h4><p>todo                    </p>
 <br>
+]]></content>
+      <categories>
+        <category>货银</category>
+        <category>货币政策</category>
+      </categories>
+      <tags>
+        <tag>货银</tag>
+        <tag>货币政策</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>通货膨胀-下</title>
+    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
+    <content><![CDATA[<p><strong>摘要</strong></p>
+<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
+<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><a id="more"></a>
+<ul>
+<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
+</li>
+<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
+</li>
+<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
+</li>
+<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
+</li>
+</ul>
+<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
+<li>微观</li>
+</ul>
+<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
+<ul>
+<li>宏观<br>1、对于产出的影响<ul>
+<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
+<li>促退论:通胀造成微观效率损失;</li>
+<li>中性论:“二分法”</li>
+</ul>
+</li>
+</ul>
+<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
+<p>3、对利率、汇率等重要经济变量的影响</p>
+<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
+<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
+<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
+<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
+<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
+</ul>
+<br>
+而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
+
+
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
+<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
+<p>3、价格的绝对值无意义，房价回不到过去。</p>
+<p>4、一般来说，批发价上涨幅度高于零售。</p>
 ]]></content>
       <categories>
         <category>货银</category>

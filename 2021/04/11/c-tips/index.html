@@ -6,20 +6,22 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
-  <title>c++tips | satyrswang</title>
+  <title>c++tips上 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="基础汇总">
 <meta property="og:type" content="article">
-<meta property="og:title" content="c++tips">
+<meta property="og:title" content="c++tips上">
 <meta property="og:url" content="https://satyrswang.github.io/2021/04/11/c-tips/index.html">
 <meta property="og:site_name" content="satyrswang">
 <meta property="og:description" content="基础汇总">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://satyrswang.github.io/2021/04/11/c-tips/vptr.jpg">
 <meta property="article:published_time" content="2021-04-11T06:59:27.000Z">
-<meta property="article:modified_time" content="2021-04-11T07:02:27.000Z">
+<meta property="article:modified_time" content="2021-04-13T07:05:00.375Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="c++">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://satyrswang.github.io/2021/04/11/c-tips/vptr.jpg">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
   
@@ -86,7 +88,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">57.4k</span>
+    总字数 <span class="post-count">66.2k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -173,7 +175,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      c++tips
+      c++tips上
     </h1>
   
 
@@ -186,7 +188,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：4字 | 预计阅读时长：1分钟
+    字数：2.6k字 | 预计阅读时长：9分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -200,7 +202,98 @@
 <br>
 
 
-<p>- </p>
+
+<ul>
+<li><p>内存对齐</p>
+</li>
+<li><p>构造与析构函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">1、是否在析构函数抛出异常：</span><br><span class="line">	1异常点之后的程序如果有释放资源，会造成诸如资源泄漏</span><br><span class="line">	2通常异常发生时，c++的机制会调用已经构造对象的析构函数来释放资源，此时若析构函数本身也抛出异常，则前一个异常尚未处理，又有新的异常，会造成程序崩溃的问题。</span><br><span class="line">	3把异常完全封装在析构函数内部，决不让异常抛出函数之外</span><br><span class="line">	</span><br><span class="line">2、构造函数是否可以抛出异常：</span><br><span class="line">	1构造函数可以抛出异常。构造函数中尽量不要抛出异常。</span><br><span class="line">	2既需要分配内存，又需要抛出异常时要特别注意防止内存泄露的情况发生。因为在构造函数中抛出异常，在概念上将被视为该对象没有被成功构造，因此当前对象的析构函数就不会被调用，就会造成内存泄漏。</span><br><span class="line">	3同时，由于构造函数本身也是一个函数，在函数体内抛出异常将导致当前函数运行结束，并释放已经构造的成员对象，包括其基类的成员，即执行直接基类和成员对象的析构函数</span><br><span class="line">	</span><br><span class="line">3、构造函数和析构函数可以调用虚函数吗：</span><br><span class="line">	1当创建某个派生类的对象时，如果在它的基类的构造函数中调用虚函数，那么此时派生类的构造函数并未执行，所调用的函数可能操作还没有被初始化的成员，将导致灾难的发生。</span><br><span class="line">	2即使想在构造函数中实现动态联编，在实现上也会遇到困难。这涉及到对象虚指针（vptr）的建立问题。一个类的构造函数在执行时，并不能保证该函数所能访问到的虚指针就是当前被构造对象最后所拥有的虚指针，因为后面派生类的构造函数会对当前被构造对象的虚指针进行重写，因此无法完成动态联编</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>堆栈</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、堆栈和缓存的区别</span><br><span class="line">	1栈使用的是一级缓存， 他们通常都是被调用时处于存储空间中，调用完毕立即释放；</span><br><span class="line">	2堆是存放在二级缓存中，堆的首地址放在一级缓存缓存中，分配和释放会产生系统调用，由用户态进入内核态，所以速度会慢一些</span><br></pre></td></tr></table></figure></li>
+<li><p>安全漏洞、内存越界</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">  </span><br></pre></td></tr></table></figure></li>
+<li><p>野指针</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">“野指针”不是NULL指针，是指指向“垃圾”内存的指针。即指针指向的内容是不确定的。</span><br><span class="line">产生的原因：</span><br><span class="line">1）指针变量没有初始化。因此，创建指针变量时，该变量要被置为NULL或者指向合法的内存单元。</span><br><span class="line">2）指针p被free之后，没有置为NULL，让人误以为p是个合法的指针。</span><br><span class="line">3）指针跨越合法范围操作。不要返回指向栈内存(非静态局部变量）的指针或引用。</span><br><span class="line"></span><br><span class="line">可能后果：</span><br><span class="line">若操作系统将这部分已经释放的内存重新分配给另外一个进程，而原来的程序重新引用现在的迷途指针，向其中写入数据，则这部分程序内容将被破坏，而导致程序错误。这种类型的程序错误，通常会导致segment fault和一般的保护错误。</span><br><span class="line">其他常见错误：</span><br><span class="line">返回一个基于栈分配的局部变量的地址时，一旦调用的函数返回，分配给这些变量的空间将回收，此时它们拥有的是垃圾值，如return &amp;num，如果要使它的生命周期加长，应该将其声明为static</span><br></pre></td></tr></table></figure></li>
+<li><p>STL容器及常见算法</p>
+</li>
+</ul>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://vernlium.github.io/2019/12/29/C-STL%E5%B8%B8%E7%94%A8%E5%AE%B9%E5%99%A8API%E6%80%BB%E7%BB%93/">http://vernlium.github.io/2019/12/29/C-STL%E5%B8%B8%E7%94%A8%E5%AE%B9%E5%99%A8API%E6%80%BB%E7%BB%93/</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43150428/article/details/82469933">https://blog.csdn.net/weixin_43150428/article/details/82469933</a></p>
+</blockquote>
+<ul>
+<li><p>tuple</p>
+</li>
+<li><p>array container</p>
+</li>
+<li><p>range-base for</p>
+</li>
+<li><p>initializer lists</p>
+</li>
+<li><p>delegate/inheriting constructors</p>
+</li>
+<li><p>nullptr</p>
+</li>
+<li><p>inline</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、内联展开避免函数中断调用开销</span><br><span class="line">2、宏：内联函数在运行时可调试，而宏定义不可以；编译器会对内联函数的参数类型做安全检查或自动类型转换（同普通函数），而宏定义则不会；内联函数可以访问类的成员变量，宏定义则不能；在类中声明同时定义的成员函数，自动转化为内联函数</span><br><span class="line"></span><br><span class="line">inline一般只用于如下情况：</span><br><span class="line">一个函数不断被重复调用函数只有简单的几行，且函数不包含for、while、switch语句，递归。</span><br></pre></td></tr></table></figure></li>
+<li><p>unordered_table</p>
+</li>
+<li><p>shared_ptr/weak_ptr</p>
+</li>
+<li><p> regexp</p>
+</li>
+<li><p>cost of exception handling</p>
+</li>
+<li><p>type trait</p>
+</li>
+<li><p>strong exception gaurantee</p>
+</li>
+<li><p>CRTP</p>
+</li>
+<li><p>smart pointer</p>
+</li>
+<li><p>std::function and function pointer</p>
+</li>
+<li><p>runtime cost of lambda function</p>
+</li>
+<li><p>虚继承</p>
+</li>
+<li><p>Rvalue reference</p>
+</li>
+<li><p>function/bind</p>
+</li>
+<li><p>Lambda expression and closure</p>
+</li>
+<li><p>auto/decltype</p>
+</li>
+<li><p>static_assert</p>
+</li>
+<li><p>可变模板参数</p>
+</li>
+<li><p>指针和引用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1、指针可以是null，是对象</span><br><span class="line">2、引用必须初始化，不是对象，且不能重新赋值</span><br><span class="line">3、传入函数时带上&amp; 如s(&amp;a)，则对形参的修改其实就是对实参的修改。传入的是变量a的地址。而s(int* x)里，*x即为a的值，x为传入的a的地址。</span><br><span class="line">4、double &amp;b &#x3D; a中，b引用和变量a本质是是同一块内存</span><br><span class="line">5、引用最主要的作用是减少了内存拷贝的过程</span><br><span class="line"></span><br><span class="line">而当我们通过引用减少内存拷贝，传入的则为实参本身时，加上const可以保证，函数体内对实参不进行修改</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p>全局作用域</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">::</span><br></pre></td></tr></table></figure></li>
+<li><p>static</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">面向过程：</span><br><span class="line">静态全局变量</span><br><span class="line">静态局部变量</span><br><span class="line">静态函数</span><br><span class="line"></span><br><span class="line">面向对象：</span><br><span class="line">静态成员变量</span><br><span class="line">静态成员函数</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p>malloc free 和new delete</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1、malloc只分配指定大小的堆内存空间，而new可以根据对象类型分配合适的堆内存空间，当然还可以通过重载operator new 自定义内存分配策略，其次还能够构造对象</span><br><span class="line">2、free释放对应的堆内存空间，delete,先执行对象的析构函数，在释放对象所占空间。</span><br><span class="line">3、malloc与free是C++&#x2F;C 语言的标准库函数，new&#x2F;delete 是C++的运算符。</span><br><span class="line">4、malloc返回类型是void*,使用时需要类型转换，而new在分配时，编译器能够根据对象类型自动计算出大小，返回类型是指向对象类型的指针，其封装了sizeof和类型转换功能，实际上new分为两步，第一步是通过调用operator new函数分配一块合适，原始的，未命名的内存空间，返回类型也是void *,而且operator new可以重载，可以自定义内存分配策略，甚至不做内存分配，甚至分配到非内存设备上，而malloc无能为力，第二步，调用构造函数构造对象，new将调用constructor，而malloc不能；delete将调用destructor，而free不能</span><br><span class="line"></span><br><span class="line">总结：1、大小or分配策略是否可自定义 2、析构和构造函数 3、库函数和运算符(重载) </span><br></pre></td></tr></table></figure></li>
+<li><p>const</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">1、变量 初始化后，不被改变</span><br><span class="line"></span><br><span class="line">2、函数 </span><br><span class="line">1. 修饰返回值 const int func() -- 不能改变返回值</span><br><span class="line">2. 修饰参数 int func(const ) -- 函数体内不能改变参数</span><br><span class="line">3. 修饰成员函数 int func() const -- 函数体内不能改变成员变量的值</span><br><span class="line"></span><br><span class="line">3、指针</span><br><span class="line">1. const int* -- 常量指针，pointer指向的变量的值不能变，pointer可指向其他对象</span><br><span class="line">2. int const* -- 指针常量，可以改变指针指向变量的值，pointer不能指向其他对象</span><br><span class="line"></span><br><span class="line">4、对象 const对象只能调用const成员函数，不能调用普通函数</span><br></pre></td></tr></table></figure></li>
+<li><p>多态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、虚函数的类 至少有一个(多继承会有多个)一维的虚函数表叫做虚表(virtual table)，属于类成员，虚表的元素值是虚函数的入口地址，在编译时就已经为其在数据端分配了空间</span><br><span class="line"></span><br><span class="line">2、确定的虚函数对应virtual table中一个固定位置n，n是一个在编译时期就确定的常量，所以，使用vptr加上对应的n，就可以得到对应的函数入口地址。C++采用的这种绝对地址+偏移量的方法调用虚函数，查找速度快执行效率高，时间复杂度为O(1)</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/11/c-tips/vptr.jpg" alt="vptr"></p>
+</li>
+<li><p>c++ 与java .NET</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">第一，C++的难不仅仅在于其静态结构体系，还有很多源于语言设计上的包袱，比如对C的兼容，比如没有垃圾收集机制，比如对效率的强调，等等。一旦把这些包袱丢掉，设计的难度确实可以大大下降。</span><br><span class="line"></span><br><span class="line">第二，Java和.NET的核心类库是在C++十几年成功和失败的经验教训基础之上，结合COM体系优点设计实现的，自然要好上一大块。事实上，在Java和.NET核心类库的设计中很多地方，体现的是基于接口的设计，和真正的基于对象的设计。有了这两个主角站台，“面向类的设计”不能喧宾夺主，也能发挥一些好的作用。</span><br><span class="line"></span><br><span class="line">第三，Java和.NET中分别对C++最大的问题——缺少对象级别的delegate机制做出了自己的回应，这就大大弥补了原来的问题。</span><br><span class="line"></span><br><span class="line">尽管如此，Java还是沾染上了“面向类设计”的癌症，基础类库里就有很多架床叠屋的设计，而J2EE&#x2F;Java EE当中，这种形而上学的设计也很普遍，所以也引发了好几次轻量化的运动。</span><br><span class="line"></span><br><span class="line">至于.NET，我听陈榕介绍过，在设计.NET的时候，微软内部对于是否允许继承爆发了非常激烈的争论。很多资深高人都强烈反对继承。至于最后引入继承，很大程度上是营销需要压倒了技术理性。尽管如此，由于有COM的基础，又实现了非常彻底的delegate，所以 .NET 的设计水平还是很高的。它的主要问题不在这，在于太急于求胜，更新速度太快，基础不牢。当然，根本问题还是微软没有能够在Web和Mobile领域里占到多大的优势，也就使得.NET没有用武之地。</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>c++ 与 c</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1、C面向过程，C++面向对象</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>reference：<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/myan/article/details/5928531">https://blog.csdn.net/myan/article/details/5928531</a></p>
 
       
 
@@ -214,7 +307,7 @@
     
     <br>
     <strong>本文链接：</strong>
-    <a href="https://satyrswang.github.io/2021/04/11/c-tips/" title="c++tips" target="_blank">https://satyrswang.github.io/2021/04/11/c-tips/</a>
+    <a href="https://satyrswang.github.io/2021/04/11/c-tips/" title="c++tips上" target="_blank">https://satyrswang.github.io/2021/04/11/c-tips/</a>
     <br>
     <strong>版权声明：</strong>
     本作品采用
@@ -511,6 +604,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">gpu</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">cuda</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
               </li>
              
@@ -528,6 +629,18 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">并发</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">linux</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">mac</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -568,6 +681,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">推荐系统</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">tensorflow</a>
               </li>
              
               <li class="article-tag-list-item">
