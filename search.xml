@@ -111,7 +111,7 @@
 <h4 id="那，无向图的条件概率怎么表达呢？"><a href="#那，无向图的条件概率怎么表达呢？" class="headerlink" title="那，无向图的条件概率怎么表达呢？"></a>那，无向图的条件概率怎么表达呢？</h4><p>从MEMM可见，本质上有两点，一是x到y的函数，即自定义的特征函数，二是loss。和MEMM不同的是，CRF是无向图。无向图的条件概率怎么表达呢？</p>
 <p>来自google图片</p>
 <p><img src="/2021/03/09/CRF/crftu.png" alt="img"></p>
-<p>这里就引入了最大图概念。由上文介绍。得到</p>
+<p>这里就引入了最大团概念。由上文介绍。得到</p>
 <p><img src="/2021/03/09/CRF/crfp.jpg" alt="img"></p>
 <p>这个公式，本质是求 观测变量下隐状态序列的概率。c为最大团个数，k为自定义的k个特征函数。</p>
 <p>对于CRF，可以为他定义两款特征函数：转移特征&amp;状态特征。 即将建模总公式展开，见下面👇的参数化表达。</p>
@@ -554,6 +554,75 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TensorFlow源码解读01</title>
+    <url>/2021/04/16/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB01/</url>
+    <content><![CDATA[<br>
+
+<p>架构</p>
+<a id="more"></a>
+
+
+
+<p>1、在网络通信、硬件上开发变量、基础op和一些函数。在之上有执行器、分布式。然后是api接口和应用。</p>
+<p>2、核心为，通信、设备管理、op对数据操作、图计算。</p>
+<p>3、core目录包含了核心模块。public和client，一个是api接口头文件、一个是api接口实现。platform为和os相关接口文件。protobuf为数据传输的结构化序列。framework包含log、tensor、memory、registey等。graph，distributed，都好理解。kernels是核心的op，ops为梯度、io等op。lib为公共库，如hash等。stream_executor是并行计算框架。common_runtime有session、threadpool、executor管理等。contrib是contributor贡献。gpus封装了cuda cudnn编程库。</p>
+<p>4、tensor相关操作，slice add reshape reduce shuffle 等。<code>tensorbuffer</code>指针，指向Eigen::Tensor</p>
+<p>5、</p>
+<p>Python所构建好的graph模型，会在底下悄悄地生成一个由GraphDef表示的图结构来。然后我们使用Python等语言里的Session具体去分配内存，初使化参数，运行计算图时，TF的后端会将我们前一步所构建的GraphDef转化为一个可执行的Graph。</p>
+<p>构建scope，即new graph，包含着op registry。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//static OpRegistry* global_op_registry = new OpRegistry; graph里包含 registry</span></span><br><span class="line">Graph* graph = <span class="keyword">new</span> Graph(OpRegistry::Global());</span><br><span class="line"></span><br><span class="line"><span class="comment">// ShapeRefiner performs shape inference for TensorFlow Graphs.  It is</span></span><br><span class="line"><span class="comment">// responsible for instantiating InferenceContext objects for each</span></span><br><span class="line"><span class="comment">// Node in the Graph, and providing/storing the &#x27;input_tensor&#x27; Tensors</span></span><br><span class="line"><span class="comment">// used by Shape Inference functions, when available at graph</span></span><br><span class="line"><span class="comment">// construction time.</span></span><br><span class="line">ShapeRefiner* refiner =</span><br><span class="line">      <span class="keyword">new</span> ShapeRefiner(graph-&gt;versions(), graph-&gt;op_registry());</span><br><span class="line">  <span class="keyword">return</span> Scope(<span class="keyword">new</span> Impl(graph, <span class="keyword">new</span> Status, <span class="keyword">new</span> Impl::NameMap, refiner,</span><br><span class="line">                        <span class="comment">/* disable_shape_inference */</span> <span class="literal">false</span>));</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>tensorflow源码</category>
+      </categories>
+      <tags>
+        <tag>tensorflow源码</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TensorFlow源码解读02</title>
+    <url>/2021/04/16/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB02/</url>
+    <content><![CDATA[<br>
+
+<p>Tensor、计算图相关</p>
+<a id="more"></a>
+
+
+
+<p>从api开始挖。然后再上升到框架。然后再topdown地整合。</p>
+<p>友好小白。</p>
+<p>1、Tensor\TensorShape</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//创建tensor - constructor包含TensorShape</span></span><br><span class="line"><span class="comment">//TensorShape继承自Base ，constructor传入一个initializer_list</span></span><br><span class="line"><span class="function"><span class="keyword">explicit</span> <span class="title">TensorShapeBase</span><span class="params">(gtl::ArraySlice&lt;int64&gt; dim_sizes)</span></span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<br>
+
+<p>2、DeepCopy</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//主要两个步骤</span></span><br><span class="line"><span class="comment">//1 数据的memcpy -- 这里用到了string_view，减少对buffer的复制</span></span><br><span class="line"><span class="keyword">using</span> StringPiece = absl::string_view;</span><br><span class="line">StringPiece(<span class="keyword">static_cast</span>&lt;<span class="keyword">char</span>*&gt;(buf_-&gt;data()), TotalBytes());</span><br><span class="line"><span class="built_in">memcpy</span>(<span class="keyword">const_cast</span>&lt;<span class="keyword">char</span>*&gt;(output_data.data()), input_data.data(), input_data.size());</span><br><span class="line"></span><br><span class="line"><span class="comment">//2 类型 和 维度</span></span><br><span class="line">output-&gt;unaligned_flat&lt;Variant&gt;() =input.unaligned_flat&lt;Variant&gt;();</span><br><span class="line"></span><br><span class="line"><span class="comment">//这里unaligned_flat，为unaligned_shaped&lt;T, 1&gt;(&#123;NumElements()&#125;);</span></span><br><span class="line"><span class="comment">//主要检查type ，用span来进行维度的FillDimsAndValidateCompatibleShape，添入Eigen的dims并返回Eigen的tensor</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> ArraySlice = absl::Span&lt;<span class="keyword">const</span> T&gt;;</span><br><span class="line"><span class="keyword">typedef</span> Eigen::TensorMap&lt;Eigen::Tensor&lt;T, NDIMS, Eigen::RowMajor, IndexType&gt; &gt;</span><br><span class="line">      UnalignedTensor;</span><br></pre></td></tr></table></figure>
+<p>类似的操作如 slice concat split等不再赘述。</p>
+<br>
+
+<p>3、gtest</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">   <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; values_to_test = LoadValuesFromConfig();</span><br><span class="line">   RegisterMyTests(values_to_test);</span><br><span class="line">   ...</span><br><span class="line">   <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line"> &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>tensorflow 的test非常多，都是基于gtest框架。</p>
+<br>
+
+<p>4、</p>
+<br>
+总结：
+1、A `Span<T>` is somewhat analogous to an `absl::string_view`, but for an array of elements of type `T`. A user of `Span` must ensure that the data being pointed to outlives the `Span` itself.
+
+<p>2、string_view </p>
+<p>3、# ##  </p>
+<p>4、gtest</p>
+<p>5、initializer_list</p>
+</T>]]></content>
+      <categories>
+        <category>tensorflow源码</category>
+      </categories>
+      <tags>
+        <tag>tensorflow源码</tag>
       </tags>
   </entry>
   <entry>
@@ -2985,11 +3054,11 @@
 </ul>
 ]]></content>
       <categories>
-        <category>推荐算法</category>
+        <category>推荐系统</category>
       </categories>
       <tags>
         <tag>ml</tag>
-        <tag>推荐算法</tag>
+        <tag>推荐系统</tag>
       </tags>
   </entry>
   <entry>
@@ -3492,6 +3561,37 @@
       </tags>
   </entry>
   <entry>
+    <title>整体思维</title>
+    <url>/2021/04/15/%E6%95%B4%E4%BD%93%E6%80%9D%E7%BB%B4/</url>
+    <content><![CDATA[<br>
+
+<p>人生怎么走，成为什么人</p>
+<a id="more"></a>
+
+
+
+<p>时间，大多被浪费。各种事情打散了力量。</p>
+<p>能量如果不凝聚起来，和热量有什么大区别？</p>
+<p>深度。体系地思考决定深度。而小聪明，片段化地推理，没有温故和反复的逻辑，无法体现深度。</p>
+<p>体系，需要书籍、积累、重复构建。需要阅历、经验和磨炼。有质量地思考。</p>
+<p>力求成为什么样的人，就去照着那样行动。不要太过顾忌，在意别人的想法。甚至有时候你觉得，这样是不是太故作姿态了。但是也要做。不去模仿，没有可能性成为。</p>
+<p>理性和思考，让你自信。大家都能想到的思路和方案，不是你的特殊性。要在你自己的特殊性上发力，要进一步去思考和抽象。而不是停留在表象，或者前滩。其实这样的随笔也不过是警戒。不必要写太多，起到作用就行。更多还是要自己去创造。走到最前方。关注着有思想的人。</p>
+<p>去解决问题。</p>
+<p>研究生博士生上不了，你能够有创造出产品的能力吗。研究生博士生最终还是为了创造和能力的提升。</p>
+<p>你能到达的优秀必须有厚重的基底。否则还是走不远。</p>
+<p>我需要去读。因为我需要时间再去沉淀。我看得到自己的智慧，我希望能够发光。而不是在局部里挣扎。</p>
+<p>不过始终还是为了站得更高。</p>
+<p>语言、倾听、拒绝、让人信赖……</p>
+<p>都是要你去反思和提升深度广度。</p>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>机器</title>
     <url>/2021/04/05/%E6%9C%BA%E5%99%A8/</url>
     <content><![CDATA[<p>物理cpu、逻辑cpu、内存、硬盘、gpu</p>
@@ -3740,10 +3840,10 @@
 <p><a href="https://cmake.org/cmake/help/latest/guide/tutorial/index.html">https://cmake.org/cmake/help/latest/guide/tutorial/index.html</a></p>
 ]]></content>
       <categories>
-        <category>tensorflow</category>
+        <category>tensorflow源码</category>
       </categories>
       <tags>
-        <tag>tensorflow</tag>
+        <tag>tensorflow源码</tag>
       </tags>
   </entry>
   <entry>
@@ -3828,6 +3928,61 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>通货膨胀-下</title>
+    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
+    <content><![CDATA[<p><strong>摘要</strong></p>
+<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
+<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><a id="more"></a>
+<ul>
+<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
+</li>
+<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
+</li>
+<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
+</li>
+<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
+</li>
+</ul>
+<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
+<li>微观</li>
+</ul>
+<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
+<ul>
+<li>宏观<br>1、对于产出的影响<ul>
+<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
+<li>促退论:通胀造成微观效率损失;</li>
+<li>中性论:“二分法”</li>
+</ul>
+</li>
+</ul>
+<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
+<p>3、对利率、汇率等重要经济变量的影响</p>
+<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
+<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
+<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
+<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
+<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
+</ul>
+<br>
+而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
+
+
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
+<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
+<p>3、价格的绝对值无意义，房价回不到过去。</p>
+<p>4、一般来说，批发价上涨幅度高于零售。</p>
+]]></content>
+      <categories>
+        <category>货银</category>
+        <category>货币政策</category>
+      </categories>
+      <tags>
+        <tag>货银</tag>
+        <tag>货币政策</tag>
       </tags>
   </entry>
   <entry>
@@ -3924,61 +4079,6 @@
 <p>=&gt;<br>惊人的数字让人记忆犹新。德国现在仍会谨慎。</p>
 <h4 id="俄国计划经济"><a href="#俄国计划经济" class="headerlink" title="俄国计划经济"></a>俄国计划经济</h4><p>todo                    </p>
 <br>
-]]></content>
-      <categories>
-        <category>货银</category>
-        <category>货币政策</category>
-      </categories>
-      <tags>
-        <tag>货银</tag>
-        <tag>货币政策</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>通货膨胀-下</title>
-    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
-    <content><![CDATA[<p><strong>摘要</strong></p>
-<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
-<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><a id="more"></a>
-<ul>
-<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
-</li>
-<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
-</li>
-<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
-</li>
-<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
-</li>
-</ul>
-<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
-<li>微观</li>
-</ul>
-<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
-<ul>
-<li>宏观<br>1、对于产出的影响<ul>
-<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
-<li>促退论:通胀造成微观效率损失;</li>
-<li>中性论:“二分法”</li>
-</ul>
-</li>
-</ul>
-<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
-<p>3、对利率、汇率等重要经济变量的影响</p>
-<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
-<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
-<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
-<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
-<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
-</ul>
-<br>
-而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
-
-
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
-<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
-<p>3、价格的绝对值无意义，房价回不到过去。</p>
-<p>4、一般来说，批发价上涨幅度高于零售。</p>
 ]]></content>
       <categories>
         <category>货银</category>
