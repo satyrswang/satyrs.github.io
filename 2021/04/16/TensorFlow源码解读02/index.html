@@ -8,15 +8,15 @@
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
   <title>TensorFlow源码解读02 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Tensor、计算图相关">
+  <meta name="description" content="Tensor、op相关">
 <meta property="og:type" content="article">
 <meta property="og:title" content="TensorFlow源码解读02">
 <meta property="og:url" content="https://satyrswang.github.io/2021/04/16/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB02/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="Tensor、计算图相关">
+<meta property="og:description" content="Tensor、op相关">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-04-16T11:15:27.000Z">
-<meta property="article:modified_time" content="2021-04-18T16:08:57.453Z">
+<meta property="article:modified_time" content="2021-04-19T06:53:32.506Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="tensorflow源码">
 <meta name="twitter:card" content="summary">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">67.3k</span>
+    总字数 <span class="post-count">67.6k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,34 +186,54 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：271字 | 预计阅读时长：1分钟
+    字数：599字 | 预计阅读时长：3分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
         <br>
 
-<p>Tensor、计算图相关</p>
+<p>Tensor、op相关</p>
 <a id="more"></a>
 
 
 
 <p>从api开始挖。然后再上升到框架。然后再topdown地整合。</p>
 <p>友好小白。</p>
+<br>
+
 <p>1、Tensor\TensorShape</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//创建tensor - constructor包含TensorShape</span></span><br><span class="line"><span class="comment">//TensorShape继承自Base ，constructor传入一个initializer_list</span></span><br><span class="line"><span class="function"><span class="keyword">explicit</span> <span class="title">TensorShapeBase</span><span class="params">(gtl::ArraySlice&lt;int64&gt; dim_sizes)</span></span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <br>
 
 <p>2、DeepCopy</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//主要两个步骤</span></span><br><span class="line"><span class="comment">//1 数据的memcpy -- 这里用到了string_view，减少对buffer的复制</span></span><br><span class="line"><span class="keyword">using</span> StringPiece = absl::string_view;</span><br><span class="line">StringPiece(<span class="keyword">static_cast</span>&lt;<span class="keyword">char</span>*&gt;(buf_-&gt;data()), TotalBytes());</span><br><span class="line"><span class="built_in">memcpy</span>(<span class="keyword">const_cast</span>&lt;<span class="keyword">char</span>*&gt;(output_data.data()), input_data.data(), input_data.size());</span><br><span class="line"></span><br><span class="line"><span class="comment">//2 类型 和 维度</span></span><br><span class="line">output-&gt;unaligned_flat&lt;Variant&gt;() =input.unaligned_flat&lt;Variant&gt;();</span><br><span class="line"></span><br><span class="line"><span class="comment">//这里unaligned_flat，为unaligned_shaped&lt;T, 1&gt;(&#123;NumElements()&#125;);</span></span><br><span class="line"><span class="comment">//主要检查type ，用span来进行维度的FillDimsAndValidateCompatibleShape，添入Eigen的dims并返回Eigen的tensor</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> ArraySlice = absl::Span&lt;<span class="keyword">const</span> T&gt;;</span><br><span class="line"><span class="keyword">typedef</span> Eigen::TensorMap&lt;Eigen::Tensor&lt;T, NDIMS, Eigen::RowMajor, IndexType&gt; &gt;</span><br><span class="line">      UnalignedTensor;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//主要两个步骤 ，在tensor_utils中</span></span><br><span class="line"><span class="comment">//1 数据的memcpy -- 这里用到了string_view，use StringPiece as a convenient map over the tensor buffer</span></span><br><span class="line"><span class="keyword">using</span> StringPiece = absl::string_view;</span><br><span class="line">StringPiece(<span class="keyword">static_cast</span>&lt;<span class="keyword">char</span>*&gt;(buf_-&gt;data()), TotalBytes());</span><br><span class="line"><span class="built_in">memcpy</span>(<span class="keyword">const_cast</span>&lt;<span class="keyword">char</span>*&gt;(output_data.data()), input_data.data(), input_data.size());</span><br><span class="line"></span><br><span class="line"><span class="comment">//2 类型 和 维度</span></span><br><span class="line">output-&gt;unaligned_flat&lt;Variant&gt;() =input.unaligned_flat&lt;Variant&gt;();</span><br><span class="line"></span><br><span class="line"><span class="comment">//这里unaligned_flat，为unaligned_shaped&lt;T, 1&gt;(&#123;NumElements()&#125;);</span></span><br><span class="line"><span class="comment">//主要检查type ，用span来填充维度：FillDimsAndValidateCompatibleShape，添入Eigen的dims并返回Eigen的tensor</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> ArraySlice = absl::Span&lt;<span class="keyword">const</span> T&gt;;</span><br><span class="line"><span class="keyword">typedef</span> Eigen::TensorMap&lt;Eigen::Tensor&lt;T, NDIMS, Eigen::RowMajor, IndexType&gt; &gt;</span><br><span class="line">      UnalignedTensor;</span><br></pre></td></tr></table></figure>
 <p>类似的操作如 slice concat split等不再赘述。</p>
 <br>
 
 <p>3、gtest</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">   <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; values_to_test = LoadValuesFromConfig();</span><br><span class="line">   RegisterMyTests(values_to_test);</span><br><span class="line">   ...</span><br><span class="line">   <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line"> &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">   <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; values_to_test = LoadValuesFromConfig();</span><br><span class="line">   RegisterMyTests(values_to_test);</span><br><span class="line">   ...</span><br><span class="line">   <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//写法如</span></span><br><span class="line">TEST(TensorProtoUtil, CompressTensorProtoInPlaceTooSmall) &#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">int</span> kLength = <span class="number">63</span>;</span><br><span class="line">  TensorProto tensor_proto =</span><br><span class="line">      tensor::CreateTensorProto(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">float</span>&gt;(kLength), &#123;kLength&#125;);</span><br><span class="line">  EXPECT_FALSE(tensor::CompressTensorProtoInPlace(&amp;tensor_proto));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//CreateTensorProto的测试</span></span><br><span class="line"><span class="keyword">auto</span> proto = tensor::CreateTensorProto(values, shape);</span><br><span class="line">EXPECT_EQ(proto.DebugString(),</span><br><span class="line">          <span class="string">&quot;dtype: DT_STRING\n&quot;</span></span><br><span class="line">          <span class="string">&quot;tensor_shape &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  dim &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;    size: 1\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  &#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  dim &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;    size: 3\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  &#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;&#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;a\&quot;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;b\&quot;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;c\&quot;\n&quot;</span>);</span><br></pre></td></tr></table></figure>
 <p>tensorflow 的test非常多，都是基于gtest框架。</p>
 <br>
 
-<p>4、</p>
+<p>4、CreateTensorProto</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//同样两个部分，shape和value进行create。tensor_util.h中</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//shape部分是protobuf相关操作</span></span><br><span class="line">internal::SetTensorProtoShape(shape, &amp;tensor_shape_proto);</span><br><span class="line"><span class="comment">//set的方式主要是：循环获得shapeproto中的RepeatedPtrField&lt; ::tensorflow::TensorShapeProto_Dim &gt;</span></span><br><span class="line"><span class="comment">// RepeatedPtrField is like RepeatedField, but used for repeated strings or Messages.</span></span><br><span class="line"><span class="comment">//获得后，再调用其Add方法，将shape的每一维 生成一个element并且set值</span></span><br><span class="line"><span class="function">Element* <span class="title">Add</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//value用internal::TensorProtoHelper&lt;Type&gt; 中的AddValues这个static方法，把value中的值一个个加进proto</span></span><br><span class="line">tensor.set_dtype(TypeHelper::GetDataType());</span><br><span class="line">tensor.mutable_tensor_shape()-&gt;Swap(&amp;tensor_shape_proto);</span><br><span class="line">TypeHelper::AddValues(values.begin(), values.end(), &amp;tensor);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>还有诸如CompressTensorProtoInPlace（主要是CompressRepeatedField，核心两个阈值<code> static const int64 kDefaultMinNumElements = 64;static const float kDefaultMinCompressionRatio = 2.0f;</code>）。</p>
+<br>
+
+<p>5、protobuf</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//tensor、op、graph等的proto 涉及到很多protobuf操作，不赘述</span></span><br><span class="line"><span class="comment">//比如Arena中</span></span><br><span class="line"><span class="keyword">auto</span>* p = CreateMaybeMessage&lt;::tensorflow::TensorShapeProto&gt;(GetArenaNoVirtual());</span><br></pre></td></tr></table></figure>
+<br>
+
+<p>6、OpRegistry</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// The standard implementation of OpRegistryInterface, along with a</span></span><br><span class="line"><span class="comment">// global singleton used for registering ops via the REGISTER</span></span><br><span class="line"><span class="comment">// macros below.  Thread-safe.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// Example registration:</span></span><br><span class="line"><span class="comment">//   OpRegistry::Global()-&gt;Register(</span></span><br><span class="line"><span class="comment">//     [](OpRegistrationData* op_reg_data)-&gt;Status &#123;</span></span><br><span class="line"><span class="comment">//       // Populate *op_reg_data here.</span></span><br><span class="line"><span class="comment">//       return Status::OK();</span></span><br><span class="line"><span class="comment">//   &#125;);</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
 <br>
 总结：
 1、A `Span<T>` is somewhat analogous to an `absl::string_view`, but for an array of elements of type `T`. A user of `Span` must ensure that the data being pointed to outlives the `Span` itself.
@@ -555,6 +575,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -564,10 +588,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
               </li>
              
               <li class="article-tag-list-item">
