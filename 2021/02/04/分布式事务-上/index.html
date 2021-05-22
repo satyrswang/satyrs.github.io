@@ -37,7 +37,7 @@
 
   
 
-<meta name="generator" content="Hexo 5.3.0"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">67.6k</span>
+    总字数 <span class="post-count">69.3k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -192,7 +192,7 @@
       
         <p><strong>摘要</strong></p>
 <p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务</p>
-<a id="more"></a>
+<span id="more"></span>
 <p>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
 <h2 id="1、事务、分布式事务及场景"><a href="#1、事务、分布式事务及场景" class="headerlink" title="1、事务、分布式事务及场景"></a>1、事务、分布式事务及场景</h2><ul>
 <li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
@@ -342,6 +342,7 @@
 </ol>
 <p>转账最终方案：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;A</span><br><span class="line">try: </span><br><span class="line">	try幂等校验</span><br><span class="line">	try悬挂处理 </span><br><span class="line">	检查余额是否够30元 </span><br><span class="line">	扣减30元</span><br><span class="line">confirm: </span><br><span class="line">	空</span><br><span class="line">cancel: </span><br><span class="line">	cancel幂等校验</span><br><span class="line">	cancel空回滚处理 </span><br><span class="line">	增加可用余额30元</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;B</span><br><span class="line">try: </span><br><span class="line">	空</span><br><span class="line">confirm: </span><br><span class="line">	confirm幂等校验</span><br><span class="line">	正式增加30元 </span><br><span class="line">cancel:</span><br><span class="line">	空</span><br></pre></td></tr></table></figure>
+
 <h4 id="4-3-Hmily实现TCC事务"><a href="#4-3-Hmily实现TCC事务" class="headerlink" title="4.3 Hmily实现TCC事务"></a>4.3 Hmily实现TCC事务</h4><ul>
 <li><p>新增配置类接收application.yml中的Hmily配置信息，并创建HmilyTransactionBootstrap Bean</p>
 </li>
@@ -349,6 +350,7 @@
 </li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;DAO 略</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;service </span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">    @Transactional</span><br><span class="line">    @Hmily(confirmMethod &#x3D; &quot;commit&quot;, cancelMethod &#x3D; &quot;rollback&quot;)</span><br><span class="line">	public  void updateAccountBalance(String accountNo, Double amount) &#123;</span><br><span class="line">		&#x2F;&#x2F;事务id</span><br><span class="line">		&#x2F;&#x2F;try幂等校验</span><br><span class="line">		&#x2F;&#x2F;try悬挂处理</span><br><span class="line">		&#x2F;&#x2F;从账户扣减及扣减失败</span><br><span class="line">		&#x2F;&#x2F;增加本地事务try成功记录，用于幂等性控制标识 accountInfoDao.addTry(transId);</span><br><span class="line">		&#x2F;&#x2F;远程调用bank2</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;feign</span><br><span class="line"></span><br><span class="line">	@FeignClient(value &#x3D; &quot;seata‐demo‐bank2&quot;, fallback &#x3D; Bank2Fallback.class)</span><br><span class="line">	public interface Bank2Client &#123;</span><br><span class="line">		@GetMapping(&quot;&#x2F;bank2&#x2F;transfer&quot;)</span><br><span class="line">		@Hmily</span><br><span class="line">		Boolean transfer(@RequestParam(&quot;amount&quot;) Double amount);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;controller 略</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>B账户 略</li>
 </ul>
@@ -658,15 +660,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">金融经济</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">tensorflow源码</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -679,6 +685,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -698,10 +708,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -711,6 +717,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
               </li>
              
               <li class="article-tag-list-item">

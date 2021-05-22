@@ -37,7 +37,7 @@
 
   
 
-<meta name="generator" content="Hexo 5.3.0"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">67.6k</span>
+    总字数 <span class="post-count">69.3k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -193,7 +193,7 @@
         <br>
 
 <p>架构</p>
-<a id="more"></a>
+<span id="more"></span>
 
 
 
@@ -205,6 +205,7 @@
 <p>Python所构建好的graph模型，会在底下悄悄地生成一个由GraphDef表示的图结构来。然后我们使用Python等语言里的Session具体去分配内存，初使化参数，运行计算图时，TF的后端会将我们前一步所构建的GraphDef转化为一个可执行的Graph。</p>
 <p>构建scope，即new graph，包含着op registry。</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//static OpRegistry* global_op_registry = new OpRegistry; graph里包含 registry</span></span><br><span class="line">Graph* graph = <span class="keyword">new</span> Graph(OpRegistry::Global());</span><br><span class="line"></span><br><span class="line"><span class="comment">// ShapeRefiner performs shape inference for TensorFlow Graphs.  It is</span></span><br><span class="line"><span class="comment">// responsible for instantiating InferenceContext objects for each</span></span><br><span class="line"><span class="comment">// Node in the Graph, and providing/storing the &#x27;input_tensor&#x27; Tensors</span></span><br><span class="line"><span class="comment">// used by Shape Inference functions, when available at graph</span></span><br><span class="line"><span class="comment">// construction time.</span></span><br><span class="line">ShapeRefiner* refiner =</span><br><span class="line">      <span class="keyword">new</span> ShapeRefiner(graph-&gt;versions(), graph-&gt;op_registry());</span><br><span class="line">  <span class="keyword">return</span> Scope(<span class="keyword">new</span> Impl(graph, <span class="keyword">new</span> Status, <span class="keyword">new</span> Impl::NameMap, refiner,</span><br><span class="line">                        <span class="comment">/* disable_shape_inference */</span> <span class="literal">false</span>));</span><br></pre></td></tr></table></figure>
+
 
       
 
@@ -507,15 +508,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">金融经济</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">tensorflow源码</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -528,6 +533,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -547,10 +556,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -560,6 +565,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
               </li>
              
               <li class="article-tag-list-item">

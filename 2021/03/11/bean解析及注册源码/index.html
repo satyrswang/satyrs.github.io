@@ -39,7 +39,7 @@
 
   
 
-<meta name="generator" content="Hexo 5.3.0"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -88,7 +88,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">67.6k</span>
+    总字数 <span class="post-count">69.3k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -195,12 +195,13 @@
         <br>
 
 <p>S1<code>xml文件等资源类 </code> – 对各种资源类的封装+encode</p>
-<a id="more"></a>
+<span id="more"></span>
 <p><img src="https://upload-images.jianshu.io/upload_images/8716089-f03da4d523f26bbb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="resource.jpg"></p>
 <p>S2<code>读取xml文件</code> – 对xml文件的校验、load、read(这里的read调用BeanDefinitionDocumentReader)<br>主要在<code>XmlBeanDefinitionReader</code>中</p>
 <p>S3<code>解析属性(xml中标签)</code> –从xml到Bean<br>实现在<code>DefaultBeanDefinitionDocumentReader</code><br><code>doRegisterBeanDefinitions()</code> 中解析了<code>profile</code>属性，并且其中的<code>parseBeanDefinitions()</code>是解析xml的开始。</p>
 <p>根据不同的<code>namespace</code>和<code>nodename</code>，分别不同处理</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) &#123;</span><br><span class="line">	importBeanDefinitionResource(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) &#123;</span><br><span class="line">	processAliasRegistration(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) &#123;</span><br><span class="line">	processBeanDefinition(ele, delegate);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) &#123;</span><br><span class="line">	&#x2F;&#x2F; recurse</span><br><span class="line">	doRegisterBeanDefinitions(ele);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>处理过程涉及到<code>BeanDefinitionParserDelegate BeanDefinitionHolder BeanDefinitionReaderUtils XmlReaderContext</code></p>
 <blockquote>
 <p>delegate中对元素(属性)进行解析，结果放入holder中，此时holder已经包含了各种属性。再由Utils中将holder进行注册。最后由context将注册结果通知监听器。</p>
@@ -508,15 +509,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">金融经济</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">tensorflow源码</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -529,6 +534,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -548,10 +557,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -561,6 +566,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
               </li>
              
               <li class="article-tag-list-item">

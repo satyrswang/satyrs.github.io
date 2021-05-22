@@ -6,7 +6,7 @@
     <content><![CDATA[<h2 id="Apriori"><a href="#Apriori" class="headerlink" title="Apriori"></a>Apriori</h2><ul>
 <li>input<br>{ID1:[item1,item2…],ID2:[item3,item2…],…}</li>
 </ul>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li><p>output<br>item1-&gt;item2,item3…</p>
 </li>
@@ -22,6 +22,7 @@
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        if (len(Hmp1) &gt; 1):   #至少需要两个元素才能够merge</span><br><span class="line">            rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
 <p>这里一个问题是，如果<code>len(Hmp1) =1</code>，但是<code>len(freqSet) &gt; (len(Hmp1[0]) + 1)</code>仍然成立，因此修改为：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        if(len(H) &gt; 1):</span><br><span class="line">            Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
+
 <br>
 
 
@@ -52,326 +53,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Decorator</title>
-    <url>/2021/02/04/Decorator/</url>
-    <content><![CDATA[<h2 id="functional-programming-concepts"><a href="#functional-programming-concepts" class="headerlink" title="functional programming concepts"></a><strong>functional programming concepts</strong></h2><p>分两类：</p>
-<ul>
-<li>Function decorators</li>
-<li>Class decorators<a id="more"></a></li>
-</ul>
-<blockquote>
-<p>A decorator in Python is any callable Python object that is used to <strong>modify a function or a class</strong>. A reference to a function “func” or a class “C” is passed to a decorator and the decorator returns a modified function or class. The modified functions or classes usually contain calls to the original function “func” or class “C”. </p>
-</blockquote>
-<h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a><strong>show me the code</strong></h2><ul>
-<li><em>参数检查</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def argument_test_natural_number(f):</span><br><span class="line">    def helper(x):</span><br><span class="line">        if type(x) &#x3D;&#x3D; int and x &gt; 0:</span><br><span class="line">            return f(x)</span><br><span class="line">        else:</span><br><span class="line">            raise Exception(&quot;Argument is not an integer&quot;)</span><br><span class="line">    return helper</span><br><span class="line">    </span><br><span class="line">@argument_test_natural_number</span><br><span class="line">def factorial(n):</span><br><span class="line">    if n &#x3D;&#x3D; 1:</span><br><span class="line">        return 1</span><br><span class="line">    else:</span><br><span class="line">        return n * factorial(n-1)</span><br><span class="line"></span><br><span class="line">for i in range(1,10):</span><br><span class="line">	print(i, factorial(i))</span><br><span class="line"></span><br><span class="line">print(factorial(-1))</span><br></pre></td></tr></table></figure></li>
-<li><em>统计次数</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def call_counter(func):</span><br><span class="line">    def helper(*args, **kwargs):</span><br><span class="line">        helper.calls +&#x3D; 1</span><br><span class="line">        return func(*args, **kwargs)</span><br><span class="line">    helper.calls &#x3D; 0</span><br><span class="line"></span><br><span class="line">    return helper</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def succ(x):</span><br><span class="line">    return x + 1</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def mul1(x, y&#x3D;1):</span><br><span class="line">    return x*y + 1</span><br><span class="line"></span><br><span class="line">print(succ.calls)</span><br><span class="line">for i in range(10):</span><br><span class="line">    succ(i)</span><br><span class="line">mul1(3, 4)</span><br><span class="line">mul1(4)</span><br><span class="line">mul1(y&#x3D;3, x&#x3D;2)</span><br><span class="line">    </span><br><span class="line">print(succ.calls)</span><br><span class="line">print(mul1.calls)</span><br></pre></td></tr></table></figure></li>
-<li><em>含参数的decorator</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(expr):</span><br><span class="line">    def greeting_decorator(func):</span><br><span class="line">        def function_wrapper(x):</span><br><span class="line">            print(expr + &quot;, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">            func(x)</span><br><span class="line">        return function_wrapper</span><br><span class="line">    return greeting_decorator</span><br><span class="line"></span><br><span class="line">@greeting(&quot;-wyq-&quot;)</span><br><span class="line">def foo(x):</span><br><span class="line">    print(42)</span><br><span class="line"></span><br><span class="line">foo(&quot;Hi&quot;)</span><br></pre></td></tr></table></figure></li>
-<li><em>using import 要注意变量的域</em></li>
-</ul>
-<p>greeting_decorator.py  没用functools的版本</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(func):</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    function_wrapper.__name__ &#x3D; func.__name__</span><br><span class="line">    function_wrapper.__doc__ &#x3D; func.__doc__</span><br><span class="line">    function_wrapper.__module__ &#x3D; func.__module__</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
-<p>anotherfile.py:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from greeting_decorator import greeting</span><br><span class="line"></span><br><span class="line">@greeting</span><br><span class="line">def f(x):</span><br><span class="line">    &quot;&quot;&quot; just some silly function &quot;&quot;&quot;</span><br><span class="line">    return x + 4</span><br><span class="line"></span><br><span class="line">f(10)</span><br><span class="line">print(&quot;function name: &quot; + f.__name__)</span><br><span class="line">print(&quot;docstring: &quot; + f.__doc__)</span><br><span class="line">print(&quot;module name: &quot; + f.__module__)</span><br></pre></td></tr></table></figure>
-<p>greeting_decorator.py</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from functools import wraps</span><br><span class="line"></span><br><span class="line">def greeting(func):</span><br><span class="line">    @wraps(func)</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
-<p>否则将返回</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function name: function_wrapper</span><br><span class="line">docstring:  function_wrapper of greeting </span><br><span class="line">module name: greeting_decorator</span><br></pre></td></tr></table></figure>
-<ul>
-<li><em><code>__call__</code></em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Fibonacci:</span><br><span class="line">    def __init__(self):</span><br><span class="line">        self.cache &#x3D; &#123;&#125;</span><br><span class="line">    def __call__(self, n):</span><br><span class="line">        if n not in self.cache:</span><br><span class="line">            if n &#x3D;&#x3D; 0:</span><br><span class="line">                self.cache[0] &#x3D; 0</span><br><span class="line">            elif n &#x3D;&#x3D; 1:</span><br><span class="line">                self.cache[1] &#x3D; 1</span><br><span class="line">            else:</span><br><span class="line">                self.cache[n] &#x3D; self.__call__(n-1) + self.__call__(n-2)</span><br><span class="line">        return self.cache[n]</span><br><span class="line"></span><br><span class="line">fib &#x3D; Fibonacci()</span><br><span class="line"></span><br><span class="line">for i in range(15):</span><br><span class="line">    print(fib(i), end&#x3D;&quot;, &quot;)</span><br></pre></td></tr></table></figure></li>
-<li><em>using class</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class decorator2:</span><br><span class="line">    </span><br><span class="line">    def __init__(self, f):</span><br><span class="line">        self.f &#x3D; f</span><br><span class="line">        </span><br><span class="line">    def __call__(self):</span><br><span class="line">        print(&quot;Decorating&quot;, self.f.__name__)</span><br><span class="line">        self.f()</span><br><span class="line"></span><br><span class="line">@decorator2</span><br><span class="line">def foo():</span><br><span class="line">    print(&quot;inside foo()&quot;)</span><br><span class="line"></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure></li>
-</ul>
-]]></content>
-      <categories>
-        <category>编程语言</category>
-        <category>python</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DeepFm</title>
-    <url>/2021/03/08/DeepFm/</url>
-    <content><![CDATA[<br>
-
-<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在推荐领域较流行的深度模型方案：</p>
-<p>实战：阿里MLR、阿里DIN、阿里ESSM、京东强化学习推荐、facebook个性化推荐dlrm、Deep Neural Networks for YouTube Recommendations、华为DeepFM、google2016 wide&amp;deep learning、googleDeep&amp;Cross Network等。</p>
-<a id="more"></a>
-<p>DeepFm模型及进化：XDeepFM(deep进化)、AFM(加入attention)、FFM(field-aware)、PNN、FNN、NFM等。</p>
-<p>其中，DeepFM在论文中通过大量实验证明，DeepFM的AUC和Logloss都优于目前的最好效果。效率上，DeepFM和目前最优的效果的深度模型相当。在Benchmark数据集和商业数据集上，DeepFM效果超过目前所有模型。</p>
-<h3 id="Q1：FM解决什么问题？"><a href="#Q1：FM解决什么问题？" class="headerlink" title="Q1：FM解决什么问题？"></a>Q1：FM解决什么问题？</h3><p>1、普通的线性模型，我们都是将各个特征独立考虑的，并没有考虑到特征与特征之间的相互关系。<br>为了表述特征间的相关性，我们采用多项式模型。</p>
-<p>在多项式模型中，特征xi与xj的组合用xixj表示。为了简单起见，我们讨论二阶多项式模型。<br>2、与线性模型相比，FM的模型就多了后面特征组合的部分。<br><img src="/2021/03/08/DeepFm/%E4%BA%8C%E9%A1%B9%E5%BC%8F.png" alt="二项式"></p>
-<h3 id="Q2：FM参数求解？"><a href="#Q2：FM参数求解？" class="headerlink" title="Q2：FM参数求解？"></a>Q2：FM参数求解？</h3><p>1、公式中，组合部分的特征相关参数共有n(n−1)/2个。在数据很稀疏的情况下xi,xj都不为0的情况非常少，这样将导致ωij无法通过训练得出。</p>
-<p>为了求出ωij，我们对每一个特征分量xi引入辅助向量Vi=(vi1,vi2,⋯,vik)。然后，利用vivj^T对ωij进行求解。</p>
-<p><img src="/2021/03/08/DeepFm/%E5%BC%95%E5%85%A5V.png" alt="引入V"></p>
-<p>2、如何求解V？</p>
-<p>推导公式网上到处都有。</p>
-<p>3、得到公式推导结果后，对w求导，梯度下降进行训练。</p>
-<h4 id="Q3：FFM？"><a href="#Q3：FFM？" class="headerlink" title="Q3：FFM？"></a>Q3：FFM？</h4><p>公式：</p>
-<p><img src="/2021/03/08/DeepFm/ffm_gs.png" alt="ffm_gs"></p>
-<p>举例：</p>
-<p><img src="/2021/03/08/DeepFm/ffm.png" alt="ffm"></p>
-<h4 id="Q4：why-DeepFm？"><a href="#Q4：why-DeepFm？" class="headerlink" title="Q4：why DeepFm？"></a>Q4：why DeepFm？</h4><p>1、因子分解机(Factorization Machines, FM)通过对于每一维特征的隐变量内积来提取特征组合。最终的结果也非常好。<br>但是，虽然理论上来讲FM可以对高阶特征组合进行建模，但实际上因为计算复杂度的原因一般都只用到了二阶特征组合。<br>那么对于高阶的特征组合来说，通过多层的神经网络即DNN去解决。</p>
-<p>2、One-hot类型的特征输入到DNN中，会导致网络参数太多。<br>如何解决这个问题呢，类似于FFM中的思想，将特征分为不同的field：让Dense Vector进行组合，来表示高阶特征。</p>
-<p><img src="/2021/03/08/DeepFm/field.png" alt="field"></p>
-<p>3、但是低阶和高阶特征组合隐含地体现在隐藏层中，如果我们希望把低阶特征组合单独建模，然后融合高阶特征组合。<br>=&gt;就得到了DeepFm。</p>
-<h4 id="Q5：what-DeepFm？"><a href="#Q5：what-DeepFm？" class="headerlink" title="Q5：what DeepFm？"></a>Q5：what DeepFm？</h4><p>1、有两种融合方式，分别为串行和并行的结构。<br>这里介绍并行结构。</p>
-<p><img src="/2021/03/08/DeepFm/structure.png" alt="structure"><br><img src="/2021/03/08/DeepFm/deepfm.png" alt="deepfm"></p>
-<p>2、emb部分</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">#embeddings</span></span><br><span class="line"><span class="comment">#weights[&#x27;feature_embeddings&#x27;] 存放的每一个值其实就是FM中的vik</span></span><br><span class="line">weights[<span class="string">&#x27;feature_embeddings&#x27;</span>] = tf.Variable(</span><br><span class="line">    tf.random_normal([self.feature_size,self.embedding_size],<span class="number">0.0</span>,<span class="number">0.01</span>),</span><br><span class="line">    name=<span class="string">&#x27;feature_embeddings&#x27;</span>)</span><br><span class="line"></span><br><span class="line">weights[<span class="string">&#x27;feature_bias&#x27;</span>] = tf.Variable(tf.random_normal([self.feature_size,<span class="number">1</span>],<span class="number">0.0</span>,<span class="number">1.0</span>),name=<span class="string">&#x27;feature_bias&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># model</span></span><br><span class="line">self.embeddings = tf.nn.embedding_lookup(self.weights[<span class="string">&#x27;feature_embeddings&#x27;</span>],self.feat_index) <span class="comment"># N * F * K</span></span><br><span class="line">feat_value = tf.reshape(self.feat_value,shape=[-<span class="number">1</span>,self.field_size,<span class="number">1</span>])</span><br><span class="line">self.embeddings = tf.multiply(self.embeddings,feat_value)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>如果是离散值，则embedding lookup之后，每个维度✖️1，连续值则✖️连续值。<br>✖️后的结果就是公式里的 Vi,f · Xi</p>
-<p>3、dnn部分<br>为了更好的发挥DNN模型学习high-order特征的能力，文中设计了一套子网络结构，将原始的稀疏表示特征映射为稠密的特征向量。<br>子网络设计时的两个要点：</p>
-<p>不同field特征长度不同，但是子网络输出的向量需具有相同维度；<br>利用FM模型的隐特征向量V作为网络权重初始化来获得子网络输出向量。文中将FM的预训练V向量作为网络权重初始化替换为直接将FM和DNN进行整体联合训练，从而实现了一个端到端的模型。 （即lookup）</p>
-<p>4、fm</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># second order term</span></span><br><span class="line"><span class="comment"># sum-square-part</span></span><br><span class="line">self.summed_features_emb = tf.reduce_sum(self.embeddings,<span class="number">1</span>) <span class="comment"># None * k</span></span><br><span class="line">self.summed_features_emb_square = tf.square(self.summed_features_emb) <span class="comment"># None * K</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># squre-sum-part</span></span><br><span class="line">self.squared_features_emb = tf.square(self.embeddings)</span><br><span class="line">self.squared_sum_features_emb = tf.reduce_sum(self.squared_features_emb, <span class="number">1</span>)  <span class="comment"># None * K</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#second order</span></span><br><span class="line">self.y_second_order = <span class="number">0.5</span> * tf.subtract(self.summed_features_emb_square,self.squared_sum_features_emb)</span><br><span class="line">self.y_second_order = tf.nn.dropout(self.y_second_order,self.dropout_keep_fm[<span class="number">1</span>])</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="Q6：扩展，自定义算子？"><a href="#Q6：扩展，自定义算子？" class="headerlink" title="Q6：扩展，自定义算子？"></a>Q6：扩展，自定义算子？</h4><p>比如我们输入是每个item的idor一些离散特征时候。需要对离散特征的各个值–&gt;index构建一个table。然后每次输入转换成对应的index，再根据index去tf.nn.embedding_lookup。离散特征对应的weight dict大小，需要给个预估值，大一些，囊括各种离散、连续的取值总数。</p>
-<p>这里就可以对tensorflow里的hashtable算子进行扩展。构建一个table，动态增长index，来了一个新的取值，就对应index++。</p>
-<p>实现：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">Status <span class="title">Find</span><span class="params">(OpKernelContext* ctx, <span class="keyword">const</span> Tensor&amp; key, Tensor* value,</span></span></span><br><span class="line"><span class="function"><span class="params">              <span class="keyword">const</span> Tensor&amp; default_value)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Grab the input tensor</span></span><br><span class="line">	<span class="keyword">const</span> V default_val = default_value.flat&lt;V&gt;()(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> A = key.flat&lt;K&gt;();</span><br><span class="line">    <span class="comment">// Create an output tensor</span></span><br><span class="line">	<span class="keyword">auto</span> output_flat = value-&gt;flat&lt;V&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set all but the first element of the output tensor to 0.</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> N = A.size();</span><br><span class="line">    <span class="keyword">int</span> pos = <span class="number">0</span>;</span><br><span class="line">  </span><br><span class="line">    K find_key;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function">tf_shared_lock <span class="title">sl</span><span class="params">(mu_)</span></span>;</span><br><span class="line">        <span class="keyword">for</span> (; pos &lt; N; pos++) &#123;</span><br><span class="line">            find_key = SubtleMustCopyIfIntegral(A(pos));</span><br><span class="line">            <span class="keyword">auto</span> it = table_.find(find_key);</span><br><span class="line">            <span class="keyword">if</span>(it == table_.end()) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                output_flat(pos) = it-&gt;second;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(pos &lt; N) &#123;</span><br><span class="line">        <span class="keyword">int64_t</span> hsize;</span><br><span class="line">        <span class="function">mutex_lock <span class="title">l</span><span class="params">(mu_)</span></span>;</span><br><span class="line">        <span class="keyword">for</span>(; pos &lt; N; pos++) &#123;</span><br><span class="line">            find_key = SubtleMustCopyIfIntegral(A(pos));</span><br><span class="line">            <span class="keyword">auto</span> it = table_.find(find_key);</span><br><span class="line">            <span class="keyword">if</span>(it == table_.end()) &#123;</span><br><span class="line">               hsize = table_.size();</span><br><span class="line">               <span class="keyword">if</span>(hsize &gt;= max_size_) &#123;</span><br><span class="line">                <span class="keyword">return</span> errors::ResourceExhausted(<span class="string">&quot;max size limit&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">               table_.insert(&#123;find_key, hsize&#125;);</span><br><span class="line">               output_flat(pos) = hsize;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                output_flat(pos) = it-&gt;second;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Status::OK();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-<p>测试：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">from</span> dynamic_unique_table <span class="keyword">import</span> DynamicUniqueTable</span><br><span class="line"></span><br><span class="line">table = DynamicUniqueTable(key_dtype=tf.string,</span><br><span class="line">                     value_dtype=tf.int64,</span><br><span class="line">                     default_value=-<span class="number">1</span>,</span><br><span class="line">                     max_ids=<span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">    sess.run(tf.global_variables_initializer())</span><br><span class="line">    print(sess.run(table.lookup(<span class="string">&quot;asdfetryuijkn&quot;</span>)))</span><br><span class="line">    print(sess.run(table.lookup(<span class="string">&quot;hahahahah&quot;</span>)))</span><br><span class="line">    print(sess.run(table.export()))</span><br><span class="line">    tf.train.Saver().save(sess, <span class="string">&#x27;index_test_model2/&#x27;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-<p>相关命令</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">本地：</span><br><span class="line">python pai&#x2F;main.py --train_tables&#x3D;.&#x2F;dub_train.csv --test_tables&#x3D;.&#x2F;dub_test.csv --data_type&#x3D;file --discrete_size&#x3D;15 --continue_size&#x3D;14 --epoch&#x3D;30 --buckets&#x3D;.&#x2F; --save_predict&#x3D;True</span><br><span class="line">pai:</span><br><span class="line">组件无法支持多张表输入， 直接在odps的sql页面执行：</span><br><span class="line"></span><br><span class="line">PAI-name tensorflow1120_ext</span><br><span class="line"></span><br><span class="line">-project algo_public</span><br><span class="line">-Dscript&#x3D;&#39;oss:&#x2F;&#x2F;datadrive.oss-cn-shanghai-internal.aliyuncs.com&#x2F;tmp&#x2F;tl_deepfm.tar.gz&#39;</span><br><span class="line">-DentryFile&#x3D;&#39;pai&#x2F;main.py&#39;</span><br><span class="line">-DgpuRequired&#x3D;100</span><br><span class="line">-Dtables&#x3D;&#39;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_fit_normal,odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_eval_normal&#39;</span><br><span class="line">-Dbuckets&#x3D;&#39;oss:&#x2F;&#x2F;datadrive.oss-cn-shanghai-internal.aliyuncs.com&#x2F;tmp&#x2F;&#39;</span><br><span class="line">-Darn&#x3D;&#39;acs:ram::1872928906167841:role&#x2F;aliyunodpspaidefaultrole&#39;</span><br><span class="line">-DossHost&#x3D;&quot;oss-cn-shanghai-internal.aliyuncs.com&quot;</span><br><span class="line">-DuserDefinedParameters&#x3D;&quot;--train_tables&#x3D;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_fit_normal--test_tables&#x3D;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_eval_normal--discrete_size&#x3D;20 --continue_size&#x3D;49 --data_type&#x3D;odps --input_need_hash&#x3D;True --use_input_bn&#x3D;False --epoch&#x3D;100&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>dl</category>
-      </categories>
-      <tags>
-        <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>LSTM</title>
-    <url>/2021/01/31/LSTM/</url>
-    <content><![CDATA[<ul>
-<li>篇幅稍长，分为四个部分</li>
-</ul>
-<ol>
-<li>background</li>
-<li>step-by-step</li>
-<li>show me the code</li>
-<li>deep thinking</li>
-</ol>
-<p>codes<br><a href="https://github.com/satyrswang/blog-jianshu/blob/master/LSTM.lua">https://github.com/satyrswang/blog-jianshu/blob/master/LSTM.lua</a></p>
-<h2 id="background"><a href="#background" class="headerlink" title="background"></a>background</h2><ul>
-<li><p>what?<br>rnn和feedforward network有嘛不同？</p>
-<blockquote>
-<p>It’s the easiest to implement an RNN just as a feedforward network with some parts of the input feeding into the middle of the stack, and a bunch of outputs coming out from there as well. There is no magic internal state kept in the network. It’s provided as a part of the input!</p>
-</blockquote>
-<a id="more"></a>
-<p>只是把隐层有拎出来作为下一个隐层的input。=_=<br>然而，理论支持吗？</p>
-</li>
-<li><p>Problem</p>
-<ul>
-<li>视频那么多帧，前一帧连着后一帧，间隔又短，那么是否可用前一帧来预测后一帧？<br>看情况。</li>
-<li>完形填空 the clouds are in the ___<br>I grew up in France… I speak fluent <em>French</em>.<br>当gap变大，France和<em>French</em>距离那么远，RNN没用了。</li>
-<li>为什么gap大了，就没用了？理论证明如下：<br><a href="http://www-dsi.ing.unifi.it/~paolo/ps/tnn-94-gradient.pdf">Bengio, et al. (1994)</a><br><a href="http://people.idsia.ch/~juergen/SeppHochreiter1991ThesisAdvisorSchmidhuber.pdf">Hochreiter (1991) German</a></li>
-</ul>
-</li>
-<li><p>然而，LSTMs 不会因为gap惹事儿。<br>Long Short Term Memory networks<br><img src="/2021/01/31/LSTM/chain.webp" alt="chain"></p>
-</li>
-</ul>
-<h2 id="step-by-step"><a href="#step-by-step" class="headerlink" title="step-by-step"></a>step-by-step</h2><ul>
-<li>图第二个干嘛了？你先别看图，听我讲：<br>注意这里横着看，看的是chain中第t个</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程1 --名字是 input transform</span><br><span class="line">输入 ：input中的x(t)，chain中前一个x输出的结果h(t-1)</span><br><span class="line">参数 ：x的权重w1，h的权重w2，加一个bias</span><br><span class="line">激活函数 ：tanh</span><br></pre></td></tr></table></figure>
-<p>以上得到一个结果记为c_in</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程2 --名字是 三个gates，每个gate如下</span><br><span class="line">输入 ：input中的x(t)，chain中前一个x输出的结果h(t-1)</span><br><span class="line">参数 ：x的权重w1，h的权重w2，加一个bias</span><br><span class="line">激活函数 ：g</span><br></pre></td></tr></table></figure>
-<p>得到三个结果记为i , f , o<br>先保留一个问题： 过程1、2的输入虽然都是x h变量，但是是一样的吗？还是x h这两个向量的部分值呢？<br>有了c_in,i , f , o 之后干嘛，我怎么得到这一层的h？</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程3 -- 名字是 state update </span><br><span class="line">输入 ：c_in,i , f , o ,c_out(t-1)</span><br><span class="line">输出 ：新的h(t)， c_out(t)</span><br></pre></td></tr></table></figure>
-<p>c_out(t-1) 是chain中前一个的输出呗。h、c_out怎么计算的？<br>c_out(t)  =  f * c_out(t-1) + i * c_in<br>h(t)  =  o * tanh(c_out(t))</p>
-<ul>
-<li>就这么简单？<br>是的。为什么能这样呢？<blockquote>
-<p>Because of the <strong>gating mechanism</strong> the cell can keep a piece of information for long periods of time during work and <strong>protect the gradient inside the cell from harmful changes during the training</strong>. Vanilla LSTMs don’t have <strong>a forget gate</strong> and add unchanged cell state during the update (it can be seen as a recurrent connection with a constant weight of 1), what is often referred to as a Constant Error Carousel (CEC). It’s called like that, because <strong>it solves a serious RNN training problem of vanishing and exploding gradients</strong>, which in turn makes it possible to learn long-term relationships.</p>
-</blockquote>
-</li>
-</ul>
-<p>原来，因为有个<strong>gating mechanism</strong> 就是 过程2 嘛，解决了RNN的gradient的问题。为什么能解决<strong>vanishing and exploding gradients</strong>的问题呢？理论支持去看论文。</p>
-<h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a>show me the code</h2><p>基于 Torch7</p>
-<ul>
-<li>snippet1: inputs<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local inputs &#x3D; &#123;&#125;</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- x(t)</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- c_out(t-1)</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- h(t-1)</span><br><span class="line">local input &#x3D; inputs[1]</span><br><span class="line">local prev_c &#x3D; inputs[2]</span><br><span class="line">local prev_h &#x3D; inputs[3]</span><br></pre></td></tr></table></figure></li>
-</ul>
-<ol>
-<li><p>  想想看我们要什么？你回答完了之后，听我讲：<br>三个变量 ：过程1、2要的x(t) h(t-1)和过程3还要的c_out(t-1)</p>
-</li>
-<li><p>  怎么得到？<br>这里用到了<code>nn.Identity()()</code> 和 <code>table.insert</code></p>
-<blockquote>
-<p>The array-like objects in lua are called tables.<br>nn.Identity() - passes on the input (used as a placeholder for input)</p>
-</blockquote>
-</li>
-</ol>
-<p>如果你用tf，那么nn.Identify就是placeholder</p>
-<ul>
-<li>snippet2: Computing gate values<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local i2h &#x3D; nn.Linear(input_size, 4 * rnn_size)(input) </span><br><span class="line">local h2h &#x3D; nn.Linear(rnn_size, 4 * rnn_size)(prev_h)   </span><br><span class="line">local preactivations &#x3D; nn.CAddTable()(&#123;i2h, h2h&#125;)    </span><br></pre></td></tr></table></figure></li>
-</ul>
-<ol>
-<li> <code>4 * rnn_size</code>什么鬼？<br>过程1、2在激活前是不是都是x(t) h(t-1)的线性变换？即<code>nn.Linear</code>。<br><code>preactivations</code>将i2h, h2h作加法运算返回一个vector。<br>我们将线性变换的结果分成4份，每份<code>rnn_size</code>多个值。为什么分为4份？记得我们有三个gates吗 ，得到i,f,o？<blockquote>
-<p>The first will be used for <strong>i</strong>n gates, second for <strong>f</strong>orget gates, third for <strong>o</strong>ut gates and the last one <strong>as a cell input</strong> .</p>
-</blockquote>
-</li>
-</ol>
-<p>就跟玩儿似的。这里<strong>as a cell input</strong>就是直赋值给了h(t)，作为chain下一个的输入。也解释了之前的保留问题，即输入并不是一样的。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local pre_sigmoid_chunk &#x3D; nn.Narrow(2, 1, 3 * rnn_size)(preactivations)</span><br><span class="line">local all_gates &#x3D; nn.Sigmoid()(pre_sigmoid_chunk)</span><br><span class="line">local in_chunk &#x3D; nn.Narrow(2, 3 * rnn_size + 1, rnn_size)(preactivations)</span><br><span class="line">local in_transform &#x3D; nn.Tanh()(in_chunk)</span><br><span class="line">local in_gate &#x3D; nn.Narrow(2, 1, rnn_size)(all_gates)</span><br><span class="line">local forget_gate &#x3D; nn.Narrow(2, rnn_size + 1, rnn_size)(all_gates)</span><br><span class="line">local out_gate &#x3D; nn.Narrow(2, 2 * rnn_size + 1, rnn_size)(all_gates)</span><br></pre></td></tr></table></figure>
-<ol start="2">
-<li><p> <code>nn.Narrow</code>什么鬼？</p>
-<blockquote>
-<p>select appropriate parts of the preactivation vector.</p>
-</blockquote>
-</li>
-<li><p>  其他很简单啊，前3份传入gates要<code>nn.Sigmoid()</code>激活。3另一份只需要<code>nn.Tanh()</code>激活。</p>
-</li>
-</ol>
-<ul>
-<li><p>snippet3: Cell and hidden state<br>gates结果i f o也有了。进入过程3了。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local c_forget &#x3D; nn.CMulTable()(&#123;forget_gate, prev_c&#125;)</span><br><span class="line">local c_input &#x3D; nn.CMulTable()(&#123;in_gate, in_transform&#125;)</span><br><span class="line">local next_c &#x3D; nn.CAddTable()(&#123; c_forget, c_input&#125;)</span><br><span class="line">local c_transform &#x3D; nn.Tanh()(next_c)</span><br><span class="line">local next_h &#x3D; nn.CMulTable()(&#123;out_gate, c_transform&#125;)</span><br></pre></td></tr></table></figure>
-<p>按公式计算。没说的。得到<code>next_c</code>和<code>next_h</code></p>
-</li>
-<li><p>snippet4: define module</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">outputs &#x3D; &#123;&#125;</span><br><span class="line">table.insert(outputs, next_c)</span><br><span class="line">table.insert(outputs, next_h)</span><br><span class="line">return nn.gModule(inputs, outputs)</span><br></pre></td></tr></table></figure></li>
-<li><p>手残党的snippet5: 栗子</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">require &#39;nn&#39;</span><br><span class="line">require &#39;nngraph&#39;</span><br><span class="line">LSTM &#x3D; require &#39;LSTM.lua&#39;  --以上snippet</span><br><span class="line">--创建3层LSTM，输入3输出3</span><br><span class="line">network &#x3D; &#123;LSTM.create(3, 4), LSTM.create(4, 4), LSTM.create(4, 3)&#125;</span><br><span class="line">--准备</span><br><span class="line">local x &#x3D; torch.randn(1, 3)</span><br><span class="line">local previous_state &#x3D; &#123;</span><br><span class="line">  &#123;torch.zeros(1, 4), torch.zeros(1,4)&#125;,</span><br><span class="line">  &#123;torch.zeros(1, 4), torch.zeros(1,4)&#125;,</span><br><span class="line">  &#123;torch.zeros(1, 3), torch.zeros(1,3)&#125;</span><br><span class="line">&#125;</span><br><span class="line">output &#x3D; nil</span><br><span class="line">next_state &#x3D; &#123;&#125;</span><br><span class="line"></span><br><span class="line">--feed数据</span><br><span class="line">local layer_input &#x3D; &#123;x, table.unpack(previous_state[1])&#125;</span><br><span class="line">for l &#x3D; 1, #network do</span><br><span class="line">  local layer_output &#x3D; network[l]:forward(layer_input)</span><br><span class="line">  table.insert(next_state, layer_output)</span><br><span class="line">  local layer_h &#x3D; layer_output[2]</span><br><span class="line">  if l &lt; #network then</span><br><span class="line">    layer_input &#x3D; &#123;layer_h, table.unpack(previous_state[l + 1])&#125;</span><br><span class="line">  else</span><br><span class="line">    output &#x3D; layer_h</span><br><span class="line">  end</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">print(next_state)</span><br><span class="line">print(output)</span><br></pre></td></tr></table></figure>
-<h2 id="deep-thinking"><a href="#deep-thinking" class="headerlink" title="deep thinking"></a>deep thinking</h2><p>尽管已经很长了。还是要写理解。这时你可以看图了。</p>
-<blockquote>
-<p>what information we’re going to throw away from the cell state<br>what new information we’re going to store in the cell state</p>
-</blockquote>
-</li>
-</ul>
-<p>1、 什么是forget gate？</p>
-<ul>
-<li>其实就是将x h线性变换后做一个sigmoid， 如果结果是0，代表forget  c_out(t-1)。</li>
-<li>这个例子非常好：<blockquote>
-<p>the cell state might include the gender of the present subject, so that the correct pronouns can be used. When we see a new subject, we want to forget the gender of the old subject.</p>
-</blockquote>
-</li>
-</ul>
-<p>2、 i 和 c_in?</p>
-<ul>
-<li>两步，第一步i，i = 1相当于是确定哪些值我们需要update或者说需要更新输入的多大成分，想象为将c_in scale了i倍；而tanh相当于为需要更新的值确定了更新成什么c_in。</li>
-<li>相乘，则确定了新的候选值，再与f相加，我们便确定了新的状态。</li>
-</ul>
-<blockquote>
-<p>we’d want to add the gender of the new subject to the cell state, to replace the old one we’re forgetting.</p>
-</blockquote>
-<p>3、 那么输出什么？</p>
-<ul>
-<li>首先我们需要确定哪些更新后的状态需要输出，用sigmoid，得到的o就是我们想要输出的部分。 </li>
-<li> 然后 基于更新好的状态c_out(t)，将其tanh控制在[-1,1]之间。乘以o，输出我们要输出的。<blockquote>
-<p>since it just saw a subject, it might want to output information relevant to a verb, in case that’s what is coming next. For example, it might output <strong>whether the subject is singular or plural</strong>, so that we know what form a verb should be conjugated into if that’s what follows next.</p>
-</blockquote>
-</li>
-</ul>
-<p>4、 各类变种<br> <a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a><br><a href="http://arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a><br><a href="http://arxiv.org/pdf/1508.03790v2.pdf">Yao, et al. (2015)</a><br><a href="http://arxiv.org/pdf/1402.3511v1.pdf">Koutnik, et al. (2014)</a></p>
-<p>5、 比对各类变种的结论<br><a href="http://arxiv.org/pdf/1503.04069.pdf">Greff, et al. (2015)</a><br><a href="http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a></p>
-<p>欢迎补充材料。<br>reference:<br><a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">http://colah.github.io/posts/2015-08-Understanding-LSTMs/</a></p>
-]]></content>
-      <categories>
-        <category>dl</category>
-      </categories>
-      <tags>
-        <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>TensorFlow源码解读01</title>
-    <url>/2021/04/16/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB01/</url>
-    <content><![CDATA[<br>
-
-<p>架构</p>
-<a id="more"></a>
-
-
-
-<p>1、在网络通信、硬件上开发变量、基础op和一些函数。在之上有执行器、分布式。然后是api接口和应用。</p>
-<p>2、核心为，通信、设备管理、op对数据操作、图计算。</p>
-<p>3、core目录包含了核心模块。public和client，一个是api接口头文件、一个是api接口实现。platform为和os相关接口文件。protobuf为数据传输的结构化序列。framework包含log、tensor、memory、registey等。graph，distributed，都好理解。kernels是核心的op，ops为梯度、io等op。lib为公共库，如hash等。stream_executor是并行计算框架。common_runtime有session、threadpool、executor管理等。contrib是contributor贡献。gpus封装了cuda cudnn编程库。</p>
-<p>4、tensor相关操作，slice add reshape reduce shuffle 等。<code>tensorbuffer</code>指针，指向Eigen::Tensor</p>
-<p>5、</p>
-<p>Python所构建好的graph模型，会在底下悄悄地生成一个由GraphDef表示的图结构来。然后我们使用Python等语言里的Session具体去分配内存，初使化参数，运行计算图时，TF的后端会将我们前一步所构建的GraphDef转化为一个可执行的Graph。</p>
-<p>构建scope，即new graph，包含着op registry。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//static OpRegistry* global_op_registry = new OpRegistry; graph里包含 registry</span></span><br><span class="line">Graph* graph = <span class="keyword">new</span> Graph(OpRegistry::Global());</span><br><span class="line"></span><br><span class="line"><span class="comment">// ShapeRefiner performs shape inference for TensorFlow Graphs.  It is</span></span><br><span class="line"><span class="comment">// responsible for instantiating InferenceContext objects for each</span></span><br><span class="line"><span class="comment">// Node in the Graph, and providing/storing the &#x27;input_tensor&#x27; Tensors</span></span><br><span class="line"><span class="comment">// used by Shape Inference functions, when available at graph</span></span><br><span class="line"><span class="comment">// construction time.</span></span><br><span class="line">ShapeRefiner* refiner =</span><br><span class="line">      <span class="keyword">new</span> ShapeRefiner(graph-&gt;versions(), graph-&gt;op_registry());</span><br><span class="line">  <span class="keyword">return</span> Scope(<span class="keyword">new</span> Impl(graph, <span class="keyword">new</span> Status, <span class="keyword">new</span> Impl::NameMap, refiner,</span><br><span class="line">                        <span class="comment">/* disable_shape_inference */</span> <span class="literal">false</span>));</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>tensorflow源码</category>
-      </categories>
-      <tags>
-        <tag>tensorflow源码</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>TensorFlow源码解读02</title>
-    <url>/2021/04/16/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB02/</url>
-    <content><![CDATA[<br>
-
-<p>Tensor、op相关</p>
-<a id="more"></a>
-
-
-
-<p>从api开始挖。然后再上升到框架。然后再topdown地整合。</p>
-<p>友好小白。</p>
-<br>
-
-<p>1、Tensor\TensorShape</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//创建tensor - constructor包含TensorShape</span></span><br><span class="line"><span class="comment">//TensorShape继承自Base ，constructor传入一个initializer_list</span></span><br><span class="line"><span class="function"><span class="keyword">explicit</span> <span class="title">TensorShapeBase</span><span class="params">(gtl::ArraySlice&lt;int64&gt; dim_sizes)</span></span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<br>
-
-<p>2、DeepCopy</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//主要两个步骤 ，在tensor_utils中</span></span><br><span class="line"><span class="comment">//1 数据的memcpy -- 这里用到了string_view，use StringPiece as a convenient map over the tensor buffer</span></span><br><span class="line"><span class="keyword">using</span> StringPiece = absl::string_view;</span><br><span class="line">StringPiece(<span class="keyword">static_cast</span>&lt;<span class="keyword">char</span>*&gt;(buf_-&gt;data()), TotalBytes());</span><br><span class="line"><span class="built_in">memcpy</span>(<span class="keyword">const_cast</span>&lt;<span class="keyword">char</span>*&gt;(output_data.data()), input_data.data(), input_data.size());</span><br><span class="line"></span><br><span class="line"><span class="comment">//2 类型 和 维度</span></span><br><span class="line">output-&gt;unaligned_flat&lt;Variant&gt;() =input.unaligned_flat&lt;Variant&gt;();</span><br><span class="line"></span><br><span class="line"><span class="comment">//这里unaligned_flat，为unaligned_shaped&lt;T, 1&gt;(&#123;NumElements()&#125;);</span></span><br><span class="line"><span class="comment">//主要检查type ，用span来填充维度：FillDimsAndValidateCompatibleShape，添入Eigen的dims并返回Eigen的tensor</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> ArraySlice = absl::Span&lt;<span class="keyword">const</span> T&gt;;</span><br><span class="line"><span class="keyword">typedef</span> Eigen::TensorMap&lt;Eigen::Tensor&lt;T, NDIMS, Eigen::RowMajor, IndexType&gt; &gt;</span><br><span class="line">      UnalignedTensor;</span><br></pre></td></tr></table></figure>
-<p>类似的操作如 slice concat split等不再赘述。</p>
-<br>
-
-<p>3、gtest</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">   <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; values_to_test = LoadValuesFromConfig();</span><br><span class="line">   RegisterMyTests(values_to_test);</span><br><span class="line">   ...</span><br><span class="line">   <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//写法如</span></span><br><span class="line">TEST(TensorProtoUtil, CompressTensorProtoInPlaceTooSmall) &#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">int</span> kLength = <span class="number">63</span>;</span><br><span class="line">  TensorProto tensor_proto =</span><br><span class="line">      tensor::CreateTensorProto(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">float</span>&gt;(kLength), &#123;kLength&#125;);</span><br><span class="line">  EXPECT_FALSE(tensor::CompressTensorProtoInPlace(&amp;tensor_proto));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//CreateTensorProto的测试</span></span><br><span class="line"><span class="keyword">auto</span> proto = tensor::CreateTensorProto(values, shape);</span><br><span class="line">EXPECT_EQ(proto.DebugString(),</span><br><span class="line">          <span class="string">&quot;dtype: DT_STRING\n&quot;</span></span><br><span class="line">          <span class="string">&quot;tensor_shape &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  dim &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;    size: 1\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  &#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  dim &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;    size: 3\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  &#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;&#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;a\&quot;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;b\&quot;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;c\&quot;\n&quot;</span>);</span><br></pre></td></tr></table></figure>
-<p>tensorflow 的test非常多，都是基于gtest框架。</p>
-<br>
-
-<p>4、CreateTensorProto</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//同样两个部分，shape和value进行create。tensor_util.h中</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//shape部分是protobuf相关操作</span></span><br><span class="line">internal::SetTensorProtoShape(shape, &amp;tensor_shape_proto);</span><br><span class="line"><span class="comment">//set的方式主要是：循环获得shapeproto中的RepeatedPtrField&lt; ::tensorflow::TensorShapeProto_Dim &gt;</span></span><br><span class="line"><span class="comment">// RepeatedPtrField is like RepeatedField, but used for repeated strings or Messages.</span></span><br><span class="line"><span class="comment">//获得后，再调用其Add方法，将shape的每一维 生成一个element并且set值</span></span><br><span class="line"><span class="function">Element* <span class="title">Add</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//value用internal::TensorProtoHelper&lt;Type&gt; 中的AddValues这个static方法，把value中的值一个个加进proto</span></span><br><span class="line">tensor.set_dtype(TypeHelper::GetDataType());</span><br><span class="line">tensor.mutable_tensor_shape()-&gt;Swap(&amp;tensor_shape_proto);</span><br><span class="line">TypeHelper::AddValues(values.begin(), values.end(), &amp;tensor);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>还有诸如CompressTensorProtoInPlace（主要是CompressRepeatedField，核心两个阈值<code> static const int64 kDefaultMinNumElements = 64;static const float kDefaultMinCompressionRatio = 2.0f;</code>）。</p>
-<br>
-
-<p>5、protobuf</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//tensor、op、graph等的proto 涉及到很多protobuf操作，不赘述</span></span><br><span class="line"><span class="comment">//比如Arena中</span></span><br><span class="line"><span class="keyword">auto</span>* p = CreateMaybeMessage&lt;::tensorflow::TensorShapeProto&gt;(GetArenaNoVirtual());</span><br></pre></td></tr></table></figure>
-<br>
-
-<p>6、OpRegistry</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// The standard implementation of OpRegistryInterface, along with a</span></span><br><span class="line"><span class="comment">// global singleton used for registering ops via the REGISTER</span></span><br><span class="line"><span class="comment">// macros below.  Thread-safe.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// Example registration:</span></span><br><span class="line"><span class="comment">//   OpRegistry::Global()-&gt;Register(</span></span><br><span class="line"><span class="comment">//     [](OpRegistrationData* op_reg_data)-&gt;Status &#123;</span></span><br><span class="line"><span class="comment">//       // Populate *op_reg_data here.</span></span><br><span class="line"><span class="comment">//       return Status::OK();</span></span><br><span class="line"><span class="comment">//   &#125;);</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
-<br>
-总结：
-1、A `Span<T>` is somewhat analogous to an `absl::string_view`, but for an array of elements of type `T`. A user of `Span` must ensure that the data being pointed to outlives the `Span` itself.
-
-<p>2、string_view </p>
-<p>3、# ##  </p>
-<p>4、gtest</p>
-<p>5、initializer_list</p>
-</T>]]></content>
-      <categories>
-        <category>tensorflow源码</category>
-      </categories>
-      <tags>
-        <tag>tensorflow源码</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>CRF后续</title>
     <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
     <content><![CDATA[<br>
@@ -379,7 +60,7 @@
 <p>介绍下BiLSTM+CRF吧</p>
 <br>
 
-<a id="more"></a>
+<span id="more"></span>
 
 
 
@@ -409,7 +90,7 @@
     <content><![CDATA[<br>
 
 <p>本文主要介绍 线性链的CRF。应用于标注问题。<br>介绍：概率图、MEMM问题、势函数、CRF的定义和表示方法，以及基本问题。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <br>
 
@@ -543,7 +224,7 @@
 <p>从HMM MEMM介绍概率图、生成和判别模型</p>
 <br>
 
-<a id="more"></a>
+<span id="more"></span>
 
 <h2 id="简述"><a href="#简述" class="headerlink" title="简述"></a>简述</h2><p>我理解，机器学习，本质是一种反向求解过程。数据的具象世界里找到抽象的规律。比由规律推演出具象要复杂。</p>
 <p>并且反向求解还有各种现实的局限，数据上、算力上、可行性上、性能约束上。就会有各种trick。就像工程中缓存击穿穿透问题，通过小trick来避免。而其根基还是在于统计。</p>
@@ -646,12 +327,413 @@
       </tags>
   </entry>
   <entry>
+    <title>Decorator</title>
+    <url>/2021/02/04/Decorator/</url>
+    <content><![CDATA[<h2 id="functional-programming-concepts"><a href="#functional-programming-concepts" class="headerlink" title="functional programming concepts"></a><strong>functional programming concepts</strong></h2><p>分两类：</p>
+<ul>
+<li>Function decorators</li>
+<li>Class decorators<span id="more"></span></li>
+</ul>
+<blockquote>
+<p>A decorator in Python is any callable Python object that is used to <strong>modify a function or a class</strong>. A reference to a function “func” or a class “C” is passed to a decorator and the decorator returns a modified function or class. The modified functions or classes usually contain calls to the original function “func” or class “C”. </p>
+</blockquote>
+<h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a><strong>show me the code</strong></h2><ul>
+<li><p><em>参数检查</em></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def argument_test_natural_number(f):</span><br><span class="line">    def helper(x):</span><br><span class="line">        if type(x) &#x3D;&#x3D; int and x &gt; 0:</span><br><span class="line">            return f(x)</span><br><span class="line">        else:</span><br><span class="line">            raise Exception(&quot;Argument is not an integer&quot;)</span><br><span class="line">    return helper</span><br><span class="line">    </span><br><span class="line">@argument_test_natural_number</span><br><span class="line">def factorial(n):</span><br><span class="line">    if n &#x3D;&#x3D; 1:</span><br><span class="line">        return 1</span><br><span class="line">    else:</span><br><span class="line">        return n * factorial(n-1)</span><br><span class="line"></span><br><span class="line">for i in range(1,10):</span><br><span class="line">	print(i, factorial(i))</span><br><span class="line"></span><br><span class="line">print(factorial(-1))</span><br></pre></td></tr></table></figure></li>
+<li><p><em>统计次数</em></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def call_counter(func):</span><br><span class="line">    def helper(*args, **kwargs):</span><br><span class="line">        helper.calls +&#x3D; 1</span><br><span class="line">        return func(*args, **kwargs)</span><br><span class="line">    helper.calls &#x3D; 0</span><br><span class="line"></span><br><span class="line">    return helper</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def succ(x):</span><br><span class="line">    return x + 1</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def mul1(x, y&#x3D;1):</span><br><span class="line">    return x*y + 1</span><br><span class="line"></span><br><span class="line">print(succ.calls)</span><br><span class="line">for i in range(10):</span><br><span class="line">    succ(i)</span><br><span class="line">mul1(3, 4)</span><br><span class="line">mul1(4)</span><br><span class="line">mul1(y&#x3D;3, x&#x3D;2)</span><br><span class="line">    </span><br><span class="line">print(succ.calls)</span><br><span class="line">print(mul1.calls)</span><br></pre></td></tr></table></figure></li>
+<li><p><em>含参数的decorator</em></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(expr):</span><br><span class="line">    def greeting_decorator(func):</span><br><span class="line">        def function_wrapper(x):</span><br><span class="line">            print(expr + &quot;, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">            func(x)</span><br><span class="line">        return function_wrapper</span><br><span class="line">    return greeting_decorator</span><br><span class="line"></span><br><span class="line">@greeting(&quot;-wyq-&quot;)</span><br><span class="line">def foo(x):</span><br><span class="line">    print(42)</span><br><span class="line"></span><br><span class="line">foo(&quot;Hi&quot;)</span><br></pre></td></tr></table></figure></li>
+<li><p><em>using import 要注意变量的域</em></p>
+</li>
+</ul>
+<p>greeting_decorator.py  没用functools的版本</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(func):</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    function_wrapper.__name__ &#x3D; func.__name__</span><br><span class="line">    function_wrapper.__doc__ &#x3D; func.__doc__</span><br><span class="line">    function_wrapper.__module__ &#x3D; func.__module__</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
+<p>anotherfile.py:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from greeting_decorator import greeting</span><br><span class="line"></span><br><span class="line">@greeting</span><br><span class="line">def f(x):</span><br><span class="line">    &quot;&quot;&quot; just some silly function &quot;&quot;&quot;</span><br><span class="line">    return x + 4</span><br><span class="line"></span><br><span class="line">f(10)</span><br><span class="line">print(&quot;function name: &quot; + f.__name__)</span><br><span class="line">print(&quot;docstring: &quot; + f.__doc__)</span><br><span class="line">print(&quot;module name: &quot; + f.__module__)</span><br></pre></td></tr></table></figure>
+<p>greeting_decorator.py</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from functools import wraps</span><br><span class="line"></span><br><span class="line">def greeting(func):</span><br><span class="line">    @wraps(func)</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
+<p>否则将返回</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function name: function_wrapper</span><br><span class="line">docstring:  function_wrapper of greeting </span><br><span class="line">module name: greeting_decorator</span><br></pre></td></tr></table></figure>
+<ul>
+<li><em><code>__call__</code></em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Fibonacci:</span><br><span class="line">    def __init__(self):</span><br><span class="line">        self.cache &#x3D; &#123;&#125;</span><br><span class="line">    def __call__(self, n):</span><br><span class="line">        if n not in self.cache:</span><br><span class="line">            if n &#x3D;&#x3D; 0:</span><br><span class="line">                self.cache[0] &#x3D; 0</span><br><span class="line">            elif n &#x3D;&#x3D; 1:</span><br><span class="line">                self.cache[1] &#x3D; 1</span><br><span class="line">            else:</span><br><span class="line">                self.cache[n] &#x3D; self.__call__(n-1) + self.__call__(n-2)</span><br><span class="line">        return self.cache[n]</span><br><span class="line"></span><br><span class="line">fib &#x3D; Fibonacci()</span><br><span class="line"></span><br><span class="line">for i in range(15):</span><br><span class="line">    print(fib(i), end&#x3D;&quot;, &quot;)</span><br></pre></td></tr></table></figure></li>
+<li><em>using class</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class decorator2:</span><br><span class="line">    </span><br><span class="line">    def __init__(self, f):</span><br><span class="line">        self.f &#x3D; f</span><br><span class="line">        </span><br><span class="line">    def __call__(self):</span><br><span class="line">        print(&quot;Decorating&quot;, self.f.__name__)</span><br><span class="line">        self.f()</span><br><span class="line"></span><br><span class="line">@decorator2</span><br><span class="line">def foo():</span><br><span class="line">    print(&quot;inside foo()&quot;)</span><br><span class="line"></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure></li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程语言</category>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>DeepFm</title>
+    <url>/2021/03/08/DeepFm/</url>
+    <content><![CDATA[<br>
+
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在推荐领域较流行的深度模型方案：</p>
+<p>实战：阿里MLR、阿里DIN、阿里ESSM、京东强化学习推荐、facebook个性化推荐dlrm、Deep Neural Networks for YouTube Recommendations、华为DeepFM、google2016 wide&amp;deep learning、googleDeep&amp;Cross Network等。</p>
+<span id="more"></span>
+<p>DeepFm模型及进化：XDeepFM(deep进化)、AFM(加入attention)、FFM(field-aware)、PNN、FNN、NFM等。</p>
+<p>其中，DeepFM在论文中通过大量实验证明，DeepFM的AUC和Logloss都优于目前的最好效果。效率上，DeepFM和目前最优的效果的深度模型相当。在Benchmark数据集和商业数据集上，DeepFM效果超过目前所有模型。</p>
+<h3 id="Q1：FM解决什么问题？"><a href="#Q1：FM解决什么问题？" class="headerlink" title="Q1：FM解决什么问题？"></a>Q1：FM解决什么问题？</h3><p>1、普通的线性模型，我们都是将各个特征独立考虑的，并没有考虑到特征与特征之间的相互关系。<br>为了表述特征间的相关性，我们采用多项式模型。</p>
+<p>在多项式模型中，特征xi与xj的组合用xixj表示。为了简单起见，我们讨论二阶多项式模型。<br>2、与线性模型相比，FM的模型就多了后面特征组合的部分。<br><img src="/2021/03/08/DeepFm/%E4%BA%8C%E9%A1%B9%E5%BC%8F.png" alt="二项式"></p>
+<h3 id="Q2：FM参数求解？"><a href="#Q2：FM参数求解？" class="headerlink" title="Q2：FM参数求解？"></a>Q2：FM参数求解？</h3><p>1、公式中，组合部分的特征相关参数共有n(n−1)/2个。在数据很稀疏的情况下xi,xj都不为0的情况非常少，这样将导致ωij无法通过训练得出。</p>
+<p>为了求出ωij，我们对每一个特征分量xi引入辅助向量Vi=(vi1,vi2,⋯,vik)。然后，利用vivj^T对ωij进行求解。</p>
+<p><img src="/2021/03/08/DeepFm/%E5%BC%95%E5%85%A5V.png" alt="引入V"></p>
+<p>2、如何求解V？</p>
+<p>推导公式网上到处都有。</p>
+<p>3、得到公式推导结果后，对w求导，梯度下降进行训练。</p>
+<h4 id="Q3：FFM？"><a href="#Q3：FFM？" class="headerlink" title="Q3：FFM？"></a>Q3：FFM？</h4><p>公式：</p>
+<p><img src="/2021/03/08/DeepFm/ffm_gs.png" alt="ffm_gs"></p>
+<p>举例：</p>
+<p><img src="/2021/03/08/DeepFm/ffm.png" alt="ffm"></p>
+<h4 id="Q4：why-DeepFm？"><a href="#Q4：why-DeepFm？" class="headerlink" title="Q4：why DeepFm？"></a>Q4：why DeepFm？</h4><p>1、因子分解机(Factorization Machines, FM)通过对于每一维特征的隐变量内积来提取特征组合。最终的结果也非常好。<br>但是，虽然理论上来讲FM可以对高阶特征组合进行建模，但实际上因为计算复杂度的原因一般都只用到了二阶特征组合。<br>那么对于高阶的特征组合来说，通过多层的神经网络即DNN去解决。</p>
+<p>2、One-hot类型的特征输入到DNN中，会导致网络参数太多。<br>如何解决这个问题呢，类似于FFM中的思想，将特征分为不同的field：让Dense Vector进行组合，来表示高阶特征。</p>
+<p><img src="/2021/03/08/DeepFm/field.png" alt="field"></p>
+<p>3、但是低阶和高阶特征组合隐含地体现在隐藏层中，如果我们希望把低阶特征组合单独建模，然后融合高阶特征组合。<br>=&gt;就得到了DeepFm。</p>
+<h4 id="Q5：what-DeepFm？"><a href="#Q5：what-DeepFm？" class="headerlink" title="Q5：what DeepFm？"></a>Q5：what DeepFm？</h4><p>1、有两种融合方式，分别为串行和并行的结构。<br>这里介绍并行结构。</p>
+<p><img src="/2021/03/08/DeepFm/structure.png" alt="structure"><br><img src="/2021/03/08/DeepFm/deepfm.png" alt="deepfm"></p>
+<p>2、emb部分</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">#embeddings</span></span><br><span class="line"><span class="comment">#weights[&#x27;feature_embeddings&#x27;] 存放的每一个值其实就是FM中的vik</span></span><br><span class="line">weights[<span class="string">&#x27;feature_embeddings&#x27;</span>] = tf.Variable(</span><br><span class="line">    tf.random_normal([self.feature_size,self.embedding_size],<span class="number">0.0</span>,<span class="number">0.01</span>),</span><br><span class="line">    name=<span class="string">&#x27;feature_embeddings&#x27;</span>)</span><br><span class="line"></span><br><span class="line">weights[<span class="string">&#x27;feature_bias&#x27;</span>] = tf.Variable(tf.random_normal([self.feature_size,<span class="number">1</span>],<span class="number">0.0</span>,<span class="number">1.0</span>),name=<span class="string">&#x27;feature_bias&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># model</span></span><br><span class="line">self.embeddings = tf.nn.embedding_lookup(self.weights[<span class="string">&#x27;feature_embeddings&#x27;</span>],self.feat_index) <span class="comment"># N * F * K</span></span><br><span class="line">feat_value = tf.reshape(self.feat_value,shape=[-<span class="number">1</span>,self.field_size,<span class="number">1</span>])</span><br><span class="line">self.embeddings = tf.multiply(self.embeddings,feat_value)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如果是离散值，则embedding lookup之后，每个维度✖️1，连续值则✖️连续值。<br>✖️后的结果就是公式里的 Vi,f · Xi</p>
+<p>3、dnn部分<br>为了更好的发挥DNN模型学习high-order特征的能力，文中设计了一套子网络结构，将原始的稀疏表示特征映射为稠密的特征向量。<br>子网络设计时的两个要点：</p>
+<p>不同field特征长度不同，但是子网络输出的向量需具有相同维度；<br>利用FM模型的隐特征向量V作为网络权重初始化来获得子网络输出向量。文中将FM的预训练V向量作为网络权重初始化替换为直接将FM和DNN进行整体联合训练，从而实现了一个端到端的模型。 （即lookup）</p>
+<p>4、fm</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># second order term</span></span><br><span class="line"><span class="comment"># sum-square-part</span></span><br><span class="line">self.summed_features_emb = tf.reduce_sum(self.embeddings,<span class="number">1</span>) <span class="comment"># None * k</span></span><br><span class="line">self.summed_features_emb_square = tf.square(self.summed_features_emb) <span class="comment"># None * K</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># squre-sum-part</span></span><br><span class="line">self.squared_features_emb = tf.square(self.embeddings)</span><br><span class="line">self.squared_sum_features_emb = tf.reduce_sum(self.squared_features_emb, <span class="number">1</span>)  <span class="comment"># None * K</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#second order</span></span><br><span class="line">self.y_second_order = <span class="number">0.5</span> * tf.subtract(self.summed_features_emb_square,self.squared_sum_features_emb)</span><br><span class="line">self.y_second_order = tf.nn.dropout(self.y_second_order,self.dropout_keep_fm[<span class="number">1</span>])</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Q6：扩展，自定义算子？"><a href="#Q6：扩展，自定义算子？" class="headerlink" title="Q6：扩展，自定义算子？"></a>Q6：扩展，自定义算子？</h4><p>比如我们输入是每个item的idor一些离散特征时候。需要对离散特征的各个值–&gt;index构建一个table。然后每次输入转换成对应的index，再根据index去tf.nn.embedding_lookup。离散特征对应的weight dict大小，需要给个预估值，大一些，囊括各种离散、连续的取值总数。</p>
+<p>这里就可以对tensorflow里的hashtable算子进行扩展。构建一个table，动态增长index，来了一个新的取值，就对应index++。</p>
+<p>实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">Status <span class="title">Find</span><span class="params">(OpKernelContext* ctx, <span class="keyword">const</span> Tensor&amp; key, Tensor* value,</span></span></span><br><span class="line"><span class="function"><span class="params">              <span class="keyword">const</span> Tensor&amp; default_value)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Grab the input tensor</span></span><br><span class="line">	<span class="keyword">const</span> V default_val = default_value.flat&lt;V&gt;()(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> A = key.flat&lt;K&gt;();</span><br><span class="line">    <span class="comment">// Create an output tensor</span></span><br><span class="line">	<span class="keyword">auto</span> output_flat = value-&gt;flat&lt;V&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set all but the first element of the output tensor to 0.</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> N = A.size();</span><br><span class="line">    <span class="keyword">int</span> pos = <span class="number">0</span>;</span><br><span class="line">  </span><br><span class="line">    K find_key;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function">tf_shared_lock <span class="title">sl</span><span class="params">(mu_)</span></span>;</span><br><span class="line">        <span class="keyword">for</span> (; pos &lt; N; pos++) &#123;</span><br><span class="line">            find_key = SubtleMustCopyIfIntegral(A(pos));</span><br><span class="line">            <span class="keyword">auto</span> it = table_.find(find_key);</span><br><span class="line">            <span class="keyword">if</span>(it == table_.end()) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                output_flat(pos) = it-&gt;second;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(pos &lt; N) &#123;</span><br><span class="line">        <span class="keyword">int64_t</span> hsize;</span><br><span class="line">        <span class="function">mutex_lock <span class="title">l</span><span class="params">(mu_)</span></span>;</span><br><span class="line">        <span class="keyword">for</span>(; pos &lt; N; pos++) &#123;</span><br><span class="line">            find_key = SubtleMustCopyIfIntegral(A(pos));</span><br><span class="line">            <span class="keyword">auto</span> it = table_.find(find_key);</span><br><span class="line">            <span class="keyword">if</span>(it == table_.end()) &#123;</span><br><span class="line">               hsize = table_.size();</span><br><span class="line">               <span class="keyword">if</span>(hsize &gt;= max_size_) &#123;</span><br><span class="line">                <span class="keyword">return</span> errors::ResourceExhausted(<span class="string">&quot;max size limit&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">               table_.insert(&#123;find_key, hsize&#125;);</span><br><span class="line">               output_flat(pos) = hsize;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                output_flat(pos) = it-&gt;second;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Status::OK();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>测试：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">from</span> dynamic_unique_table <span class="keyword">import</span> DynamicUniqueTable</span><br><span class="line"></span><br><span class="line">table = DynamicUniqueTable(key_dtype=tf.string,</span><br><span class="line">                     value_dtype=tf.int64,</span><br><span class="line">                     default_value=-<span class="number">1</span>,</span><br><span class="line">                     max_ids=<span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">    sess.run(tf.global_variables_initializer())</span><br><span class="line">    print(sess.run(table.lookup(<span class="string">&quot;asdfetryuijkn&quot;</span>)))</span><br><span class="line">    print(sess.run(table.lookup(<span class="string">&quot;hahahahah&quot;</span>)))</span><br><span class="line">    print(sess.run(table.export()))</span><br><span class="line">    tf.train.Saver().save(sess, <span class="string">&#x27;index_test_model2/&#x27;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>相关命令</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">本地：</span><br><span class="line">python pai&#x2F;main.py --train_tables&#x3D;.&#x2F;dub_train.csv --test_tables&#x3D;.&#x2F;dub_test.csv --data_type&#x3D;file --discrete_size&#x3D;15 --continue_size&#x3D;14 --epoch&#x3D;30 --buckets&#x3D;.&#x2F; --save_predict&#x3D;True</span><br><span class="line">pai:</span><br><span class="line">组件无法支持多张表输入， 直接在odps的sql页面执行：</span><br><span class="line"></span><br><span class="line">PAI-name tensorflow1120_ext</span><br><span class="line"></span><br><span class="line">-project algo_public</span><br><span class="line">-Dscript&#x3D;&#39;oss:&#x2F;&#x2F;datadrive.oss-cn-shanghai-internal.aliyuncs.com&#x2F;tmp&#x2F;tl_deepfm.tar.gz&#39;</span><br><span class="line">-DentryFile&#x3D;&#39;pai&#x2F;main.py&#39;</span><br><span class="line">-DgpuRequired&#x3D;100</span><br><span class="line">-Dtables&#x3D;&#39;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_fit_normal,odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_eval_normal&#39;</span><br><span class="line">-Dbuckets&#x3D;&#39;oss:&#x2F;&#x2F;datadrive.oss-cn-shanghai-internal.aliyuncs.com&#x2F;tmp&#x2F;&#39;</span><br><span class="line">-Darn&#x3D;&#39;acs:ram::1872928906167841:role&#x2F;aliyunodpspaidefaultrole&#39;</span><br><span class="line">-DossHost&#x3D;&quot;oss-cn-shanghai-internal.aliyuncs.com&quot;</span><br><span class="line">-DuserDefinedParameters&#x3D;&quot;--train_tables&#x3D;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_fit_normal--test_tables&#x3D;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_eval_normal--discrete_size&#x3D;20 --continue_size&#x3D;49 --data_type&#x3D;odps --input_need_hash&#x3D;True --use_input_bn&#x3D;False --epoch&#x3D;100&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2021/05/21/LPR/</url>
+    <content><![CDATA[<p>货币、利率、风险收益</p>
+<h3 id="LPR"><a href="#LPR" class="headerlink" title="LPR"></a>LPR</h3><p>目的，替换贷款利率在贷款定价中发挥基准作用。</p>
+<p>1】利率市场化改革</p>
+<p>​    开始LPR的13年，也取消了贷款利率的下限。</p>
+<p>​    没有起到作用：</p>
+<p>​        1、政策属性强，盯住的是贷款基准利率而不是货币市场利率 – 盯住MLF 投放规模大、期限合适、使用频率高、央行选定的中期政策利率</p>
+<p>​        2、中小行参与度低 ，报价和lpr的使用方面都只有少量银行参与 – 加入银行</p>
+<p>​        3、只有1年期限的报价，对其他期限的利率无法提供参照 – 增加5y期</p>
+<p>​    </p>
+<p>意义-新增贷款盯住LPR，LPR盯住MLF。MLF由央行市场化招标形成，兼具灵活(相对于贷款基准利率)和稳定性(相对于货币市场利率)。</p>
+<p>提高了LPR的市场化程度，淡化了贷款基准利率影响，促进解决货币市场化利率和贷款基准利率并存的 利率双轨制问题。推动贷款利率市场化改革。</p>
+<p>2】提高利率传导效率</p>
+<p>18年通过MLF等扩张性操作投放了流动性后，货币市场利率下降后，贷款利率并没有随之下降。价格型传导机制受阻。</p>
+<p>欧美经验中，市场化利率传导路径：</p>
+<p>央行制定政策利率（欧元区利率走廊、降准、MLF、美国公开市场操作、隔夜逆回购等操作）-&gt;货币市场利率（同业拆借、回购）-&gt;存款利率（银行的负债分为存款性和借款性，两者具有替代性。如货币市场利率低时瑞银对存款征收年费）-&gt;货币市场利率和存款利率导致负债成本降低，决定了银行的贷款利率（贷款的成本加成定价模型FTP 贷款利率=资金成本+风险成本+业务成本+合理利润）</p>
+<p>传导成立条件：1存款和 同业负债的替代性（监管机构对银行负债结构的考核使得替代性弱，有专门针对存款的考核如存贷比&lt;=3/4、同业负债占比&lt;1/3。因为借款占比更高时则有流动性和交叉风险。处于对稳定性考虑，银行人才稀缺，放开这样的约束不太现实。） 2银行内部完善的FTP（我国存在双轨制，银行内部存在资产负债部和金融市场部，资产负债部进行存贷款定价，参考存贷款基准利率，然后将多余的资金给金融市场部交易，金融市场参考货币市场利率。货币市场作为后发一方对于存贷款利率影响较小）。我国不满足。</p>
+<p>在我国不太可行的欧美路线，央行考虑跳过欧美传导的路径。通过MLF影响LPR，然后LPR传导给贷款利率。”子午谷奇谋“。1、增加了利率的可控性，货币调控向价格型转变创造空间 2增加了MLF中期货币政策利率的影响力，完善了短期利率走廊+中期政策利率的调控框架</p>
+<p>3】降低实体经济融资成本</p>
+<p>货币政策传导受阻，中小企业融资问题仍然突出；贷款基准利率环境下，协同保留贷款利率0.9倍隐性下限。</p>
+<p>改革后的LPR报价方式，相较于4.35%，新增贷款的基准利率的确有所下降。</p>
+<p>基准利率是贷款客户和银行讨价还价的锚，基准利率下降使得企业议价能力上升。并使得银行难以再设置隐形下限。</p>
+<p>问题：</p>
+<p>1、期限 2、参与度与报价广泛性 3、mlf的政策属性强 4、央行借款占比低，对整体负债成本影响小，传导有限。5、融资贵更多贵在风险成本和业务成本。而非资金成本。需要其他配套措施解决融资问题。6、存款利率不下，仍然参考基准存款利率。存贷差收缩，压低银行利润，扩大基差风险。银行需要下沉资质，增强风控能力。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>LSTM</title>
+    <url>/2021/01/31/LSTM/</url>
+    <content><![CDATA[<ul>
+<li>篇幅稍长，分为四个部分</li>
+</ul>
+<ol>
+<li>background</li>
+<li>step-by-step</li>
+<li>show me the code</li>
+<li>deep thinking</li>
+</ol>
+<p>codes<br><a href="https://github.com/satyrswang/blog-jianshu/blob/master/LSTM.lua">https://github.com/satyrswang/blog-jianshu/blob/master/LSTM.lua</a></p>
+<h2 id="background"><a href="#background" class="headerlink" title="background"></a>background</h2><ul>
+<li><p>what?<br>rnn和feedforward network有嘛不同？</p>
+<blockquote>
+<p>It’s the easiest to implement an RNN just as a feedforward network with some parts of the input feeding into the middle of the stack, and a bunch of outputs coming out from there as well. There is no magic internal state kept in the network. It’s provided as a part of the input!</p>
+</blockquote>
+<span id="more"></span>
+<p>只是把隐层有拎出来作为下一个隐层的input。=_=<br>然而，理论支持吗？</p>
+</li>
+<li><p>Problem</p>
+<ul>
+<li>视频那么多帧，前一帧连着后一帧，间隔又短，那么是否可用前一帧来预测后一帧？<br>看情况。</li>
+<li>完形填空 the clouds are in the ___<br>I grew up in France… I speak fluent <em>French</em>.<br>当gap变大，France和<em>French</em>距离那么远，RNN没用了。</li>
+<li>为什么gap大了，就没用了？理论证明如下：<br><a href="http://www-dsi.ing.unifi.it/~paolo/ps/tnn-94-gradient.pdf">Bengio, et al. (1994)</a><br><a href="http://people.idsia.ch/~juergen/SeppHochreiter1991ThesisAdvisorSchmidhuber.pdf">Hochreiter (1991) German</a></li>
+</ul>
+</li>
+<li><p>然而，LSTMs 不会因为gap惹事儿。<br>Long Short Term Memory networks<br><img src="/2021/01/31/LSTM/chain.webp" alt="chain"></p>
+</li>
+</ul>
+<h2 id="step-by-step"><a href="#step-by-step" class="headerlink" title="step-by-step"></a>step-by-step</h2><ul>
+<li>图第二个干嘛了？你先别看图，听我讲：<br>注意这里横着看，看的是chain中第t个</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程1 --名字是 input transform</span><br><span class="line">输入 ：input中的x(t)，chain中前一个x输出的结果h(t-1)</span><br><span class="line">参数 ：x的权重w1，h的权重w2，加一个bias</span><br><span class="line">激活函数 ：tanh</span><br></pre></td></tr></table></figure>
+<p>以上得到一个结果记为c_in</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程2 --名字是 三个gates，每个gate如下</span><br><span class="line">输入 ：input中的x(t)，chain中前一个x输出的结果h(t-1)</span><br><span class="line">参数 ：x的权重w1，h的权重w2，加一个bias</span><br><span class="line">激活函数 ：g</span><br></pre></td></tr></table></figure>
+<p>得到三个结果记为i , f , o<br>先保留一个问题： 过程1、2的输入虽然都是x h变量，但是是一样的吗？还是x h这两个向量的部分值呢？<br>有了c_in,i , f , o 之后干嘛，我怎么得到这一层的h？</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#过程3 -- 名字是 state update </span><br><span class="line">输入 ：c_in,i , f , o ,c_out(t-1)</span><br><span class="line">输出 ：新的h(t)， c_out(t)</span><br></pre></td></tr></table></figure>
+<p>c_out(t-1) 是chain中前一个的输出呗。h、c_out怎么计算的？<br>c_out(t)  =  f * c_out(t-1) + i * c_in<br>h(t)  =  o * tanh(c_out(t))</p>
+<ul>
+<li>就这么简单？<br>是的。为什么能这样呢？<blockquote>
+<p>Because of the <strong>gating mechanism</strong> the cell can keep a piece of information for long periods of time during work and <strong>protect the gradient inside the cell from harmful changes during the training</strong>. Vanilla LSTMs don’t have <strong>a forget gate</strong> and add unchanged cell state during the update (it can be seen as a recurrent connection with a constant weight of 1), what is often referred to as a Constant Error Carousel (CEC). It’s called like that, because <strong>it solves a serious RNN training problem of vanishing and exploding gradients</strong>, which in turn makes it possible to learn long-term relationships.</p>
+</blockquote>
+</li>
+</ul>
+<p>原来，因为有个<strong>gating mechanism</strong> 就是 过程2 嘛，解决了RNN的gradient的问题。为什么能解决<strong>vanishing and exploding gradients</strong>的问题呢？理论支持去看论文。</p>
+<h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a>show me the code</h2><p>基于 Torch7</p>
+<ul>
+<li>snippet1: inputs<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local inputs &#x3D; &#123;&#125;</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- x(t)</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- c_out(t-1)</span><br><span class="line">table.insert(inputs, nn.Identity()())   -- h(t-1)</span><br><span class="line">local input &#x3D; inputs[1]</span><br><span class="line">local prev_c &#x3D; inputs[2]</span><br><span class="line">local prev_h &#x3D; inputs[3]</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol>
+<li><p>  想想看我们要什么？你回答完了之后，听我讲：<br>三个变量 ：过程1、2要的x(t) h(t-1)和过程3还要的c_out(t-1)</p>
+</li>
+<li><p>  怎么得到？<br>这里用到了<code>nn.Identity()()</code> 和 <code>table.insert</code></p>
+<blockquote>
+<p>The array-like objects in lua are called tables.<br>nn.Identity() - passes on the input (used as a placeholder for input)</p>
+</blockquote>
+</li>
+</ol>
+<p>如果你用tf，那么nn.Identify就是placeholder</p>
+<ul>
+<li>snippet2: Computing gate values<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local i2h &#x3D; nn.Linear(input_size, 4 * rnn_size)(input) </span><br><span class="line">local h2h &#x3D; nn.Linear(rnn_size, 4 * rnn_size)(prev_h)   </span><br><span class="line">local preactivations &#x3D; nn.CAddTable()(&#123;i2h, h2h&#125;)    </span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol>
+<li> <code>4 * rnn_size</code>什么鬼？<br>过程1、2在激活前是不是都是x(t) h(t-1)的线性变换？即<code>nn.Linear</code>。<br><code>preactivations</code>将i2h, h2h作加法运算返回一个vector。<br>我们将线性变换的结果分成4份，每份<code>rnn_size</code>多个值。为什么分为4份？记得我们有三个gates吗 ，得到i,f,o？<blockquote>
+<p>The first will be used for <strong>i</strong>n gates, second for <strong>f</strong>orget gates, third for <strong>o</strong>ut gates and the last one <strong>as a cell input</strong> .</p>
+</blockquote>
+</li>
+</ol>
+<p>就跟玩儿似的。这里<strong>as a cell input</strong>就是直赋值给了h(t)，作为chain下一个的输入。也解释了之前的保留问题，即输入并不是一样的。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local pre_sigmoid_chunk &#x3D; nn.Narrow(2, 1, 3 * rnn_size)(preactivations)</span><br><span class="line">local all_gates &#x3D; nn.Sigmoid()(pre_sigmoid_chunk)</span><br><span class="line">local in_chunk &#x3D; nn.Narrow(2, 3 * rnn_size + 1, rnn_size)(preactivations)</span><br><span class="line">local in_transform &#x3D; nn.Tanh()(in_chunk)</span><br><span class="line">local in_gate &#x3D; nn.Narrow(2, 1, rnn_size)(all_gates)</span><br><span class="line">local forget_gate &#x3D; nn.Narrow(2, rnn_size + 1, rnn_size)(all_gates)</span><br><span class="line">local out_gate &#x3D; nn.Narrow(2, 2 * rnn_size + 1, rnn_size)(all_gates)</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><p> <code>nn.Narrow</code>什么鬼？</p>
+<blockquote>
+<p>select appropriate parts of the preactivation vector.</p>
+</blockquote>
+</li>
+<li><p>  其他很简单啊，前3份传入gates要<code>nn.Sigmoid()</code>激活。3另一份只需要<code>nn.Tanh()</code>激活。</p>
+</li>
+</ol>
+<ul>
+<li><p>snippet3: Cell and hidden state<br>gates结果i f o也有了。进入过程3了。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">local c_forget &#x3D; nn.CMulTable()(&#123;forget_gate, prev_c&#125;)</span><br><span class="line">local c_input &#x3D; nn.CMulTable()(&#123;in_gate, in_transform&#125;)</span><br><span class="line">local next_c &#x3D; nn.CAddTable()(&#123; c_forget, c_input&#125;)</span><br><span class="line">local c_transform &#x3D; nn.Tanh()(next_c)</span><br><span class="line">local next_h &#x3D; nn.CMulTable()(&#123;out_gate, c_transform&#125;)</span><br></pre></td></tr></table></figure>
+<p>按公式计算。没说的。得到<code>next_c</code>和<code>next_h</code></p>
+</li>
+<li><p>snippet4: define module</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">outputs &#x3D; &#123;&#125;</span><br><span class="line">table.insert(outputs, next_c)</span><br><span class="line">table.insert(outputs, next_h)</span><br><span class="line">return nn.gModule(inputs, outputs)</span><br></pre></td></tr></table></figure></li>
+<li><p>手残党的snippet5: 栗子</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">require &#39;nn&#39;</span><br><span class="line">require &#39;nngraph&#39;</span><br><span class="line">LSTM &#x3D; require &#39;LSTM.lua&#39;  --以上snippet</span><br><span class="line">--创建3层LSTM，输入3输出3</span><br><span class="line">network &#x3D; &#123;LSTM.create(3, 4), LSTM.create(4, 4), LSTM.create(4, 3)&#125;</span><br><span class="line">--准备</span><br><span class="line">local x &#x3D; torch.randn(1, 3)</span><br><span class="line">local previous_state &#x3D; &#123;</span><br><span class="line">  &#123;torch.zeros(1, 4), torch.zeros(1,4)&#125;,</span><br><span class="line">  &#123;torch.zeros(1, 4), torch.zeros(1,4)&#125;,</span><br><span class="line">  &#123;torch.zeros(1, 3), torch.zeros(1,3)&#125;</span><br><span class="line">&#125;</span><br><span class="line">output &#x3D; nil</span><br><span class="line">next_state &#x3D; &#123;&#125;</span><br><span class="line"></span><br><span class="line">--feed数据</span><br><span class="line">local layer_input &#x3D; &#123;x, table.unpack(previous_state[1])&#125;</span><br><span class="line">for l &#x3D; 1, #network do</span><br><span class="line">  local layer_output &#x3D; network[l]:forward(layer_input)</span><br><span class="line">  table.insert(next_state, layer_output)</span><br><span class="line">  local layer_h &#x3D; layer_output[2]</span><br><span class="line">  if l &lt; #network then</span><br><span class="line">    layer_input &#x3D; &#123;layer_h, table.unpack(previous_state[l + 1])&#125;</span><br><span class="line">  else</span><br><span class="line">    output &#x3D; layer_h</span><br><span class="line">  end</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">print(next_state)</span><br><span class="line">print(output)</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="deep-thinking"><a href="#deep-thinking" class="headerlink" title="deep thinking"></a>deep thinking</h2><p>尽管已经很长了。还是要写理解。这时你可以看图了。</p>
+<blockquote>
+<p>what information we’re going to throw away from the cell state<br> what new information we’re going to store in the cell state</p>
+</blockquote>
+<p>1、 什么是forget gate？</p>
+<ul>
+<li>其实就是将x h线性变换后做一个sigmoid， 如果结果是0，代表forget  c_out(t-1)。</li>
+<li>这个例子非常好：<blockquote>
+<p>the cell state might include the gender of the present subject, so that the correct pronouns can be used. When we see a new subject, we want to forget the gender of the old subject.</p>
+</blockquote>
+</li>
+</ul>
+<p>2、 i 和 c_in?</p>
+<ul>
+<li>两步，第一步i，i = 1相当于是确定哪些值我们需要update或者说需要更新输入的多大成分，想象为将c_in scale了i倍；而tanh相当于为需要更新的值确定了更新成什么c_in。</li>
+<li>相乘，则确定了新的候选值，再与f相加，我们便确定了新的状态。</li>
+</ul>
+<blockquote>
+<p>we’d want to add the gender of the new subject to the cell state, to replace the old one we’re forgetting.</p>
+</blockquote>
+<p>3、 那么输出什么？</p>
+<ul>
+<li>首先我们需要确定哪些更新后的状态需要输出，用sigmoid，得到的o就是我们想要输出的部分。 </li>
+<li> 然后 基于更新好的状态c_out(t)，将其tanh控制在[-1,1]之间。乘以o，输出我们要输出的。<blockquote>
+<p>since it just saw a subject, it might want to output information relevant to a verb, in case that’s what is coming next. For example, it might output <strong>whether the subject is singular or plural</strong>, so that we know what form a verb should be conjugated into if that’s what follows next.</p>
+</blockquote>
+</li>
+</ul>
+<p>4、 各类变种<br> <a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a><br><a href="http://arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a><br><a href="http://arxiv.org/pdf/1508.03790v2.pdf">Yao, et al. (2015)</a><br><a href="http://arxiv.org/pdf/1402.3511v1.pdf">Koutnik, et al. (2014)</a></p>
+<p>5、 比对各类变种的结论<br><a href="http://arxiv.org/pdf/1503.04069.pdf">Greff, et al. (2015)</a><br><a href="http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a></p>
+<p>欢迎补充材料。<br>reference:<br><a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">http://colah.github.io/posts/2015-08-Understanding-LSTMs/</a></p>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Report读后感</title>
+    <url>/2021/05/09/Report%E8%AF%BB%E5%90%8E%E6%84%9F/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h3 id="Financial-Stability-Report读后感"><a href="#Financial-Stability-Report读后感" class="headerlink" title="Financial Stability Report读后感"></a>Financial Stability Report读后感</h3><p>1、Asset Valuations</p>
+<p>Size of Selected Asset Markets各类资产价格涨幅</p>
+<span id="more"></span>
+
+<p>Yields on Nominal Treasury Securities 2、10年名义国债利率</p>
+<p>Term Premium on 10-Year Nominal Treasury Securities 10年国债期限溢价</p>
+<p>Implied volatility of 10-Year Swap rate 110互换利率隐含波动率</p>
+<p>Treasury market Depth –</p>
+<p>1、时限，给定价格和数量，多快成交 </p>
+<p>2、深度，给定时间和价格，多大数量</p>
+<p> 3、宽度，给定时限和数量，多低价格</p>
+<p><strong>多样性</strong>是指两个队伍中的人不是因为同一原因而排在这个队的，否则整个队伍会一起出现或者一起离开，对流动性不利<br><strong>恢复性</strong>是指对如果有一个队伍的人突然被清空，那么重新排成类似的队伍需要的时间，时间越短流动性越好。</p>
+<p>Corporate Bond Yields</p>
+<p>Corporate Bond Spreads to Similar-maturity Treasury Securities   Source: ICe Data Indices, LL</p>
+<p>低评级公司债和可比到期国债利率差价变低。</p>
+<p>excess Bond Premium</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TensorFlow源码解读01</title>
+    <url>/2021/04/16/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB01/</url>
+    <content><![CDATA[<br>
+
+<p>架构</p>
+<span id="more"></span>
+
+
+
+<p>1、在网络通信、硬件上开发变量、基础op和一些函数。在之上有执行器、分布式。然后是api接口和应用。</p>
+<p>2、核心为，通信、设备管理、op对数据操作、图计算。</p>
+<p>3、core目录包含了核心模块。public和client，一个是api接口头文件、一个是api接口实现。platform为和os相关接口文件。protobuf为数据传输的结构化序列。framework包含log、tensor、memory、registey等。graph，distributed，都好理解。kernels是核心的op，ops为梯度、io等op。lib为公共库，如hash等。stream_executor是并行计算框架。common_runtime有session、threadpool、executor管理等。contrib是contributor贡献。gpus封装了cuda cudnn编程库。</p>
+<p>4、tensor相关操作，slice add reshape reduce shuffle 等。<code>tensorbuffer</code>指针，指向Eigen::Tensor</p>
+<p>5、</p>
+<p>Python所构建好的graph模型，会在底下悄悄地生成一个由GraphDef表示的图结构来。然后我们使用Python等语言里的Session具体去分配内存，初使化参数，运行计算图时，TF的后端会将我们前一步所构建的GraphDef转化为一个可执行的Graph。</p>
+<p>构建scope，即new graph，包含着op registry。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//static OpRegistry* global_op_registry = new OpRegistry; graph里包含 registry</span></span><br><span class="line">Graph* graph = <span class="keyword">new</span> Graph(OpRegistry::Global());</span><br><span class="line"></span><br><span class="line"><span class="comment">// ShapeRefiner performs shape inference for TensorFlow Graphs.  It is</span></span><br><span class="line"><span class="comment">// responsible for instantiating InferenceContext objects for each</span></span><br><span class="line"><span class="comment">// Node in the Graph, and providing/storing the &#x27;input_tensor&#x27; Tensors</span></span><br><span class="line"><span class="comment">// used by Shape Inference functions, when available at graph</span></span><br><span class="line"><span class="comment">// construction time.</span></span><br><span class="line">ShapeRefiner* refiner =</span><br><span class="line">      <span class="keyword">new</span> ShapeRefiner(graph-&gt;versions(), graph-&gt;op_registry());</span><br><span class="line">  <span class="keyword">return</span> Scope(<span class="keyword">new</span> Impl(graph, <span class="keyword">new</span> Status, <span class="keyword">new</span> Impl::NameMap, refiner,</span><br><span class="line">                        <span class="comment">/* disable_shape_inference */</span> <span class="literal">false</span>));</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>tensorflow源码</category>
+      </categories>
+      <tags>
+        <tag>tensorflow源码</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TensorFlow源码解读02</title>
+    <url>/2021/04/16/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB02/</url>
+    <content><![CDATA[<br>
+
+<p>Tensor、op相关</p>
+<span id="more"></span>
+
+
+
+<p>从api开始挖。然后再上升到框架。然后再topdown地整合。</p>
+<p>友好小白。</p>
+<br>
+
+<p>1、Tensor\TensorShape</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//创建tensor - constructor包含TensorShape</span></span><br><span class="line"><span class="comment">//TensorShape继承自Base ，constructor传入一个initializer_list</span></span><br><span class="line"><span class="function"><span class="keyword">explicit</span> <span class="title">TensorShapeBase</span><span class="params">(gtl::ArraySlice&lt;int64&gt; dim_sizes)</span></span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>2、DeepCopy</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//主要两个步骤 ，在tensor_utils中</span></span><br><span class="line"><span class="comment">//1 数据的memcpy -- 这里用到了string_view，use StringPiece as a convenient map over the tensor buffer</span></span><br><span class="line"><span class="keyword">using</span> StringPiece = absl::string_view;</span><br><span class="line">StringPiece(<span class="keyword">static_cast</span>&lt;<span class="keyword">char</span>*&gt;(buf_-&gt;data()), TotalBytes());</span><br><span class="line"><span class="built_in">memcpy</span>(<span class="keyword">const_cast</span>&lt;<span class="keyword">char</span>*&gt;(output_data.data()), input_data.data(), input_data.size());</span><br><span class="line"></span><br><span class="line"><span class="comment">//2 类型 和 维度</span></span><br><span class="line">output-&gt;unaligned_flat&lt;Variant&gt;() =input.unaligned_flat&lt;Variant&gt;();</span><br><span class="line"></span><br><span class="line"><span class="comment">//这里unaligned_flat，为unaligned_shaped&lt;T, 1&gt;(&#123;NumElements()&#125;);</span></span><br><span class="line"><span class="comment">//主要检查type ，用span来填充维度：FillDimsAndValidateCompatibleShape，添入Eigen的dims并返回Eigen的tensor</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> ArraySlice = absl::Span&lt;<span class="keyword">const</span> T&gt;;</span><br><span class="line"><span class="keyword">typedef</span> Eigen::TensorMap&lt;Eigen::Tensor&lt;T, NDIMS, Eigen::RowMajor, IndexType&gt; &gt;</span><br><span class="line">      UnalignedTensor;</span><br></pre></td></tr></table></figure>
+
+<p>类似的操作如 slice concat split等不再赘述。</p>
+<br>
+
+<p>3、gtest</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">   <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; values_to_test = LoadValuesFromConfig();</span><br><span class="line">   RegisterMyTests(values_to_test);</span><br><span class="line">   ...</span><br><span class="line">   <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//写法如</span></span><br><span class="line">TEST(TensorProtoUtil, CompressTensorProtoInPlaceTooSmall) &#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">int</span> kLength = <span class="number">63</span>;</span><br><span class="line">  TensorProto tensor_proto =</span><br><span class="line">      tensor::CreateTensorProto(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">float</span>&gt;(kLength), &#123;kLength&#125;);</span><br><span class="line">  EXPECT_FALSE(tensor::CompressTensorProtoInPlace(&amp;tensor_proto));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//CreateTensorProto的测试</span></span><br><span class="line"><span class="keyword">auto</span> proto = tensor::CreateTensorProto(values, shape);</span><br><span class="line">EXPECT_EQ(proto.DebugString(),</span><br><span class="line">          <span class="string">&quot;dtype: DT_STRING\n&quot;</span></span><br><span class="line">          <span class="string">&quot;tensor_shape &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  dim &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;    size: 1\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  &#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  dim &#123;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;    size: 3\n&quot;</span></span><br><span class="line">          <span class="string">&quot;  &#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;&#125;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;a\&quot;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;b\&quot;\n&quot;</span></span><br><span class="line">          <span class="string">&quot;string_val: \&quot;c\&quot;\n&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>tensorflow 的test非常多，都是基于gtest框架。</p>
+<br>
+
+<p>4、CreateTensorProto</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//同样两个部分，shape和value进行create。tensor_util.h中</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//shape部分是protobuf相关操作</span></span><br><span class="line">internal::SetTensorProtoShape(shape, &amp;tensor_shape_proto);</span><br><span class="line"><span class="comment">//set的方式主要是：循环获得shapeproto中的RepeatedPtrField&lt; ::tensorflow::TensorShapeProto_Dim &gt;</span></span><br><span class="line"><span class="comment">// RepeatedPtrField is like RepeatedField, but used for repeated strings or Messages.</span></span><br><span class="line"><span class="comment">//获得后，再调用其Add方法，将shape的每一维 生成一个element并且set值</span></span><br><span class="line"><span class="function">Element* <span class="title">Add</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//value用internal::TensorProtoHelper&lt;Type&gt; 中的AddValues这个static方法，把value中的值一个个加进proto</span></span><br><span class="line">tensor.set_dtype(TypeHelper::GetDataType());</span><br><span class="line">tensor.mutable_tensor_shape()-&gt;Swap(&amp;tensor_shape_proto);</span><br><span class="line">TypeHelper::AddValues(values.begin(), values.end(), &amp;tensor);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>还有诸如CompressTensorProtoInPlace（主要是CompressRepeatedField，核心两个阈值<code> static const int64 kDefaultMinNumElements = 64;static const float kDefaultMinCompressionRatio = 2.0f;</code>）。</p>
+<br>
+
+<p>5、protobuf</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//tensor、op、graph等的proto 涉及到很多protobuf操作，不赘述</span></span><br><span class="line"><span class="comment">//比如Arena中</span></span><br><span class="line"><span class="keyword">auto</span>* p = CreateMaybeMessage&lt;::tensorflow::TensorShapeProto&gt;(GetArenaNoVirtual());</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>6、OpRegistry</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// The standard implementation of OpRegistryInterface, along with a</span></span><br><span class="line"><span class="comment">// global singleton used for registering ops via the REGISTER</span></span><br><span class="line"><span class="comment">// macros below.  Thread-safe.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// Example registration:</span></span><br><span class="line"><span class="comment">//   OpRegistry::Global()-&gt;Register(</span></span><br><span class="line"><span class="comment">//     [](OpRegistrationData* op_reg_data)-&gt;Status &#123;</span></span><br><span class="line"><span class="comment">//       // Populate *op_reg_data here.</span></span><br><span class="line"><span class="comment">//       return Status::OK();</span></span><br><span class="line"><span class="comment">//   &#125;);</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+<br>
+总结：
+1、A `Span<T>` is somewhat analogous to an `absl::string_view`, but for an array of elements of type `T`. A user of `Span` must ensure that the data being pointed to outlives the `Span` itself.
+
+<p>2、string_view </p>
+<p>3、# ##  </p>
+<p>4、gtest</p>
+<p>5、initializer_list</p>
+</T>]]></content>
+      <categories>
+        <category>tensorflow源码</category>
+      </categories>
+      <tags>
+        <tag>tensorflow源码</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TensorFlow源码解读03</title>
+    <url>/2021/05/02/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB03/</url>
+    <content><![CDATA[<p>1、</p>
+]]></content>
+  </entry>
+  <entry>
     <title>batchnorm</title>
     <url>/2021/04/05/batchnorm/</url>
     <content><![CDATA[<br>
 
 <p>bn相关问题</p>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li><p>白化</p>
 <ul>
@@ -755,31 +837,6 @@
       </tags>
   </entry>
   <entry>
-    <title>bean解析及注册源码</title>
-    <url>/2021/03/11/bean%E8%A7%A3%E6%9E%90%E5%8F%8A%E6%B3%A8%E5%86%8C%E6%BA%90%E7%A0%81/</url>
-    <content><![CDATA[<br>
-
-<p>S1<code>xml文件等资源类 </code> – 对各种资源类的封装+encode</p>
-<a id="more"></a>
-<p><img src="https://upload-images.jianshu.io/upload_images/8716089-f03da4d523f26bbb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="resource.jpg"></p>
-<p>S2<code>读取xml文件</code> – 对xml文件的校验、load、read(这里的read调用BeanDefinitionDocumentReader)<br>主要在<code>XmlBeanDefinitionReader</code>中</p>
-<p>S3<code>解析属性(xml中标签)</code> –从xml到Bean<br>实现在<code>DefaultBeanDefinitionDocumentReader</code><br><code>doRegisterBeanDefinitions()</code> 中解析了<code>profile</code>属性，并且其中的<code>parseBeanDefinitions()</code>是解析xml的开始。</p>
-<p>根据不同的<code>namespace</code>和<code>nodename</code>，分别不同处理</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) &#123;</span><br><span class="line">	importBeanDefinitionResource(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) &#123;</span><br><span class="line">	processAliasRegistration(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) &#123;</span><br><span class="line">	processBeanDefinition(ele, delegate);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) &#123;</span><br><span class="line">	&#x2F;&#x2F; recurse</span><br><span class="line">	doRegisterBeanDefinitions(ele);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>处理过程涉及到<code>BeanDefinitionParserDelegate BeanDefinitionHolder BeanDefinitionReaderUtils XmlReaderContext</code></p>
-<blockquote>
-<p>delegate中对元素(属性)进行解析，结果放入holder中，此时holder已经包含了各种属性。再由Utils中将holder进行注册。最后由context将注册结果通知监听器。</p>
-</blockquote>
-<p>S4<code>注册</code></p>
-]]></content>
-      <categories>
-        <category>spring</category>
-      </categories>
-      <tags>
-        <tag>spring</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>c++tips上</title>
     <url>/2021/04/11/c-tips/</url>
     <content><![CDATA[<br>
@@ -787,7 +844,7 @@
 
 
 <p>基础汇总</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <br>
 
@@ -876,6 +933,7 @@
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、变量 初始化后，不被改变</span><br><span class="line"></span><br><span class="line">2、函数 </span><br><span class="line">1. 修饰返回值 const int func() -- 不能改变返回值</span><br><span class="line">2. 修饰参数 int func(const ) -- 函数体内不能改变参数</span><br><span class="line">3. 修饰成员函数 int func() const -- 函数体内不能改变成员变量的值</span><br><span class="line"></span><br><span class="line">3、指针</span><br><span class="line">1. const int* -- 常量指针，pointer指向的变量的值不能变，pointer可指向其他对象</span><br><span class="line">2. int const* -- 指针常量，可以改变指针指向变量的值，pointer不能指向其他对象</span><br><span class="line"></span><br><span class="line">4、对象 const对象只能调用const成员函数，不能调用普通函数</span><br></pre></td></tr></table></figure></li>
 <li><p>多态</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、虚函数的类 至少有一个(多继承会有多个)一维的虚函数表叫做虚表(virtual table)，属于类成员，虚表的元素值是虚函数的入口地址，在编译时就已经为其在数据端分配了空间</span><br><span class="line"></span><br><span class="line">2、确定的虚函数对应virtual table中一个固定位置n，n是一个在编译时期就确定的常量，所以，使用vptr加上对应的n，就可以得到对应的函数入口地址。C++采用的这种绝对地址+偏移量的方法调用虚函数，查找速度快执行效率高，时间复杂度为O(1)</span><br></pre></td></tr></table></figure>
+
 <p><img src="/2021/04/11/c-tips/vptr.jpg" alt="vptr"></p>
 </li>
 <li><p>c++ 与java .NET</p>
@@ -893,6 +951,32 @@
       </tags>
   </entry>
   <entry>
+    <title>bean解析及注册源码</title>
+    <url>/2021/03/11/bean%E8%A7%A3%E6%9E%90%E5%8F%8A%E6%B3%A8%E5%86%8C%E6%BA%90%E7%A0%81/</url>
+    <content><![CDATA[<br>
+
+<p>S1<code>xml文件等资源类 </code> – 对各种资源类的封装+encode</p>
+<span id="more"></span>
+<p><img src="https://upload-images.jianshu.io/upload_images/8716089-f03da4d523f26bbb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="resource.jpg"></p>
+<p>S2<code>读取xml文件</code> – 对xml文件的校验、load、read(这里的read调用BeanDefinitionDocumentReader)<br>主要在<code>XmlBeanDefinitionReader</code>中</p>
+<p>S3<code>解析属性(xml中标签)</code> –从xml到Bean<br>实现在<code>DefaultBeanDefinitionDocumentReader</code><br><code>doRegisterBeanDefinitions()</code> 中解析了<code>profile</code>属性，并且其中的<code>parseBeanDefinitions()</code>是解析xml的开始。</p>
+<p>根据不同的<code>namespace</code>和<code>nodename</code>，分别不同处理</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) &#123;</span><br><span class="line">	importBeanDefinitionResource(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) &#123;</span><br><span class="line">	processAliasRegistration(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) &#123;</span><br><span class="line">	processBeanDefinition(ele, delegate);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) &#123;</span><br><span class="line">	&#x2F;&#x2F; recurse</span><br><span class="line">	doRegisterBeanDefinitions(ele);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>处理过程涉及到<code>BeanDefinitionParserDelegate BeanDefinitionHolder BeanDefinitionReaderUtils XmlReaderContext</code></p>
+<blockquote>
+<p>delegate中对元素(属性)进行解析，结果放入holder中，此时holder已经包含了各种属性。再由Utils中将holder进行注册。最后由context将注册结果通知监听器。</p>
+</blockquote>
+<p>S4<code>注册</code></p>
+]]></content>
+      <categories>
+        <category>spring</category>
+      </categories>
+      <tags>
+        <tag>spring</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>cmake</title>
     <url>/2021/04/13/cmake/</url>
     <content><![CDATA[]]></content>
@@ -903,11 +987,12 @@
     <content><![CDATA[<br>
 
 <p>cuda c的hello world</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <br> 
 
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">*hello_world.cu</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function">__global__ <span class="keyword">void</span> <span class="title">hello_world</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;GPU: Hello world!\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> **argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;CPU: Hello world!\n&quot;</span>);</span><br><span class="line">  hello_world&lt;&lt;&lt;<span class="number">1</span>,<span class="number">10</span>&gt;&gt;&gt;();</span><br><span class="line">  cudaDeviceReset();<span class="comment">//if no this line ,it can not output hello world from gpu</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <br>
 
 <h4 id="异构计算"><a href="#异构计算" class="headerlink" title="异构计算"></a>异构计算</h4><p>1、一台 intel i7-4790 CPU加上两台Titan x GPU构成的工作站，GPU插在主板的PCIe卡口上，运行程序的时候，CPU像是一个控制者，指挥两台Titan完成工作后进行汇总，和下一步工作安排，所以CPU我们可以把它看做一个指挥者，主机端，host，而完成大量计算的GPU是我们的计算设备，device。</p>
@@ -962,11 +1047,23 @@
       </tags>
   </entry>
   <entry>
+    <title>cuda编程模型</title>
+    <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>gpu</category>
+      </categories>
+      <tags>
+        <tag>gpu</tag>
+        <tag>cuda</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>dssm</title>
     <url>/2021/03/08/dssm/</url>
     <content><![CDATA[<h4 id="DSSM"><a href="#DSSM" class="headerlink" title="DSSM"></a>DSSM</h4><ul>
 <li><p>任务<br>用来预测两个句子的语义相似度，又可以获得某句子的低维语义Embedding向量。</p>
-<a id="more"></a></li>
+<span id="more"></span></li>
 <li><p>场景<br>DSSM 模型的最大特点就是 Query 和 Document 是两个独立的子网络，后来这一特色被移植到推荐算法的召回环节，即对用户端（User）和物品端（Item）分别构建独立的子网络塔式结构。<br>两个子网络产生的 Embedding 向量可以独自获取及缓存。</p>
 </li>
 </ul>
@@ -1002,39 +1099,10 @@
       </tags>
   </entry>
   <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<a id="more"></a>
-
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
-<p>todo</p>
-]]></content>
-      <categories>
-        <category>dubbo</category>
-      </categories>
-      <tags>
-        <tag>dubbo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>dubbo</title>
     <url>/2021/04/05/dubbo/</url>
     <content><![CDATA[<p>dubbo–rpc框架相关</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <ul>
 <li><p>分层</p>
@@ -1120,6 +1188,60 @@
       </tags>
   </entry>
   <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<span id="more"></span>
+
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+<p>todo</p>
+]]></content>
+      <categories>
+        <category>dubbo</category>
+      </categories>
+      <tags>
+        <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>elasticsearch</title>
+    <url>/2021/04/27/elasticsearch/</url>
+    <content><![CDATA[<br>
+
+<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、搜索引擎或者elk(es、logstash、kibana)系统，都是根据内容中的关键字建立倒排索引即反向索引，便于搜索。</p>
+<span id="more"></span>
+
+
+
+<p>2、 在 Lucene 的基础上进行封装，实现了分布式搜索引擎。</p>
+<p>3、es的索引、类型和文档的概念比较重要，类似于 MySQL 中的数据库、表和行。</p>
+<p>4、Elasticsearch 也是 Master-slave 架构，也实现了数据的分片和备份。写入index和type时是和master打交道，然后同步到slave，但是写入doc数据，不需要如此。为了提高性能，写数据是采取routing，将写入压力分散。</p>
+<p>5、</p>
+<p>Reference:</p>
+<p><a href="https://zhuanlan.zhihu.com/p/62892586">https://zhuanlan.zhihu.com/p/62892586</a></p>
+]]></content>
+      <categories>
+        <category>es</category>
+      </categories>
+      <tags>
+        <tag>es</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>flink</title>
     <url>/2021/03/08/flink/</url>
     <content><![CDATA[<br>
@@ -1128,7 +1250,7 @@
 <h1 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h1><h2 id="state"><a href="#state" class="headerlink" title="state"></a>state</h2><ul>
 <li><p>场景</p>
 <ul>
-<li>有状态的逻辑是因为数据之间存在关联，单条数据是没有办法把所有的信息给表现出来。<a id="more"></a>
+<li>有状态的逻辑是因为数据之间存在关联，单条数据是没有办法把所有的信息给表现出来。<span id="more"></span>
 <ul>
 <li>去重</li>
 <li>窗口计算</li>
@@ -1313,6 +1435,80 @@
       </tags>
   </entry>
   <entry>
+    <title>hive</title>
+    <url>/2021/03/03/hive/</url>
+    <content><![CDATA[<br>
+
+
+<ul>
+<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
+<span id="more"></span>
+<blockquote>
+<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
+</blockquote>
+</li>
+<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
+</li>
+<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
+</li>
+<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
+</li>
+<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
+</li>
+<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
+</li>
+<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
+</li>
+<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
+</li>
+</ul>
+<ul>
+<li> Making Multiple Passes over the Same Data<blockquote>
+<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
+</blockquote>
+</li>
+</ul>
+<p>因此如下方式更加高效,并且可开启并行：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>日期处理<br>查看N天前的日期：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
+<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
+<li><p>left outer join</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
+</li>
+<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
+</li>
+<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
+<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
+</li>
+<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
+</li>
+<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
+<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></li>
+<li>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>大数据</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>git命令</title>
     <url>/2021/04/13/git%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[]]></content>
@@ -1324,7 +1520,7 @@
 <li>卷积<br>数学上卷积的两个例子：</li>
 </ul>
 <p>一个对象（吃冰淇凌）对一个系统（体重）的作用效果满足线性原理、累加原理。该对象对这个系统连续作用了一段时间后，求该系统的状态。这个时候，一个卷积就可以求出来了！</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <br>
 第二个例子：
@@ -1396,83 +1592,10 @@
       </tags>
   </entry>
   <entry>
-    <title>hive</title>
-    <url>/2021/03/03/hive/</url>
-    <content><![CDATA[<br>
-
-
-<ul>
-<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
-<a id="more"></a>
-<blockquote>
-<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
-</blockquote>
-</li>
-<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
-</li>
-<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
-</li>
-<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
-</li>
-<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
-</li>
-<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
-</li>
-<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
-</li>
-<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
-</li>
-</ul>
-<ul>
-<li> Making Multiple Passes over the Same Data<blockquote>
-<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
-</blockquote>
-</li>
-</ul>
-<p>因此如下方式更加高效,并且可开启并行：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
-<ul>
-<li><p>日期处理<br>查看N天前的日期：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
-<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
-<li><p>left outer join</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
-</li>
-<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
-</li>
-<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
-<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
-</li>
-<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
-</li>
-<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
-<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure></li>
-<li><p><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></p>
-</li>
-<li><p>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>大数据</category>
-      </categories>
-      <tags>
-        <tag>大数据</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>juc</title>
     <url>/2021/04/05/juc/</url>
     <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
-<a id="more"></a>
+<span id="more"></span>
 
 
 <ul>
@@ -1531,12 +1654,62 @@
       </tags>
   </entry>
   <entry>
+    <title>linux&amp;mac命令</title>
+    <url>/2021/04/13/linux%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<br> 
+
+<p>记录常见linux mac命令</p>
+<span id="more"></span>
+
+<br> 
+
+<h4 id="端口、进程"><a href="#端口、进程" class="headerlink" title="端口、进程"></a>端口、进程</h4><p>1、查看进程号</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps -ef | grep 进程名</span><br></pre></td></tr></table></figure>
+
+
+
+<p>2、查看端口被哪个进程监听</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -i :端口</span><br></pre></td></tr></table></figure>
+
+
+
+<p>3、查看进程监听的端口</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -nP -p 进程号 | grep LISTEN</span><br><span class="line">sudo lsof -nP | grep LISTEN | grep 进程号</span><br></pre></td></tr></table></figure>
+
+
+
+<p>4、查看监听端口的进程</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -nP | grep LISTEN | grep 端口号</span><br></pre></td></tr></table></figure>
+
+
+
+<p>5、看到一个新的方法（MacOS统计TCP/UDP端口号与对应服务）</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">echo &quot;### TCP LISTEN ###&quot;</span><br><span class="line">lsof -nP -iTCP -sTCP:LISTEN</span><br></pre></td></tr></table></figure>
+
+
+
+<p>6、关于环境变量</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Mac系统的环境变量，加载顺序为：</span><br><span class="line">&#x2F;etc&#x2F;profile &#x2F;etc&#x2F;paths ~&#x2F;.bash_profile ~&#x2F;.bash_login ~&#x2F;.profile ~&#x2F;.bashrc</span><br><span class="line"></span><br><span class="line">&#x2F;etc&#x2F;profile和&#x2F;etc&#x2F;paths是系统级别的，系统启动就会加载，后面几个是当前用户级的环境变量。后面3个按照从前往后的顺序读取，如果&#x2F;.bash_profile文件存在，则后面的几个文件就会被忽略不读了，如果&#x2F;.bash_profile文件不存在，才会以此类推读取后面的文件。~&#x2F;.bashrc没有上述规则，它是bash shell打开的时候载入的。</span><br><span class="line"></span><br><span class="line">&#x2F;etc&#x2F;bashrc （一般在这个文件中添加系统级环境变量）</span><br><span class="line">全局（公有）配置，bash shell执行时，不管是何种方式，都会读取此文件</span><br><span class="line"></span><br><span class="line">https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;acb1f062a925</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>linux</tag>
+        <tag>mac</tag>
+        <tag>cheetsheet</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ml基础</title>
     <url>/2021/04/05/ml%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<br>
 
 <p>ml知识点</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <ul>
 <li><p>softmax和logistic</p>
@@ -1648,7 +1821,7 @@
     <content><![CDATA[<br>
 
 <p>background知识、性能优化</p>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li><p>MyISAM 与 InnoDB </p>
 <ul>
@@ -1723,56 +1896,12 @@
       </tags>
   </entry>
   <entry>
-    <title>linux&amp;mac命令</title>
-    <url>/2021/04/13/linux%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[<br> 
-
-<p>记录常见linux mac命令</p>
-<a id="more"></a>
-
-<br> 
-
-<h4 id="端口、进程"><a href="#端口、进程" class="headerlink" title="端口、进程"></a>端口、进程</h4><p>1、查看进程号</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps -ef | grep 进程名</span><br></pre></td></tr></table></figure>
-
-
-<p>2、查看端口被哪个进程监听</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -i :端口</span><br></pre></td></tr></table></figure>
-
-
-<p>3、查看进程监听的端口</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -nP -p 进程号 | grep LISTEN</span><br><span class="line">sudo lsof -nP | grep LISTEN | grep 进程号</span><br></pre></td></tr></table></figure>
-
-
-<p>4、查看监听端口的进程</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo lsof -nP | grep LISTEN | grep 端口号</span><br></pre></td></tr></table></figure>
-
-
-<p>5、看到一个新的方法（MacOS统计TCP/UDP端口号与对应服务）</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">echo &quot;### TCP LISTEN ###&quot;</span><br><span class="line">lsof -nP -iTCP -sTCP:LISTEN</span><br></pre></td></tr></table></figure>
-
-
-<p>6、关于环境变量</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Mac系统的环境变量，加载顺序为：</span><br><span class="line">&#x2F;etc&#x2F;profile &#x2F;etc&#x2F;paths ~&#x2F;.bash_profile ~&#x2F;.bash_login ~&#x2F;.profile ~&#x2F;.bashrc</span><br><span class="line"></span><br><span class="line">&#x2F;etc&#x2F;profile和&#x2F;etc&#x2F;paths是系统级别的，系统启动就会加载，后面几个是当前用户级的环境变量。后面3个按照从前往后的顺序读取，如果&#x2F;.bash_profile文件存在，则后面的几个文件就会被忽略不读了，如果&#x2F;.bash_profile文件不存在，才会以此类推读取后面的文件。~&#x2F;.bashrc没有上述规则，它是bash shell打开的时候载入的。</span><br><span class="line"></span><br><span class="line">&#x2F;etc&#x2F;bashrc （一般在这个文件中添加系统级环境变量）</span><br><span class="line">全局（公有）配置，bash shell执行时，不管是何种方式，都会读取此文件</span><br><span class="line"></span><br><span class="line">https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;acb1f062a925</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>linux</category>
-      </categories>
-      <tags>
-        <tag>linux</tag>
-        <tag>mac</tag>
-        <tag>cheetsheet</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>mysql索引</title>
     <url>/2021/04/05/mysql%E7%B4%A2%E5%BC%95/</url>
     <content><![CDATA[<br>
 
 <p>性能优化之 索引</p>
-<a id="more"></a>
+<span id="more"></span>
 
 
 <ul>
@@ -1887,7 +2016,7 @@
     <url>/2021/04/05/node2vec/</url>
     <content><![CDATA[<ul>
 <li><p>node2vec的随机游走</p>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li><p><a href="https://blog.csdn.net/rover2002/article/details/106760664">Alias Method: 非均匀随机抽样算法</a></p>
 <ul>
@@ -1926,7 +2055,7 @@
     <content><![CDATA[<br>
 
 <p>语言、语法糖相关</p>
-<a id="more"></a>
+<span id="more"></span>
 
 
 <ul>
@@ -2079,11 +2208,47 @@
       </tags>
   </entry>
   <entry>
+    <title>redis</title>
+    <url>/2021/01/31/redis/</url>
+    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+<span id="more"></span>
+<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
+<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
+<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
+<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
+<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
+<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
+<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
+<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
+<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
+<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
+<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
+<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
+<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
+<p>14、cluster<br>Cluster bus通信、gossip协议</p>
+<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
+<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
+<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
+<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
+<p>19、穿透<br>没查到则写一个空值到redis</p>
+<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
+<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
+<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
+<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
+]]></content>
+      <categories>
+        <category>redis</category>
+      </categories>
+      <tags>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>redis_mindroad</title>
     <url>/2021/04/05/redis-mindroad/</url>
     <content><![CDATA[<p><br> <br></p>
 <p><strong>汇总</strong></p>
-<a id="more"></a>
+<span id="more"></span>
 
 
 <ul>
@@ -2154,48 +2319,12 @@
       </tags>
   </entry>
   <entry>
-    <title>redis</title>
-    <url>/2021/01/31/redis/</url>
-    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
-<a id="more"></a>
-<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
-<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
-<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
-<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
-<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
-<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
-<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
-<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
-<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
-<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
-<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
-<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
-<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
-<p>14、cluster<br>Cluster bus通信、gossip协议</p>
-<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
-<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
-<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
-<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
-<p>19、穿透<br>没查到则写一个空值到redis</p>
-<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
-<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
-<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
-<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
-]]></content>
-      <categories>
-        <category>redis</category>
-      </categories>
-      <tags>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>spark</title>
     <url>/2021/04/05/spark/</url>
     <content><![CDATA[<br>
 
 <p>spark job相关</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <ul>
 <li><p>groupby reduceby区别</p>
@@ -2448,7 +2577,7 @@
     <content><![CDATA[<br>
 
 <p>基础、遇到的问题、源码相关汇总</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <ul>
 <li>tensorflow的调试<ul>
@@ -2471,7 +2600,8 @@
 </li>
 </ul>
 <ul>
-<li>神经网络八股<br>就不搞了。太多人做过了。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">checkpoint_save_path &#x3D; &quot;.&#x2F;checkpoint&#x2F;fashion.ckpt&quot;</span><br><span class="line">if os.path.exists(checkpoint_save_path + &#39;.index&#39;):</span><br><span class="line">    print(&#39;-------------load the model-----------------&#39;)</span><br><span class="line">    model.load_weights(checkpoint_save_path)</span><br><span class="line"></span><br><span class="line">cp_callback &#x3D; tf.keras.callbacks.ModelCheckpoint(filepath&#x3D;checkpoint_save_path,</span><br><span class="line">                                                 save_weights_only&#x3D;True,</span><br><span class="line">                                                 save_best_only&#x3D;True)</span><br><span class="line"></span><br><span class="line">history &#x3D; model.fit(x_train, y_train, batch_size&#x3D;32, epochs&#x3D;5, validation_data&#x3D;(x_test, y_test), validation_freq&#x3D;1,</span><br><span class="line">                    callbacks&#x3D;[cp_callback])</span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">print(model.trainable_variables)</span><br><span class="line">file &#x3D; open(&#39;.&#x2F;weights.txt&#39;, &#39;w&#39;)</span><br><span class="line">for v in model.trainable_variables:</span><br><span class="line">    file.write(str(v.name) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.shape) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.numpy()) + &#39;\n&#39;)</span><br><span class="line">file.close()</span><br><span class="line"></span><br><span class="line"># 显示训练集和验证集的acc和loss曲线</span><br><span class="line">acc &#x3D; history.history[&#39;sparse_categorical_accuracy&#39;]</span><br><span class="line">val_acc &#x3D; history.history[&#39;val_sparse_categorical_accuracy&#39;]</span><br><span class="line">loss &#x3D; history.history[&#39;loss&#39;]</span><br><span class="line">val_loss &#x3D; history.history[&#39;val_loss&#39;]</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 1)</span><br><span class="line">plt.plot(acc, label&#x3D;&#39;Training Accuracy&#39;)</span><br><span class="line">plt.plot(val_acc, label&#x3D;&#39;Validation Accuracy&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Accuracy&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 2)</span><br><span class="line">plt.plot(loss, label&#x3D;&#39;Training Loss&#39;)</span><br><span class="line">plt.plot(val_loss, label&#x3D;&#39;Validation Loss&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Loss&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure></li>
+<li><p>神经网络八股<br>就不搞了。太多人做过了。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">checkpoint_save_path &#x3D; &quot;.&#x2F;checkpoint&#x2F;fashion.ckpt&quot;</span><br><span class="line">if os.path.exists(checkpoint_save_path + &#39;.index&#39;):</span><br><span class="line">    print(&#39;-------------load the model-----------------&#39;)</span><br><span class="line">    model.load_weights(checkpoint_save_path)</span><br><span class="line"></span><br><span class="line">cp_callback &#x3D; tf.keras.callbacks.ModelCheckpoint(filepath&#x3D;checkpoint_save_path,</span><br><span class="line">                                                 save_weights_only&#x3D;True,</span><br><span class="line">                                                 save_best_only&#x3D;True)</span><br><span class="line"></span><br><span class="line">history &#x3D; model.fit(x_train, y_train, batch_size&#x3D;32, epochs&#x3D;5, validation_data&#x3D;(x_test, y_test), validation_freq&#x3D;1,</span><br><span class="line">                    callbacks&#x3D;[cp_callback])</span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">print(model.trainable_variables)</span><br><span class="line">file &#x3D; open(&#39;.&#x2F;weights.txt&#39;, &#39;w&#39;)</span><br><span class="line">for v in model.trainable_variables:</span><br><span class="line">    file.write(str(v.name) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.shape) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.numpy()) + &#39;\n&#39;)</span><br><span class="line">file.close()</span><br><span class="line"></span><br><span class="line"># 显示训练集和验证集的acc和loss曲线</span><br><span class="line">acc &#x3D; history.history[&#39;sparse_categorical_accuracy&#39;]</span><br><span class="line">val_acc &#x3D; history.history[&#39;val_sparse_categorical_accuracy&#39;]</span><br><span class="line">loss &#x3D; history.history[&#39;loss&#39;]</span><br><span class="line">val_loss &#x3D; history.history[&#39;val_loss&#39;]</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 1)</span><br><span class="line">plt.plot(acc, label&#x3D;&#39;Training Accuracy&#39;)</span><br><span class="line">plt.plot(val_acc, label&#x3D;&#39;Validation Accuracy&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Accuracy&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 2)</span><br><span class="line">plt.plot(loss, label&#x3D;&#39;Training Loss&#39;)</span><br><span class="line">plt.plot(val_loss, label&#x3D;&#39;Validation Loss&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Loss&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure></li>
 <li></li>
 </ul>
 ]]></content>
@@ -2490,7 +2620,7 @@
 <h1 id="xgboost"><a href="#xgboost" class="headerlink" title="xgboost"></a>xgboost</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li>xgboost是Gradient Boosting的一种高效系统实现</li>
 </ul>
-<a id="more"></a>
+<span id="more"></span>
 <h2 id="基学习器"><a href="#基学习器" class="headerlink" title="基学习器"></a>基学习器</h2><ul>
 <li>tree(gbtree)，也可用线性分类器(gblinear)。GBDT则特指梯度提升决策树算法</li>
 </ul>
@@ -2576,7 +2706,7 @@
 <ul>
 <li>分析这棵树需要满足的基本性质<br>互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。</li>
 </ul>
-<a id="more"></a>
+<span id="more"></span>
 
 <ul>
 <li><p>生成这棵树的过程<br>1、要得到中间节点(特征)。分类能力越强的特征，越靠近根。<br>2、要找到当前特征的切分点，而进行分叉。<br>即涉及到特征选择(特征间重要性比较以及当前特征的切分点)。<br>而构建的过程，则是递归地选择特征的过程。<br>直到，没有特征可选、或者样本点已经完全覆盖(特征选择的标准达到阈值，不再分叉)。</p>
@@ -2625,7 +2755,7 @@
     <url>/2021/04/05/%E5%88%86%E5%B8%83%E5%BC%8Fmindroad/</url>
     <content><![CDATA[<p><br> <br></p>
 <p><strong>汇总</strong></p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h2 id="分布式系统"><a href="#分布式系统" class="headerlink" title="分布式系统"></a>分布式系统</h2><p>1、层次结构</p>
 <p>2、通信协议<br>默认dobbo<br>还有rmi hessian http webservice </p>
@@ -2777,7 +2907,7 @@
     <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8A/</url>
     <content><![CDATA[<p><strong>摘要</strong></p>
 <p>1、什么是事务、分布式事务，分布式事务的场景<br>2、CAP理论，及BASE理论，柔性事务</p>
-<a id="more"></a>
+<span id="more"></span>
 <p>3、分布式事务解决模型:2PC TCC （概念、区别）<br>4、2PC解决方案：XA、AT（角色、流程、实战、缺点、区别）<br>5、TCC解决方案：三种异常处理、Hmily实现</p>
 <h2 id="1、事务、分布式事务及场景"><a href="#1、事务、分布式事务及场景" class="headerlink" title="1、事务、分布式事务及场景"></a>1、事务、分布式事务及场景</h2><ul>
 <li><p>一般利用数据可事务特性，为数据库事务。数据库和应用在一个服务器，则为本地事务。</p>
@@ -2927,6 +3057,7 @@
 </ol>
 <p>转账最终方案：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;A</span><br><span class="line">try: </span><br><span class="line">	try幂等校验</span><br><span class="line">	try悬挂处理 </span><br><span class="line">	检查余额是否够30元 </span><br><span class="line">	扣减30元</span><br><span class="line">confirm: </span><br><span class="line">	空</span><br><span class="line">cancel: </span><br><span class="line">	cancel幂等校验</span><br><span class="line">	cancel空回滚处理 </span><br><span class="line">	增加可用余额30元</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;B</span><br><span class="line">try: </span><br><span class="line">	空</span><br><span class="line">confirm: </span><br><span class="line">	confirm幂等校验</span><br><span class="line">	正式增加30元 </span><br><span class="line">cancel:</span><br><span class="line">	空</span><br></pre></td></tr></table></figure>
+
 <h4 id="4-3-Hmily实现TCC事务"><a href="#4-3-Hmily实现TCC事务" class="headerlink" title="4.3 Hmily实现TCC事务"></a>4.3 Hmily实现TCC事务</h4><ul>
 <li><p>新增配置类接收application.yml中的Hmily配置信息，并创建HmilyTransactionBootstrap Bean</p>
 </li>
@@ -2934,6 +3065,7 @@
 </li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;DAO 略</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;service </span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">    @Transactional</span><br><span class="line">    @Hmily(confirmMethod &#x3D; &quot;commit&quot;, cancelMethod &#x3D; &quot;rollback&quot;)</span><br><span class="line">	public  void updateAccountBalance(String accountNo, Double amount) &#123;</span><br><span class="line">		&#x2F;&#x2F;事务id</span><br><span class="line">		&#x2F;&#x2F;try幂等校验</span><br><span class="line">		&#x2F;&#x2F;try悬挂处理</span><br><span class="line">		&#x2F;&#x2F;从账户扣减及扣减失败</span><br><span class="line">		&#x2F;&#x2F;增加本地事务try成功记录，用于幂等性控制标识 accountInfoDao.addTry(transId);</span><br><span class="line">		&#x2F;&#x2F;远程调用bank2</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;feign</span><br><span class="line"></span><br><span class="line">	@FeignClient(value &#x3D; &quot;seata‐demo‐bank2&quot;, fallback &#x3D; Bank2Fallback.class)</span><br><span class="line">	public interface Bank2Client &#123;</span><br><span class="line">		@GetMapping(&quot;&#x2F;bank2&#x2F;transfer&quot;)</span><br><span class="line">		@Hmily</span><br><span class="line">		Boolean transfer(@RequestParam(&quot;amount&quot;) Double amount);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;controller 略</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>B账户 略</li>
 </ul>
@@ -2950,24 +3082,12 @@
       </tags>
   </entry>
   <entry>
-    <title>cuda编程模型</title>
-    <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/</url>
-    <content><![CDATA[]]></content>
-      <categories>
-        <category>gpu</category>
-      </categories>
-      <tags>
-        <tag>gpu</tag>
-        <tag>cuda</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>分布式事务-下</title>
     <url>/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/</url>
     <content><![CDATA[<p><br> <br></p>
 <p><strong>摘要</strong></p>
 <p>1、可靠消息最终一致性，概念特点、问题、针对问题的方案(本地消息表、Rocketmq)<br>2、本地消息表流程图<br>3、Rocketmq流程、实战<br>4、最大努力通知，流程、</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h2 id="可靠消息最终一致性"><a href="#可靠消息最终一致性" class="headerlink" title="可靠消息最终一致性"></a>可靠消息最终一致性</h2><p>当事务发起方执行完成本地事务后并发出一条消息，事务参与方(消息消费者)一定能 够接收消息并处理事务成功，此方案强调的是只要消息发给事务参与方最终事务要达到一致。</p>
 <ul>
@@ -2987,9 +3107,9 @@
 <h3 id="可靠消息最终一致性的问题"><a href="#可靠消息最终一致性的问题" class="headerlink" title="可靠消息最终一致性的问题"></a>可靠消息最终一致性的问题</h3><p>1、本地事务与消息发送的原子性问题</p>
 <ul>
 <li>发送消息成功，数据库操作失败  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">		&#x2F;&#x2F;1.发送MQ</span><br><span class="line">		&#x2F;&#x2F;2.数据库操作 </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure></li>
-<li>如果发送MQ消息失败，就会抛出异常，导致数据库事务回滚。但如果是超时异常，数 据库回滚，但MQ其实已经正常发送了，同样会导致不一致。  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">	&#x2F;&#x2F;1.数据库操作</span><br><span class="line">	&#x2F;&#x2F;2.发送MQ </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure>
-2、事务参与方接收消息的可靠性，需要如果接收消息失败可以重复接收消息</li>
+<li>如果发送MQ消息失败，就会抛出异常，导致数据库事务回滚。但如果是超时异常，数 据库回滚，但MQ其实已经正常发送了，同样会导致不一致。  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">begin transaction; </span><br><span class="line">	&#x2F;&#x2F;1.数据库操作</span><br><span class="line">	&#x2F;&#x2F;2.发送MQ </span><br><span class="line">commit transation;</span><br></pre></td></tr></table></figure></li>
 </ul>
+<p>2、事务参与方接收消息的可靠性，需要如果接收消息失败可以重复接收消息</p>
 <p>3、消息重复消费的问题，要解决消息重复消费的问题就要实现事务参与方的方法幂等性。 </p>
 <h2 id="本地消息表方案"><a href="#本地消息表方案" class="headerlink" title="本地消息表方案"></a>本地消息表方案</h2><p><img src="/2021/02/04/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%8B/bendixiaoxibiao.png" alt="本地消息表方案"></p>
 <ul>
@@ -3022,6 +3142,7 @@
 <h3 id="RocketMq事务"><a href="#RocketMq事务" class="headerlink" title="RocketMq事务"></a>RocketMq事务</h3><p>RocketMQ主要解决了两个功能:<br>1、本地事务与消息发送的原子性问题。<br>2、事务参与方接收消息的可靠性。</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;回调</span><br><span class="line"></span><br><span class="line"> public interface RocketMQLocalTransactionListener &#123;</span><br><span class="line">      &#x2F;**</span><br><span class="line">		‐ 发送prepare消息成功此方法被回调，该方法用于执行本地事务</span><br><span class="line">		‐ @param msg 回传的消息，利用transactionId即可获取到该消息的唯一Id</span><br><span class="line">		‐ @param arg 调用send方法时传递的参数，当send时候若有额外的参数可以传递到send方法中，这里能获取到</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg);</span><br><span class="line"></span><br><span class="line">      	&#x2F;**</span><br><span class="line">		‐ @param msg 通过获取transactionId来判断这条消息的本地事务执行状态</span><br><span class="line">		‐ @return 返回事务状态，COMMIT:提交 ROLLBACK:回滚 UNKNOW:回调</span><br><span class="line">		*&#x2F;</span><br><span class="line">          RocketMQLocalTransactionState checkLocalTransaction(Message msg);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> &#x2F;&#x2F; 发送事务消息API  </span><br><span class="line">TransactionMQProducer producer &#x3D; new TransactionMQProducer(&quot;ProducerGroup&quot;); producer.setNamesrvAddr(&quot;127.0.0.1:9876&quot;);</span><br><span class="line">producer.start();</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;设置TransactionListener实现 producer.setTransactionListener(transactionListener);</span><br><span class="line">&#x2F;&#x2F;发送事务消息</span><br><span class="line">SendResult sendResult &#x3D; producer.sendMessageInTransaction(msg, null);  </span><br></pre></td></tr></table></figure>
 
+
 <ul>
 <li><p>实践：</p>
 <ul>
@@ -3029,14 +3150,15 @@
 <li>service</li>
 </ul>
   <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;从event构建消息体</span><br><span class="line">	public void sendUpdateAccountBalance(AccountChangeEvent accountChangeEvent) </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;发送消息并收到回应后执行本地事务</span><br><span class="line">public void doUpdateAccountBalance(AccountChangeEvent accountChangeEvent)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;实现执行本地事务和事务回查两个方法</span><br><span class="line"> 	@RocketMQTransactionListener(txProducerGroup &#x3D; &quot;producer_group_txmsg_bank1&quot;)</span><br><span class="line"> 	public class ProducerTxmsgListener implements RocketMQLocalTransactionListener </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>controller 略</li>
 <li>B账户的MQ 监听类</li>
 </ul>
-  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;需要实现幂等</span><br><span class="line">@RocketMQMessageListener(topic &#x3D; &quot;topic_txmsg&quot;,consumerGroup &#x3D; &quot;consumer_txmsg_group_bank2&quot;)</span><br><span class="line">public class TxmsgConsumer implements RocketMQListener&lt;String&gt; </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h2 id="最大努力通知"><a href="#最大努力通知" class="headerlink" title="最大努力通知"></a>最大努力通知</h2></li>
-<li><p>流程</p>
-</li>
+  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;需要实现幂等</span><br><span class="line">@RocketMQMessageListener(topic &#x3D; &quot;topic_txmsg&quot;,consumerGroup &#x3D; &quot;consumer_txmsg_group_bank2&quot;)</span><br><span class="line">public class TxmsgConsumer implements RocketMQListener&lt;String&gt; </span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="最大努力通知"><a href="#最大努力通知" class="headerlink" title="最大努力通知"></a>最大努力通知</h2><ul>
+<li>流程</li>
 </ul>
 <ol>
 <li></li>
@@ -3050,11 +3172,17 @@
       </tags>
   </entry>
   <entry>
+    <title></title>
+    <url>/2021/05/22/%E5%88%A9%E7%8E%87/</url>
+    <content><![CDATA[<h3 id="利率"><a href="#利率" class="headerlink" title="利率"></a>利率</h3><p>1、</p>
+]]></content>
+  </entry>
+  <entry>
     <title>协同过滤</title>
     <url>/2021/04/05/%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4/</url>
     <content><![CDATA[<ul>
 <li><p>user based</p>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li>有一个行为user，列为item的打分矩阵，且得到每个用户的平均分</li>
 <li>对于矩阵中的空值：<br>  通过计算用户a和用户b\c\d等(对itemb有分数的)相似度(皮尔逊相关系数)，然后<br>  根据均分，计算出用户a对itemb的分数</li>
@@ -3085,7 +3213,7 @@
     <title>协程</title>
     <url>/2021/04/05/%E5%8D%8F%E7%A8%8B/</url>
     <content><![CDATA[<p>协程、多核与cpu</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <ul>
 <li>协程<ul>
@@ -3156,7 +3284,7 @@
     <title>学习模型的模式</title>
     <url>/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<p>伪代码的算法流程 + 数学逻辑 –&gt;才能真的掌握住这个模型的本质。<br>而其他都是表象。所以数学肯定是要啃的。矩阵论和概率统计，微积分，必然是需要的。<br>更多的应用和实践，会深化对于模型的认知。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <p>基本要求：<br>1、历史背景及演进：解决什么问题而生<br>2、伪代码表述流程<br>3、前提、局限、适用场景<br>4、演化和可优化之处、优化思路<br>5、和其他模型对比</p>
 <p>进阶要求：<br>1、根据伪代码思路，看具体实现<br>2、为什么会有这样的前提和局限–&gt;数学证明：唯一性证明、误差上界证明、loss函数证明、模型参数的迭代公式证明</p>
@@ -3178,7 +3306,7 @@
 <ul>
 <li>对于凸形<br>结论1：凸形可行域只有1个峰，只要达到那个峰，我们就达到了最优，是全局最优。<br>结论2：至少有一个顶点是峰。</li>
 </ul>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li><p>单纯形法：</p>
 <ol>
@@ -3230,7 +3358,7 @@
 
 <ul>
 <li><p>复杂度</p>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li><p>排序</p>
 <ul>
@@ -3293,7 +3421,7 @@
 <br>
 
 <p>Q1：庄家坐庄步骤？<br>1吸货 2拉升 3洗盘 4出货✅<br>1吸货 2洗盘 3拉升 4出货❎</p>
-<a id="more"></a>
+<span id="more"></span>
 <p>需要先拉升，在于底部吸货不足，卖家少。<br>拉升2倍左右，开始洗盘，洗盘过程中获利盘出货，给庄家吸货机会。这同时也抬高了吸货成本。<br>洗盘时间视情况而定，有时一个月左右。</p>
 <p>Q2：庄家吸货方法？<br>跌停板吸货 （亿安科技）<br>熊市顺势低吸（底部但是爆量）<br>抬升吸货 （洗盘但是无量）</p>
 <p>Q3：洗盘？<br>洗盘的目的：洗掉大户和集中的持股人。避免在高位卖出砸盘。<br>大户：几万、几十万都不是大户，几百万、上千万股的”人“。这样的人，属于对手。（主力和老庄家(被套的)–对手）</p>
@@ -3315,7 +3443,7 @@
     <title>微信的GraphTR模型</title>
     <url>/2021/03/08/%E5%BE%AE%E4%BF%A1%E7%9A%84GraphTR%E6%A8%A1%E5%9E%8B/</url>
     <content><![CDATA[<h4 id="提出背景"><a href="#提出背景" class="headerlink" title="提出背景"></a>提出背景</h4><p>“迁移学习+多任务”的场景<br>通过将不同领域的节点、关系都建模在一幅图中，通过图卷积，完成知识从数据丰富的领域向数据稀疏领域的迁移，并兼顾两个领域的指标。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <p>多 域信息的异构图上完成图卷积，每个节点要聚合来自多个领域的异构消息。之前传统的聚合方式，如mean/max pooling，矩阵相乘，可能带来异构消息相互抵销而引入信息损失。</p>
 <p>为此微信团队采用了GraphSAGE+FM+Transformer多种手段，从不同粒度来交叉、聚合消息，极大提升了模型的表示能力，这种新的消息聚合方式值得借鉴。</p>
@@ -3377,7 +3505,7 @@
 
 <h4 id="观点"><a href="#观点" class="headerlink" title="观点"></a>观点</h4><ul>
 <li><p>计划经济是狂妄、愚蠢。</p>
-<a id="more"></a></li>
+<span id="more"></span></li>
 <li><p>小波动基本是没意义的，一个现象进入分析的视野，已经承认这现象不属于小的波动，这点是必须明确的。</p>
 </li>
 <li><p>有领涨的并不一定都能最终走出行情，即使是上涨的趋势，行情还可以分大、中、小。</p>
@@ -3395,7 +3523,7 @@
 </ul>
 <br>
 
-<h4 id="民族复兴周期与世界经济周期历史性共振下的国家地缘与货币战略"><a href="#民族复兴周期与世界经济周期历史性共振下的国家地缘与货币战略" class="headerlink" title="民族复兴周期与世界经济周期历史性共振下的国家地缘与货币战略"></a>民族复兴周期与世界经济周期历史性共振下的国家地缘与货币战略</h4><p>框架：</p>
+<h4 id="民族复兴周期-与-世界经济周期-历史性共振下的-国家地缘与货币战略"><a href="#民族复兴周期-与-世界经济周期-历史性共振下的-国家地缘与货币战略" class="headerlink" title="民族复兴周期 与 世界经济周期 历史性共振下的 国家地缘与货币战略"></a>民族复兴周期 与 世界经济周期 历史性共振下的 国家地缘与货币战略</h4><p>框架：</p>
 <p>1、从历史大现象规律出发，得到–&gt;当前为强盛时期。</p>
 <p>2、由马克思的”五阶段论”，得到–&gt;列宁的社会主义本质是公有制，斯大林的社会主义是资本主义–因此苏东突变后权力或权力资本迅速转为资本主义(本来就同源)，毛泽东的文革，重点放在了人与人的关系而非人与自然，而不能真的实现反资。邓小平的中国特色社会主义和社会主义初级阶段策略同样也应该是一个民族主义的策略。</p>
 <blockquote>
@@ -3423,12 +3551,34 @@
       </tags>
   </entry>
   <entry>
+    <title>投资逻辑摘抄</title>
+    <url>/2021/05/12/%E6%8A%95%E8%B5%84%E9%80%BB%E8%BE%91%E6%91%98%E6%8A%84/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+
+<h1 id="David-Swensen："><a href="#David-Swensen：" class="headerlink" title="David Swensen："></a>David Swensen：</h1><span id="more"></span>
+
+<p>1、Led by Tobin’s ideas, he stressed<strong>asset allocation rather than stock picking, or attempts to time the market</strong> — beyond the mechanical market timing that came with his policy of regularly rebalancing Yale’s portfolio. At the margin, that entailed <strong>buying more of assets that had done badly and selling some of those that had done well</strong>.</p>
+<p>2、With the public markets deeply liquid and exhaustively researched, there was no point in trying to beat them. But <strong>private markets were less efficient</strong>, and he could reasonably hope to find bargains if his team was smart enough. </p>
+<p>3、The first was that equities were indubitably better than bonds or cash for the longer term — and that “equities” should not be restricted merely to shares traded on public stock exchanges but should include <strong>any investment with a non-guaranteed upside for the investor</strong>. His second was that diversification was important. </p>
+<p>4、 He regularly attacked excessive fees in his later years. If his team couldn’t find any place where Yale’s long-term horizon might give them a chance to beat the market, he might even have left money in index funds.</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>推荐系统</title>
     <url>/2021/04/05/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/</url>
     <content><![CDATA[<br>
 
 <p>推荐系统</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <ul>
 <li>冷启动<ul>
@@ -3496,7 +3646,7 @@
     <content><![CDATA[<br>
 
 <h4 id="bagging和boosting"><a href="#bagging和boosting" class="headerlink" title="bagging和boosting"></a>bagging和boosting</h4><p>1、区别？<br>采样：随机采样(Bootstrap sampling–有放回)、加大错误样本权重<br>特征的采样</p>
-<a id="more"></a>
+<span id="more"></span>
 <p>并行计算上<br>弱学习器的权重</p>
 <p>2、从偏差和方差的角度解释bagging和boosting的原理？<br>bagging：<br>重采样、权重也相同–模型的区别性不大，bias小。<br>但如果假设各个子模型独立，则显著降低variance。如果完全相同的子模型，则var和单个模型一样。bagging属于两者之间，一定程度降低了var。RF特征上随机选择，进一步降低了模型的相关性，从而进一步降低了var。</p>
 <p>boosting:<br>前向分步学习算法，是sequencial地减少损失函数，loss是逐步地下降的，bias也随之逐步下降。但由于是这种sequence、adaptive地，模型相关性较高，不能显著减少var。</p>
@@ -3586,7 +3736,7 @@
     <content><![CDATA[<br>
 
 <p>人生怎么走，成为什么人</p>
-<a id="more"></a>
+<span id="more"></span>
 
 
 
@@ -3615,7 +3765,7 @@
     <title>机器</title>
     <url>/2021/04/05/%E6%9C%BA%E5%99%A8/</url>
     <content><![CDATA[<p>物理cpu、逻辑cpu、内存、硬盘、gpu</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <p>命令：<br>cat /proc/cpuinfo | grep “physical id” | uniq | wc -l<br>cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c<br>cat /proc/cpuinfo | grep physical | uniq -c<br>grep MemTotal /proc/meminfo<br>df -h<br>nvidia-smi<br>lspci | grep -i nvidia</p>
 <p>1    prodbigdata-aitm-distributed-job001 10.111.20.180    [DATACOMMAND]           1<em>4c  8g 200g                                                                                 <br>2    prodbigdata-aitm-distributed-job002 10.111.20.181    [DATACOMMAND]              1</em>4c  8g 200g                                                                                 <br>3    prodbigdata-algo001                 10.111.4.208     [DATACOMMAND]                      1<em>16c  16g 200g                                                                         <br>4    prodbigdata-algo002                 10.111.51.113    [DATACOMMAND]                       1</em>8c  16g 256g                                                                      <br>5    prodbigdata-algo004                 10.111.4.204     [DATACOMMAND]                          1<em>16c  16g 200g                                                                      <br>6    prodbigdata-algo005                 10.111.4.205     [DATACOMMAND]                          1</em>16c  16g 200g                                                                      <br>7    prodbigdata-rec-algo-service001     10.111.106.61    [DATACOMMAND]                                                                                            <br>8    prodbigdata-rec-algo-train001       10.111.106.62    [DATACOMMAND]                       1<em>54c 500g   PB级别     8gpu 每个显存16g                                                              <br>9    prodbigdata-youtube-dnn001          10.111.22.113    [DATACOMMAND]                      1</em>16c 120g  1T             2gpu 每个显存16g                                                   <br>10   prodbigdata-ypp-keras-frcnn         10.111.3.220     [DATACOMMAND]                        1*16c 120g  1T             2gpu 每个显存16g                                                                          <br>11   testbigdata-kafka-streaming-job001  10.111.51.50     [DATACOMMAND]            </p>
@@ -3633,7 +3783,7 @@
     <url>/2021/04/05/%E6%A0%B7%E6%9C%AC/</url>
     <content><![CDATA[<ul>
 <li><p>正样本稀疏</p>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li>欠采样、过采样</li>
 <li>集成<ul>
@@ -3708,7 +3858,7 @@
 <ol>
 <li>原因：层数过多，学习率的大小，网络参数的初始化，激活函数的边缘效应</li>
 <li>在深层神经网络中，每一个神经元计算得到的梯度都会传递给前一层，较浅层的神经元接收到的梯度受到之前所有层梯度的影响。如果计算得到的梯度值非常小，随着层数增多，求出的梯度更新信息将会以指数形式衰减，就会发生梯度消失。<br>
-<a id="more"></a></li>
+<span id="more"></span></li>
 </ol>
 </li>
 <li><p>梯度爆炸</p>
@@ -3772,7 +3922,7 @@
     <content><![CDATA[<br>
 
 <p>一些思考，从整体上看模型的思路，进行比较。</p>
-<a id="more"></a>
+<span id="more"></span>
 <p>极大似然？就是后验、大量样本的整体出现概率值最大。样本之间独立。可应用乘法原理。</p>
 <p>条件概率，即某(些)条件下某(些)事件出现的概率。</p>
 <p>决策树则是求其极大值，局部选择当前条件概率最大。条件概率越大，不确定性越低，条件熵越小。整体熵未必减小。考虑整体熵值的是最大熵模型和logistics模型。logistics是可以通过假设先验概率，转化为这样的问题：推导出满足极大似然极值而得到的w参数。都可以通过拉格朗日将问题转化为无约束求极值，偏导为0，算法里有迭代尺度、梯度下降、牛顿插值。牛顿插值迭代收敛快些。</p>
@@ -3799,7 +3949,7 @@
     <content><![CDATA[<br> 
 
 <p>记录编译过程</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <br> 
 
@@ -3809,13 +3959,16 @@
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">future</span><br><span class="line">absl-py &gt;&#x3D; 0.7.0</span><br><span class="line">astunparse &#x3D;&#x3D; 1.6.3</span><br><span class="line">backports.weakref &gt;&#x3D; 1.0rc1</span><br><span class="line">enum34 &gt;&#x3D; 1.1.6</span><br><span class="line">gast &#x3D;&#x3D; 0.3.3</span><br><span class="line">google_pasta &gt;&#x3D; 0.1.8</span><br><span class="line">h5py &#x3D;&#x3D; 2.10.0</span><br><span class="line">keras_preprocessing &gt;&#x3D; 1.1.0</span><br><span class="line">numpy &#x3D;&#x3D; 1.16.0</span><br><span class="line">opt_einsum &gt;&#x3D; 2.3.2</span><br><span class="line">protobuf &gt;&#x3D; 3.8.0</span><br><span class="line">tensorboard &#x3D;&#x3D; 2.1.0</span><br><span class="line">tensorflow_estimator &#x3D;&#x3D; 2.2.0</span><br><span class="line">termcolor &gt;&#x3D; 1.1.0</span><br><span class="line">wrapt &gt;&#x3D; 1.11.1</span><br><span class="line"></span><br><span class="line"># python3 requires wheel 0.26</span><br><span class="line">wheel &gt;&#x3D; 0.26</span><br><span class="line"></span><br><span class="line"># mock comes with unittest.mock for python3 need to install for python2</span><br><span class="line">mock &gt;&#x3D; 2.0.0</span><br><span class="line"></span><br><span class="line"># functools comes with python3 need to install the backport for python2</span><br><span class="line">functools32 &gt;&#x3D; 3.2.3</span><br><span class="line">six &gt;&#x3D; 1.12.0</span><br><span class="line"></span><br><span class="line"># scipy &lt; 1.4.1 causes segfaults due to pybind11</span><br><span class="line"># Latest scipy pip for py2 is scipy&#x3D;&#x3D;1.2.2</span><br><span class="line">scipy &#x3D;&#x3D; 1.2.2</span><br></pre></td></tr></table></figure>
 
 
+
 <p>4、如果需要gpu，则还要安装cuda 10.1 和 cudnn 7.6.5</p>
 <br> 
 
 <h4 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h4><p>1、配置基本选择N，需要gpu则在CUDAsupport选择y</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">cd tensorflow-2.2.0</span><br><span class="line">.&#x2F;configure</span><br></pre></td></tr></table></figure>
+
 <p>2、bazel</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048  &#x2F;&#x2F;tensorflow&#x2F;tools&#x2F;pip_package:build_pip_package</span><br><span class="line"></span><br><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048 &#x2F;&#x2F;tensorflow:libtensorflow_cc.so</span><br></pre></td></tr></table></figure>
+
 
 
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/inprogress.jpg" alt="过程"></p>
@@ -3828,9 +3981,11 @@
 <br>
 
 <h4 id="生成whl"><a href="#生成whl" class="headerlink" title="生成whl"></a>生成whl</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo .&#x2F;tensorflow&#x2F;tools&#x2F;pip_package&#x2F;build_pip_package.sh &#x2F;tmp&#x2F;tensorflow_pkg</span><br><span class="line">#接着我切了conda环境</span><br><span class="line">pip install --upgrade pip</span><br><span class="line">pip uninstall tensorflow</span><br><span class="line">pip uninstall tensorboard</span><br><span class="line">pip uninstall tensorflow-tensorboard</span><br><span class="line">#pip3 install tensorboard&#x3D;&#x3D;2.2.1  #有个巨坑。pip3才能安装2.2.1，但是我们环境用的都是python2.7</span><br><span class="line">#要么把之前的切到3，要么下载下来site-package 装到目录里。我是选择粘贴到目录 #&#x2F;Users&#x2F;wyq&#x2F;anaconda2&#x2F;lib&#x2F;python2.7&#x2F;site-packages&#x2F;tensorboard</span><br><span class="line">pip install -U --ignore-installed wrapt  </span><br><span class="line">#又是坑。wrapt：ERROR: Cannot uninstall &#39;wrapt&#39;. It is a distutils installed project and thus #we cannot accurately determine which files belong to it which would lead to only a partial #uninstall.</span><br><span class="line">pip3 install &#x2F;tmp&#x2F;tensorflow_pkg&#x2F;tensorflow-2.2.0-cp27-cp27m-macosx_10_14_x86_64.whl</span><br></pre></td></tr></table></figure>
+
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl0.jpg" alt="whl0"></p>
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl.jpg" alt="whl"></p>
 <h4 id="python验证"><a href="#python验证" class="headerlink" title="python验证"></a><br>python验证</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#打开ipython </span><br><span class="line">#如果遇到这个问题 ImportError: cannot import name pywrap_tensorflow</span><br><span class="line">#看这个issue </span><br><span class="line"># https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;35953210&#x2F;error-running-basic-tensorflow-example</span><br><span class="line">import tensorflow as tf</span><br><span class="line">tf.__version__</span><br><span class="line">tf.test.is_gpu_available()</span><br></pre></td></tr></table></figure>
+
 <br>
 
 <p>终于成功了</p>
@@ -3839,11 +3994,13 @@
 
 <h4 id="c-验证"><a href="#c-验证" class="headerlink" title="c++验证"></a>c++验证</h4><p>选择了vscode，下次clion可以也试试</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#在tf根目录下运行</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:tutorials_example_trainer</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:client_client_session_test￼</span><br><span class="line"></span><br><span class="line">#然后运行程序</span><br><span class="line">.&#x2F;bazel-bin&#x2F;tensorflow&#x2F;cc&#x2F;client_client_session_test￼</span><br></pre></td></tr></table></figure>
+
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/csuccess.jpg" alt="csuccess"></p>
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/clienttest.jpg" alt="demo"></p>
 <br>
 
 <h4 id><a href="#" class="headerlink" title></a></h4><h4 id="c-demo"><a href="#c-demo" class="headerlink" title="c++demo"></a>c++demo</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;main.cpp</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;client&#x2F;client_session.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;ops&#x2F;standard_ops.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;core&#x2F;framework&#x2F;tensor.h&quot;</span><br><span class="line"></span><br><span class="line">using namespace tensorflow;</span><br><span class="line">using namespace tensorflow::ops;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    Scope root &#x3D; Scope::NewRootScope();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Matrix A &#x3D; [3 2; -1 0]</span><br><span class="line">    auto A &#x3D; Const(root, &#123; &#123;3.f, 2.f&#125;, &#123;-1.f, 0.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; Vector b &#x3D; [3 5]</span><br><span class="line">    auto b &#x3D; Const(root, &#123; &#123;3.f, 5.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; v &#x3D; Ab^T</span><br><span class="line">    auto v &#x3D; MatMul(root.WithOpName(&quot;v&quot;), A, b, MatMul::TransposeB(true));</span><br><span class="line"></span><br><span class="line">    std::vector&lt;Tensor&gt; outputs;</span><br><span class="line">    ClientSession session(root);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Run and fetch v</span><br><span class="line">    TF_CHECK_OK(session.Run(&#123;v&#125;, &amp;outputs));</span><br><span class="line">    std::cout &lt;&lt; &quot;tensorflow session run ok&quot; &lt;&lt; std::endl;</span><br><span class="line">    &#x2F;&#x2F; Expect outputs[0] &#x3D;&#x3D; [19; -3]</span><br><span class="line">    std::cout &lt;&lt; outputs[0].matrix&lt;float&gt;();</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;BUILD file</span><br><span class="line"></span><br><span class="line">load(&quot;&#x2F;&#x2F;tensorflow:tensorflow.bzl&quot;, &quot;tf_cc_binary&quot;)</span><br><span class="line">tf_cc_binary(</span><br><span class="line">     name &#x3D; &quot;main&quot;, #目标文件名</span><br><span class="line">     srcs &#x3D; [&quot;main.cpp&quot;], #源代码文件名</span><br><span class="line">     deps &#x3D; [</span><br><span class="line">        &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:cc_ops&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:client_session&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;core:tensorflow&quot;</span><br><span class="line">         ],</span><br><span class="line"> )</span><br><span class="line"> </span><br><span class="line"> &#x2F;&#x2F;执行</span><br><span class="line"> bazel build &#x2F;&#x2F;tensorflow&#x2F;demo:main</span><br></pre></td></tr></table></figure>
+
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/demo.jpg" alt="demo"></p>
 <br>
 
@@ -3873,7 +4030,7 @@
 <br>
 
 
-<h2 id="编辑距离"><a href="#编辑距离" class="headerlink" title="编辑距离"></a>编辑距离</h2><a id="more"></a>
+<h2 id="编辑距离"><a href="#编辑距离" class="headerlink" title="编辑距离"></a>编辑距离</h2><span id="more"></span>
 
 <br>
 
@@ -3901,7 +4058,7 @@
 
 <h2 id="概率图"><a href="#概率图" class="headerlink" title="概率图"></a>概率图</h2><ul>
 <li><p>概率图模型分为贝叶斯网络（Bayesian Network）和马尔可夫网络（Markov Network）两大类。</p>
-<a id="more"></a></li>
+<span id="more"></span></li>
 <li><p>贝叶斯网络可以用一个有向图结构表示，马尔可夫网络可以表示成一个无向图的网络结构。若随机变量Y构成一个无向图 G=(V,E)表示的马尔科夫随机场（MRF），则条件概率分布P(Y|X)称为条件随机场（Conditional Random Field, 简称CRF。</p>
 </li>
 <li><p>更详细地说，概率图模型包括了朴素贝叶斯模型、最大熵模型、隐马尔可夫模型、条件随机场、主题模型等，在机器学习的诸多场景中都有着广泛的应用。</p>
@@ -3955,7 +4112,7 @@
     <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
     <content><![CDATA[<p><strong>摘要</strong></p>
 <p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
-<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><a id="more"></a>
+<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><span id="more"></span>
 <ul>
 <li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
 </li>
@@ -4012,7 +4169,7 @@
 <p><strong>摘要</strong></p>
 <p>通胀的基础知识、历史</p>
 <h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><h4 id="古罗马的铸币成色下降"><a href="#古罗马的铸币成色下降" class="headerlink" title="古罗马的铸币成色下降"></a>古罗马的铸币成色下降</h4><p>当铸币被减少成色时，首先感知的是发行者，最终才是到物价上。最终感知的人的财富被转移到发行者手里。在刚减少、甚至未减少前感知到时，购入资产–窖藏黄金。此时流通的多为劣币。随着铸币数量增多，价值越跌。而执政者采取的冻结物价的措施，结果却是，规则越来越细、维护规则而设立的官员数量越来越多，触犯规则而死亡的人越来越多，市场越发萧条、充斥恐惧。</p>
-<a id="more"></a>
+<span id="more"></span>
 <p>=&gt;<br>无法用立法(价格控制)取代经济规律。通胀是更深问题的表象。</p>
 <h4 id="西班牙的白银涌入"><a href="#西班牙的白银涌入" class="headerlink" title="西班牙的白银涌入"></a>西班牙的白银涌入</h4><p>特殊的是，大量涌入没有带来恶性通胀。</p>
 <p>1白银涌入<br>2西班牙物资缺乏，多进口<br>3白银官价低于真实价值<br>4人们没有认识到价格上涨的原因在于白银本身供给</p>
@@ -4114,7 +4271,7 @@
     <url>/2021/02/17/%E9%93%B6%E8%A1%8C%E6%8B%A8%E5%A4%87/</url>
     <content><![CDATA[<p><br> <br></p>
 <p>拨备有一个重要的功能，就是“以丰补歉”，以平滑利润。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <blockquote>
 <p>为什么要平滑利润？<br><br>如果银行全部股东一直没有变动，那么其实要不要以丰补歉都是一样的，反正赚和亏都是这些股东的。但是，因为股东每个交易日有进有出，所以得考虑利润跨期平滑问题。<br><br>假设有一家银行，过去每年盈利100元，非常稳定地持续了5年以上。突然有一年，发生了一笔不良资产，当年会亏损200元。如果这家银行没有以丰补歉，而是前5年把利润全分红了，然后有股票换手，有新股东进来，然后到了第6年亏损200元，那么新股东怎么都不会开心的。他们会觉得，前面的股东赚走了贷款的利息，而这笔贷款发生违约时，亏损让自己承担，这太不公平了。<br><br>这跟信用债交易有点类似。有些信用债在违约发生前发生交易，新买入的投资者成了接盘侠……</p>
@@ -4141,12 +4298,13 @@
 <br>
 
 
-<h2 id="笛卡尔积"><a href="#笛卡尔积" class="headerlink" title="笛卡尔积"></a>笛卡尔积</h2><a id="more"></a>
+<h2 id="笛卡尔积"><a href="#笛卡尔积" class="headerlink" title="笛卡尔积"></a>笛卡尔积</h2><span id="more"></span>
 
 <br>
 
 
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static String cartesianProduct(final String[][] inputs) &#123;</span><br><span class="line">        if (inputs &#x3D;&#x3D; null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        final StringBuilder sb &#x3D; new StringBuilder();</span><br><span class="line">        </span><br><span class="line">        product(&quot;&quot;, 0, inputs, sb);</span><br><span class="line">        </span><br><span class="line">        return sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">public void product(String prefix,int index, String[][] input,StringBuilder sb)&#123;</span><br><span class="line">        for (int i &#x3D; 0; i &lt; input[index].length; i++) &#123;</span><br><span class="line">            if (index &gt;&#x3D; input.length - 1) &#123;</span><br><span class="line">                sb.append(prefix + input[index][i]);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                product(prefix + input[index][i], index + 1, input, sb);</span><br><span class="line">            &#125;</span><br><span class="line">            if (i &lt; input[index].length - 1) &#123;</span><br><span class="line">                sb.append(&quot;, &quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
 <p>两个变量关键prefix和index，作为递归方法的参数时进行变化<code>prefix + input[index][i]</code>和<code>index+1</code>。</p>
 <p>从数列角度看，sb(j) = sb(j-1) + charAt(i) ,charAt(i)需要一个for循环即<code>for (int i = 0; i &lt; input[index].length; i++)</code>。sb(j-1)为<code>prefix</code>，下一步需要<code>prefix + input[index][i]</code>；其中<code>j-1</code>为<code>index</code>，进入下一步需要<code>index+1</code>。</p>
 ]]></content>
@@ -4162,7 +4320,7 @@
     <url>/2021/04/05/%E9%9B%B6%E6%95%A3%E9%97%AE%E9%A2%98repo/</url>
     <content><![CDATA[<p><br> <br></p>
 <p><strong>无中心、碎片知识点</strong></p>
-<a id="more"></a>
+<span id="more"></span>
 
 
 <ul>
@@ -4210,7 +4368,7 @@
 <li><p>为什么以最大化间隔为目标？因为it correctly classifies the training data and because it is the one which will generalize better with unseen data</p>
 </li>
 </ul>
-<a id="more"></a>
+<span id="more"></span>
 <ul>
 <li><p>这里的 间隔 指？关于间隔涉及到两种分类，一种分类为几何间隔与函数间隔；一种为软、硬间隔。几何间隔在二维则为点线距离，三维空间就是我们学习的点面距离。函数间隔二维中可以理解为<em>几个</em>点没有在线上，三维则为<em>几个</em>点没有在面上；或者结合几何间隔可理解为，是将几何间隔求解的分母去掉了，没有归一化(也因此SVM中不能选择以函数间隔衡量，否则maximizes是没有意义的)。关于软硬，是看噪声，There will never be any data point inside the margin.  If data is noisy, we need soft margin classifier.</p>
 </li>
@@ -4372,7 +4530,7 @@
 <li>“买大牛股，抓主升浪”，这两句话是不可分的。</li>
 <li>高确定性的操作与盈利模式</li>
 <li>只关注那9～10类强势股</li>
-<li>股票投资要记住两句话：第一句话是不要赔钱，第二句话是记住第一句。<a id="more"></a></li>
+<li>股票投资要记住两句话：第一句话是不要赔钱，第二句话是记住第一句。<span id="more"></span></li>
 <li>绝大多数赔钱者，其赔钱的主要原因是缘于<code>选股问题——选错了股票，或者选中了非牛股，甚至是大熊股</code>，而操作技巧方面的不当只占赔钱的次要因素。</li>
 <li>短期暴涨型主升浪：<code>在短期内股价涨幅达到80%～100%的上涨波段，或者是股价涨幅能够在一年内至少翻倍的股票</code>。<br>
 <br></li>

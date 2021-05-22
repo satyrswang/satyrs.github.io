@@ -23,7 +23,7 @@
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/structure.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/03/08/DeepFm/deepfm.png">
 <meta property="article:published_time" content="2021-03-08T07:27:20.000Z">
-<meta property="article:modified_time" content="2021-04-14T08:29:47.753Z">
+<meta property="article:modified_time" content="2021-04-14T08:29:47.000Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="dl">
 <meta name="twitter:card" content="summary">
@@ -45,7 +45,7 @@
 
   
 
-<meta name="generator" content="Hexo 5.3.0"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -94,7 +94,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">67.6k</span>
+    总字数 <span class="post-count">69.3k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -202,7 +202,7 @@
 
 <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在推荐领域较流行的深度模型方案：</p>
 <p>实战：阿里MLR、阿里DIN、阿里ESSM、京东强化学习推荐、facebook个性化推荐dlrm、Deep Neural Networks for YouTube Recommendations、华为DeepFM、google2016 wide&amp;deep learning、googleDeep&amp;Cross Network等。</p>
-<a id="more"></a>
+<span id="more"></span>
 <p>DeepFm模型及进化：XDeepFM(deep进化)、AFM(加入attention)、FFM(field-aware)、PNN、FNN、NFM等。</p>
 <p>其中，DeepFM在论文中通过大量实验证明，DeepFM的AUC和Logloss都优于目前的最好效果。效率上，DeepFM和目前最优的效果的深度模型相当。在Benchmark数据集和商业数据集上，DeepFM效果超过目前所有模型。</p>
 <h3 id="Q1：FM解决什么问题？"><a href="#Q1：FM解决什么问题？" class="headerlink" title="Q1：FM解决什么问题？"></a>Q1：FM解决什么问题？</h3><p>1、普通的线性模型，我们都是将各个特征独立考虑的，并没有考虑到特征与特征之间的相互关系。<br>为了表述特征间的相关性，我们采用多项式模型。</p>
@@ -225,16 +225,19 @@
 <p><img src="/2021/03/08/DeepFm/structure.png" alt="structure"><br><img src="/2021/03/08/DeepFm/deepfm.png" alt="deepfm"></p>
 <p>2、emb部分</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">#embeddings</span></span><br><span class="line"><span class="comment">#weights[&#x27;feature_embeddings&#x27;] 存放的每一个值其实就是FM中的vik</span></span><br><span class="line">weights[<span class="string">&#x27;feature_embeddings&#x27;</span>] = tf.Variable(</span><br><span class="line">    tf.random_normal([self.feature_size,self.embedding_size],<span class="number">0.0</span>,<span class="number">0.01</span>),</span><br><span class="line">    name=<span class="string">&#x27;feature_embeddings&#x27;</span>)</span><br><span class="line"></span><br><span class="line">weights[<span class="string">&#x27;feature_bias&#x27;</span>] = tf.Variable(tf.random_normal([self.feature_size,<span class="number">1</span>],<span class="number">0.0</span>,<span class="number">1.0</span>),name=<span class="string">&#x27;feature_bias&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># model</span></span><br><span class="line">self.embeddings = tf.nn.embedding_lookup(self.weights[<span class="string">&#x27;feature_embeddings&#x27;</span>],self.feat_index) <span class="comment"># N * F * K</span></span><br><span class="line">feat_value = tf.reshape(self.feat_value,shape=[-<span class="number">1</span>,self.field_size,<span class="number">1</span>])</span><br><span class="line">self.embeddings = tf.multiply(self.embeddings,feat_value)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 <p>如果是离散值，则embedding lookup之后，每个维度✖️1，连续值则✖️连续值。<br>✖️后的结果就是公式里的 Vi,f · Xi</p>
 <p>3、dnn部分<br>为了更好的发挥DNN模型学习high-order特征的能力，文中设计了一套子网络结构，将原始的稀疏表示特征映射为稠密的特征向量。<br>子网络设计时的两个要点：</p>
 <p>不同field特征长度不同，但是子网络输出的向量需具有相同维度；<br>利用FM模型的隐特征向量V作为网络权重初始化来获得子网络输出向量。文中将FM的预训练V向量作为网络权重初始化替换为直接将FM和DNN进行整体联合训练，从而实现了一个端到端的模型。 （即lookup）</p>
 <p>4、fm</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># second order term</span></span><br><span class="line"><span class="comment"># sum-square-part</span></span><br><span class="line">self.summed_features_emb = tf.reduce_sum(self.embeddings,<span class="number">1</span>) <span class="comment"># None * k</span></span><br><span class="line">self.summed_features_emb_square = tf.square(self.summed_features_emb) <span class="comment"># None * K</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># squre-sum-part</span></span><br><span class="line">self.squared_features_emb = tf.square(self.embeddings)</span><br><span class="line">self.squared_sum_features_emb = tf.reduce_sum(self.squared_features_emb, <span class="number">1</span>)  <span class="comment"># None * K</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#second order</span></span><br><span class="line">self.y_second_order = <span class="number">0.5</span> * tf.subtract(self.summed_features_emb_square,self.squared_sum_features_emb)</span><br><span class="line">self.y_second_order = tf.nn.dropout(self.y_second_order,self.dropout_keep_fm[<span class="number">1</span>])</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
+
 <h4 id="Q6：扩展，自定义算子？"><a href="#Q6：扩展，自定义算子？" class="headerlink" title="Q6：扩展，自定义算子？"></a>Q6：扩展，自定义算子？</h4><p>比如我们输入是每个item的idor一些离散特征时候。需要对离散特征的各个值–&gt;index构建一个table。然后每次输入转换成对应的index，再根据index去tf.nn.embedding_lookup。离散特征对应的weight dict大小，需要给个预估值，大一些，囊括各种离散、连续的取值总数。</p>
 <p>这里就可以对tensorflow里的hashtable算子进行扩展。构建一个table，动态增长index，来了一个新的取值，就对应index++。</p>
 <p>实现：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Status <span class="title">Find</span><span class="params">(OpKernelContext* ctx, <span class="keyword">const</span> Tensor&amp; key, Tensor* value,</span></span></span><br><span class="line"><span class="function"><span class="params">              <span class="keyword">const</span> Tensor&amp; default_value)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Grab the input tensor</span></span><br><span class="line">	<span class="keyword">const</span> V default_val = default_value.flat&lt;V&gt;()(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> A = key.flat&lt;K&gt;();</span><br><span class="line">    <span class="comment">// Create an output tensor</span></span><br><span class="line">	<span class="keyword">auto</span> output_flat = value-&gt;flat&lt;V&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set all but the first element of the output tensor to 0.</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> N = A.size();</span><br><span class="line">    <span class="keyword">int</span> pos = <span class="number">0</span>;</span><br><span class="line">  </span><br><span class="line">    K find_key;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function">tf_shared_lock <span class="title">sl</span><span class="params">(mu_)</span></span>;</span><br><span class="line">        <span class="keyword">for</span> (; pos &lt; N; pos++) &#123;</span><br><span class="line">            find_key = SubtleMustCopyIfIntegral(A(pos));</span><br><span class="line">            <span class="keyword">auto</span> it = table_.find(find_key);</span><br><span class="line">            <span class="keyword">if</span>(it == table_.end()) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                output_flat(pos) = it-&gt;second;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(pos &lt; N) &#123;</span><br><span class="line">        <span class="keyword">int64_t</span> hsize;</span><br><span class="line">        <span class="function">mutex_lock <span class="title">l</span><span class="params">(mu_)</span></span>;</span><br><span class="line">        <span class="keyword">for</span>(; pos &lt; N; pos++) &#123;</span><br><span class="line">            find_key = SubtleMustCopyIfIntegral(A(pos));</span><br><span class="line">            <span class="keyword">auto</span> it = table_.find(find_key);</span><br><span class="line">            <span class="keyword">if</span>(it == table_.end()) &#123;</span><br><span class="line">               hsize = table_.size();</span><br><span class="line">               <span class="keyword">if</span>(hsize &gt;= max_size_) &#123;</span><br><span class="line">                <span class="keyword">return</span> errors::ResourceExhausted(<span class="string">&quot;max size limit&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">               table_.insert(&#123;find_key, hsize&#125;);</span><br><span class="line">               output_flat(pos) = hsize;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                output_flat(pos) = it-&gt;second;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Status::OK();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 
 
 <p>测试：</p>
@@ -243,8 +246,10 @@
 
 
 
+
 <p>相关命令</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">本地：</span><br><span class="line">python pai&#x2F;main.py --train_tables&#x3D;.&#x2F;dub_train.csv --test_tables&#x3D;.&#x2F;dub_test.csv --data_type&#x3D;file --discrete_size&#x3D;15 --continue_size&#x3D;14 --epoch&#x3D;30 --buckets&#x3D;.&#x2F; --save_predict&#x3D;True</span><br><span class="line">pai:</span><br><span class="line">组件无法支持多张表输入， 直接在odps的sql页面执行：</span><br><span class="line"></span><br><span class="line">PAI-name tensorflow1120_ext</span><br><span class="line"></span><br><span class="line">-project algo_public</span><br><span class="line">-Dscript&#x3D;&#39;oss:&#x2F;&#x2F;datadrive.oss-cn-shanghai-internal.aliyuncs.com&#x2F;tmp&#x2F;tl_deepfm.tar.gz&#39;</span><br><span class="line">-DentryFile&#x3D;&#39;pai&#x2F;main.py&#39;</span><br><span class="line">-DgpuRequired&#x3D;100</span><br><span class="line">-Dtables&#x3D;&#39;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_fit_normal,odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_eval_normal&#39;</span><br><span class="line">-Dbuckets&#x3D;&#39;oss:&#x2F;&#x2F;datadrive.oss-cn-shanghai-internal.aliyuncs.com&#x2F;tmp&#x2F;&#39;</span><br><span class="line">-Darn&#x3D;&#39;acs:ram::1872928906167841:role&#x2F;aliyunodpspaidefaultrole&#39;</span><br><span class="line">-DossHost&#x3D;&quot;oss-cn-shanghai-internal.aliyuncs.com&quot;</span><br><span class="line">-DuserDefinedParameters&#x3D;&quot;--train_tables&#x3D;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_fit_normal--test_tables&#x3D;odps:&#x2F;&#x2F;ypp_recommend&#x2F;tables&#x2F;rec_dub_model_train_data_eval_normal--discrete_size&#x3D;20 --continue_size&#x3D;49 --data_type&#x3D;odps --input_need_hash&#x3D;True --use_input_bn&#x3D;False --epoch&#x3D;100&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 
 
 
@@ -550,15 +555,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">金融经济</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">tensorflow源码</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -571,6 +580,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -590,10 +603,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -603,6 +612,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
               </li>
              
               <li class="article-tag-list-item">

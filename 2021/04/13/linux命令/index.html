@@ -39,7 +39,7 @@
 
   
 
-<meta name="generator" content="Hexo 5.3.0"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -88,7 +88,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">67.6k</span>
+    总字数 <span class="post-count">69.3k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -195,7 +195,7 @@
         <br> 
 
 <p>记录常见linux mac命令</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <br> 
 
@@ -203,24 +203,30 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps -ef | grep 进程名</span><br></pre></td></tr></table></figure>
 
 
+
 <p>2、查看端口被哪个进程监听</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo lsof -i :端口</span><br></pre></td></tr></table></figure>
+
 
 
 <p>3、查看进程监听的端口</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo lsof -nP -p 进程号 | grep LISTEN</span><br><span class="line">sudo lsof -nP | grep LISTEN | grep 进程号</span><br></pre></td></tr></table></figure>
 
 
+
 <p>4、查看监听端口的进程</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo lsof -nP | grep LISTEN | grep 端口号</span><br></pre></td></tr></table></figure>
+
 
 
 <p>5、看到一个新的方法（MacOS统计TCP/UDP端口号与对应服务）</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;### TCP LISTEN ###&quot;</span><br><span class="line">lsof -nP -iTCP -sTCP:LISTEN</span><br></pre></td></tr></table></figure>
 
 
+
 <p>6、关于环境变量</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Mac系统的环境变量，加载顺序为：</span><br><span class="line">&#x2F;etc&#x2F;profile &#x2F;etc&#x2F;paths ~&#x2F;.bash_profile ~&#x2F;.bash_login ~&#x2F;.profile ~&#x2F;.bashrc</span><br><span class="line"></span><br><span class="line">&#x2F;etc&#x2F;profile和&#x2F;etc&#x2F;paths是系统级别的，系统启动就会加载，后面几个是当前用户级的环境变量。后面3个按照从前往后的顺序读取，如果&#x2F;.bash_profile文件存在，则后面的几个文件就会被忽略不读了，如果&#x2F;.bash_profile文件不存在，才会以此类推读取后面的文件。~&#x2F;.bashrc没有上述规则，它是bash shell打开的时候载入的。</span><br><span class="line"></span><br><span class="line">&#x2F;etc&#x2F;bashrc （一般在这个文件中添加系统级环境变量）</span><br><span class="line">全局（公有）配置，bash shell执行时，不管是何种方式，都会读取此文件</span><br><span class="line"></span><br><span class="line">https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;acb1f062a925</span><br></pre></td></tr></table></figure>
+
 
 
 
@@ -533,15 +539,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">金融经济</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">tensorflow源码</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -554,6 +564,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -573,10 +587,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -586,6 +596,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
               </li>
              
               <li class="article-tag-list-item">

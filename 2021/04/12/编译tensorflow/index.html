@@ -46,7 +46,7 @@
 
   
 
-<meta name="generator" content="Hexo 5.3.0"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -95,7 +95,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">67.6k</span>
+    总字数 <span class="post-count">69.3k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -202,7 +202,7 @@
         <br> 
 
 <p>记录编译过程</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <br> 
 
@@ -212,13 +212,16 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">future</span><br><span class="line">absl-py &gt;&#x3D; 0.7.0</span><br><span class="line">astunparse &#x3D;&#x3D; 1.6.3</span><br><span class="line">backports.weakref &gt;&#x3D; 1.0rc1</span><br><span class="line">enum34 &gt;&#x3D; 1.1.6</span><br><span class="line">gast &#x3D;&#x3D; 0.3.3</span><br><span class="line">google_pasta &gt;&#x3D; 0.1.8</span><br><span class="line">h5py &#x3D;&#x3D; 2.10.0</span><br><span class="line">keras_preprocessing &gt;&#x3D; 1.1.0</span><br><span class="line">numpy &#x3D;&#x3D; 1.16.0</span><br><span class="line">opt_einsum &gt;&#x3D; 2.3.2</span><br><span class="line">protobuf &gt;&#x3D; 3.8.0</span><br><span class="line">tensorboard &#x3D;&#x3D; 2.1.0</span><br><span class="line">tensorflow_estimator &#x3D;&#x3D; 2.2.0</span><br><span class="line">termcolor &gt;&#x3D; 1.1.0</span><br><span class="line">wrapt &gt;&#x3D; 1.11.1</span><br><span class="line"></span><br><span class="line"># python3 requires wheel 0.26</span><br><span class="line">wheel &gt;&#x3D; 0.26</span><br><span class="line"></span><br><span class="line"># mock comes with unittest.mock for python3 need to install for python2</span><br><span class="line">mock &gt;&#x3D; 2.0.0</span><br><span class="line"></span><br><span class="line"># functools comes with python3 need to install the backport for python2</span><br><span class="line">functools32 &gt;&#x3D; 3.2.3</span><br><span class="line">six &gt;&#x3D; 1.12.0</span><br><span class="line"></span><br><span class="line"># scipy &lt; 1.4.1 causes segfaults due to pybind11</span><br><span class="line"># Latest scipy pip for py2 is scipy&#x3D;&#x3D;1.2.2</span><br><span class="line">scipy &#x3D;&#x3D; 1.2.2</span><br></pre></td></tr></table></figure>
 
 
+
 <p>4、如果需要gpu，则还要安装cuda 10.1 和 cudnn 7.6.5</p>
 <br> 
 
 <h4 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h4><p>1、配置基本选择N，需要gpu则在CUDAsupport选择y</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd tensorflow-2.2.0</span><br><span class="line">.&#x2F;configure</span><br></pre></td></tr></table></figure>
+
 <p>2、bazel</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048  &#x2F;&#x2F;tensorflow&#x2F;tools&#x2F;pip_package:build_pip_package</span><br><span class="line"></span><br><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048 &#x2F;&#x2F;tensorflow:libtensorflow_cc.so</span><br></pre></td></tr></table></figure>
+
 
 
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/inprogress.jpg" alt="过程"></p>
@@ -231,9 +234,11 @@
 <br>
 
 <h4 id="生成whl"><a href="#生成whl" class="headerlink" title="生成whl"></a>生成whl</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sudo .&#x2F;tensorflow&#x2F;tools&#x2F;pip_package&#x2F;build_pip_package.sh &#x2F;tmp&#x2F;tensorflow_pkg</span><br><span class="line">#接着我切了conda环境</span><br><span class="line">pip install --upgrade pip</span><br><span class="line">pip uninstall tensorflow</span><br><span class="line">pip uninstall tensorboard</span><br><span class="line">pip uninstall tensorflow-tensorboard</span><br><span class="line">#pip3 install tensorboard&#x3D;&#x3D;2.2.1  #有个巨坑。pip3才能安装2.2.1，但是我们环境用的都是python2.7</span><br><span class="line">#要么把之前的切到3，要么下载下来site-package 装到目录里。我是选择粘贴到目录 #&#x2F;Users&#x2F;wyq&#x2F;anaconda2&#x2F;lib&#x2F;python2.7&#x2F;site-packages&#x2F;tensorboard</span><br><span class="line">pip install -U --ignore-installed wrapt  </span><br><span class="line">#又是坑。wrapt：ERROR: Cannot uninstall &#39;wrapt&#39;. It is a distutils installed project and thus #we cannot accurately determine which files belong to it which would lead to only a partial #uninstall.</span><br><span class="line">pip3 install &#x2F;tmp&#x2F;tensorflow_pkg&#x2F;tensorflow-2.2.0-cp27-cp27m-macosx_10_14_x86_64.whl</span><br></pre></td></tr></table></figure>
+
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl0.jpg" alt="whl0"></p>
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl.jpg" alt="whl"></p>
 <h4 id="python验证"><a href="#python验证" class="headerlink" title="python验证"></a><br>python验证</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#打开ipython </span><br><span class="line">#如果遇到这个问题 ImportError: cannot import name pywrap_tensorflow</span><br><span class="line">#看这个issue </span><br><span class="line"># https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;35953210&#x2F;error-running-basic-tensorflow-example</span><br><span class="line">import tensorflow as tf</span><br><span class="line">tf.__version__</span><br><span class="line">tf.test.is_gpu_available()</span><br></pre></td></tr></table></figure>
+
 <br>
 
 <p>终于成功了</p>
@@ -242,11 +247,13 @@
 
 <h4 id="c-验证"><a href="#c-验证" class="headerlink" title="c++验证"></a>c++验证</h4><p>选择了vscode，下次clion可以也试试</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#在tf根目录下运行</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:tutorials_example_trainer</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:client_client_session_test￼</span><br><span class="line"></span><br><span class="line">#然后运行程序</span><br><span class="line">.&#x2F;bazel-bin&#x2F;tensorflow&#x2F;cc&#x2F;client_client_session_test￼</span><br></pre></td></tr></table></figure>
+
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/csuccess.jpg" alt="csuccess"></p>
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/clienttest.jpg" alt="demo"></p>
 <br>
 
 <h4 id><a href="#" class="headerlink" title></a></h4><h4 id="c-demo"><a href="#c-demo" class="headerlink" title="c++demo"></a>c++demo</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;main.cpp</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;client&#x2F;client_session.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;ops&#x2F;standard_ops.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;core&#x2F;framework&#x2F;tensor.h&quot;</span><br><span class="line"></span><br><span class="line">using namespace tensorflow;</span><br><span class="line">using namespace tensorflow::ops;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    Scope root &#x3D; Scope::NewRootScope();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Matrix A &#x3D; [3 2; -1 0]</span><br><span class="line">    auto A &#x3D; Const(root, &#123; &#123;3.f, 2.f&#125;, &#123;-1.f, 0.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; Vector b &#x3D; [3 5]</span><br><span class="line">    auto b &#x3D; Const(root, &#123; &#123;3.f, 5.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; v &#x3D; Ab^T</span><br><span class="line">    auto v &#x3D; MatMul(root.WithOpName(&quot;v&quot;), A, b, MatMul::TransposeB(true));</span><br><span class="line"></span><br><span class="line">    std::vector&lt;Tensor&gt; outputs;</span><br><span class="line">    ClientSession session(root);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Run and fetch v</span><br><span class="line">    TF_CHECK_OK(session.Run(&#123;v&#125;, &amp;outputs));</span><br><span class="line">    std::cout &lt;&lt; &quot;tensorflow session run ok&quot; &lt;&lt; std::endl;</span><br><span class="line">    &#x2F;&#x2F; Expect outputs[0] &#x3D;&#x3D; [19; -3]</span><br><span class="line">    std::cout &lt;&lt; outputs[0].matrix&lt;float&gt;();</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;BUILD file</span><br><span class="line"></span><br><span class="line">load(&quot;&#x2F;&#x2F;tensorflow:tensorflow.bzl&quot;, &quot;tf_cc_binary&quot;)</span><br><span class="line">tf_cc_binary(</span><br><span class="line">     name &#x3D; &quot;main&quot;, #目标文件名</span><br><span class="line">     srcs &#x3D; [&quot;main.cpp&quot;], #源代码文件名</span><br><span class="line">     deps &#x3D; [</span><br><span class="line">        &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:cc_ops&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:client_session&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;core:tensorflow&quot;</span><br><span class="line">         ],</span><br><span class="line"> )</span><br><span class="line"> </span><br><span class="line"> &#x2F;&#x2F;执行</span><br><span class="line"> bazel build &#x2F;&#x2F;tensorflow&#x2F;demo:main</span><br></pre></td></tr></table></figure>
+
 <p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/demo.jpg" alt="demo"></p>
 <br>
 
@@ -563,15 +570,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">金融经济</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">tensorflow源码</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -584,6 +595,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -603,10 +618,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -616,6 +627,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
               </li>
              
               <li class="article-tag-list-item">

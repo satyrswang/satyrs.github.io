@@ -38,7 +38,7 @@
 
   
 
-<meta name="generator" content="Hexo 5.3.0"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -87,7 +87,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">67.6k</span>
+    总字数 <span class="post-count">69.3k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -187,23 +187,27 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：503字 | 预计阅读时长：3分钟
+    字数：504字 | 预计阅读时长：3分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
         <h2 id="functional-programming-concepts"><a href="#functional-programming-concepts" class="headerlink" title="functional programming concepts"></a><strong>functional programming concepts</strong></h2><p>分两类：</p>
 <ul>
 <li>Function decorators</li>
-<li>Class decorators<a id="more"></a></li>
+<li>Class decorators<span id="more"></span></li>
 </ul>
 <blockquote>
 <p>A decorator in Python is any callable Python object that is used to <strong>modify a function or a class</strong>. A reference to a function “func” or a class “C” is passed to a decorator and the decorator returns a modified function or class. The modified functions or classes usually contain calls to the original function “func” or class “C”. </p>
 </blockquote>
 <h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a><strong>show me the code</strong></h2><ul>
-<li><em>参数检查</em><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">def argument_test_natural_number(f):</span><br><span class="line">    def helper(x):</span><br><span class="line">        if type(x) &#x3D;&#x3D; int and x &gt; 0:</span><br><span class="line">            return f(x)</span><br><span class="line">        else:</span><br><span class="line">            raise Exception(&quot;Argument is not an integer&quot;)</span><br><span class="line">    return helper</span><br><span class="line">    </span><br><span class="line">@argument_test_natural_number</span><br><span class="line">def factorial(n):</span><br><span class="line">    if n &#x3D;&#x3D; 1:</span><br><span class="line">        return 1</span><br><span class="line">    else:</span><br><span class="line">        return n * factorial(n-1)</span><br><span class="line"></span><br><span class="line">for i in range(1,10):</span><br><span class="line">	print(i, factorial(i))</span><br><span class="line"></span><br><span class="line">print(factorial(-1))</span><br></pre></td></tr></table></figure></li>
-<li><em>统计次数</em><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">def call_counter(func):</span><br><span class="line">    def helper(*args, **kwargs):</span><br><span class="line">        helper.calls +&#x3D; 1</span><br><span class="line">        return func(*args, **kwargs)</span><br><span class="line">    helper.calls &#x3D; 0</span><br><span class="line"></span><br><span class="line">    return helper</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def succ(x):</span><br><span class="line">    return x + 1</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def mul1(x, y&#x3D;1):</span><br><span class="line">    return x*y + 1</span><br><span class="line"></span><br><span class="line">print(succ.calls)</span><br><span class="line">for i in range(10):</span><br><span class="line">    succ(i)</span><br><span class="line">mul1(3, 4)</span><br><span class="line">mul1(4)</span><br><span class="line">mul1(y&#x3D;3, x&#x3D;2)</span><br><span class="line">    </span><br><span class="line">print(succ.calls)</span><br><span class="line">print(mul1.calls)</span><br></pre></td></tr></table></figure></li>
-<li><em>含参数的decorator</em><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">def greeting(expr):</span><br><span class="line">    def greeting_decorator(func):</span><br><span class="line">        def function_wrapper(x):</span><br><span class="line">            print(expr + &quot;, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">            func(x)</span><br><span class="line">        return function_wrapper</span><br><span class="line">    return greeting_decorator</span><br><span class="line"></span><br><span class="line">@greeting(&quot;-wyq-&quot;)</span><br><span class="line">def foo(x):</span><br><span class="line">    print(42)</span><br><span class="line"></span><br><span class="line">foo(&quot;Hi&quot;)</span><br></pre></td></tr></table></figure></li>
-<li><em>using import 要注意变量的域</em></li>
+<li><p><em>参数检查</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">def argument_test_natural_number(f):</span><br><span class="line">    def helper(x):</span><br><span class="line">        if type(x) &#x3D;&#x3D; int and x &gt; 0:</span><br><span class="line">            return f(x)</span><br><span class="line">        else:</span><br><span class="line">            raise Exception(&quot;Argument is not an integer&quot;)</span><br><span class="line">    return helper</span><br><span class="line">    </span><br><span class="line">@argument_test_natural_number</span><br><span class="line">def factorial(n):</span><br><span class="line">    if n &#x3D;&#x3D; 1:</span><br><span class="line">        return 1</span><br><span class="line">    else:</span><br><span class="line">        return n * factorial(n-1)</span><br><span class="line"></span><br><span class="line">for i in range(1,10):</span><br><span class="line">	print(i, factorial(i))</span><br><span class="line"></span><br><span class="line">print(factorial(-1))</span><br></pre></td></tr></table></figure></li>
+<li><p><em>统计次数</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">def call_counter(func):</span><br><span class="line">    def helper(*args, **kwargs):</span><br><span class="line">        helper.calls +&#x3D; 1</span><br><span class="line">        return func(*args, **kwargs)</span><br><span class="line">    helper.calls &#x3D; 0</span><br><span class="line"></span><br><span class="line">    return helper</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def succ(x):</span><br><span class="line">    return x + 1</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def mul1(x, y&#x3D;1):</span><br><span class="line">    return x*y + 1</span><br><span class="line"></span><br><span class="line">print(succ.calls)</span><br><span class="line">for i in range(10):</span><br><span class="line">    succ(i)</span><br><span class="line">mul1(3, 4)</span><br><span class="line">mul1(4)</span><br><span class="line">mul1(y&#x3D;3, x&#x3D;2)</span><br><span class="line">    </span><br><span class="line">print(succ.calls)</span><br><span class="line">print(mul1.calls)</span><br></pre></td></tr></table></figure></li>
+<li><p><em>含参数的decorator</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">def greeting(expr):</span><br><span class="line">    def greeting_decorator(func):</span><br><span class="line">        def function_wrapper(x):</span><br><span class="line">            print(expr + &quot;, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">            func(x)</span><br><span class="line">        return function_wrapper</span><br><span class="line">    return greeting_decorator</span><br><span class="line"></span><br><span class="line">@greeting(&quot;-wyq-&quot;)</span><br><span class="line">def foo(x):</span><br><span class="line">    print(42)</span><br><span class="line"></span><br><span class="line">foo(&quot;Hi&quot;)</span><br></pre></td></tr></table></figure></li>
+<li><p><em>using import 要注意变量的域</em></p>
+</li>
 </ul>
 <p>greeting_decorator.py  没用functools的版本</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">def greeting(func):</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    function_wrapper.__name__ &#x3D; func.__name__</span><br><span class="line">    function_wrapper.__doc__ &#x3D; func.__doc__</span><br><span class="line">    function_wrapper.__module__ &#x3D; func.__module__</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
@@ -527,15 +531,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">金融经济</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">tensorflow源码</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -548,6 +556,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">dubbo</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -567,10 +579,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -580,6 +588,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">数据库</a>
               </li>
              
               <li class="article-tag-list-item">
