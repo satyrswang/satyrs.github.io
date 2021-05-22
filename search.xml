@@ -53,38 +53,6 @@
       </tags>
   </entry>
   <entry>
-    <title>CRF后续</title>
-    <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
-    <content><![CDATA[<br>
-
-<p>介绍下BiLSTM+CRF吧</p>
-<br>
-
-<span id="more"></span>
-
-
-
-<h4 id="Q1、为啥搞一个LSTM-CRF的hybrid-model"><a href="#Q1、为啥搞一个LSTM-CRF的hybrid-model" class="headerlink" title="Q1、为啥搞一个LSTM+CRF的hybrid model?"></a>Q1、为啥搞一个LSTM+CRF的hybrid model?</h4><p>用LSTM，整体的预测accuracy是不错indeed, 但是会出现上述的错误：在B之后再来一个B。这个错误在CRF中是不存在的，因为CRF的特征函数的存在就是为了对given序列观察学习各种特征（n-gram，窗口），这些特征就是在限定窗口size下的各种词之间的关系。然后一般都会学到这样的一条规律（特征）：B后面接E，不会出现E。这个限定特征会使得CRF的预测结果不出现上述例子的错误。</p>
-<p>那就把CRF接到LSTM上面，把LSTM在time<em>step上把每一个hidden</em>state的tensor输入给CRF，让LSTM负责在CRF的特征限定下，依照新的loss function，学习出一套新的非线性变换空间。</p>
-<h4 id="Q2、CRF-源码"><a href="#Q2、CRF-源码" class="headerlink" title="Q2、CRF++源码"></a>Q2、CRF++源码</h4><ul>
-<li>输入</li>
-</ul>
-<p>He reckons the current account deficit will narrow to only #1.8 billion in September .”代表一个训练句子xx，而CRF++要求将这样的句子拆成 <strong>每一个词一行并且是固定列数的数据</strong>，其中列除了原始输入，还可以包含一些其他信息，比如第二列包含了POS信息，最后一列是Label信息。而不同的训练序列与序列之间的相隔，就靠一个空白行来区分。</p>
-<ul>
-<li>特征模版</li>
-</ul>
-<p>1、“%x[row, column]” 代表获得<strong>当前指向位置向上或向下偏移|row|行</strong>，并指向第column列的值。</p>
-<p>2、CRF++中主要有两种特征模版，<strong>Unigram和Bigram 模版</strong>，注意Unigram和Bigram是<strong>相对于输出序列</strong>而言，而不是相对于输入序列。对于”U01:%x[0,1]”这样一个模版，上面例子的输入数据会产生如下的特征函数：</p>
-<p>3、</p>
-]]></content>
-      <categories>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>CRF</title>
     <url>/2021/03/09/CRF/</url>
     <content><![CDATA[<br>
@@ -327,6 +295,38 @@
       </tags>
   </entry>
   <entry>
+    <title>CRF后续</title>
+    <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
+    <content><![CDATA[<br>
+
+<p>介绍下BiLSTM+CRF吧</p>
+<br>
+
+<span id="more"></span>
+
+
+
+<h4 id="Q1、为啥搞一个LSTM-CRF的hybrid-model"><a href="#Q1、为啥搞一个LSTM-CRF的hybrid-model" class="headerlink" title="Q1、为啥搞一个LSTM+CRF的hybrid model?"></a>Q1、为啥搞一个LSTM+CRF的hybrid model?</h4><p>用LSTM，整体的预测accuracy是不错indeed, 但是会出现上述的错误：在B之后再来一个B。这个错误在CRF中是不存在的，因为CRF的特征函数的存在就是为了对given序列观察学习各种特征（n-gram，窗口），这些特征就是在限定窗口size下的各种词之间的关系。然后一般都会学到这样的一条规律（特征）：B后面接E，不会出现E。这个限定特征会使得CRF的预测结果不出现上述例子的错误。</p>
+<p>那就把CRF接到LSTM上面，把LSTM在time<em>step上把每一个hidden</em>state的tensor输入给CRF，让LSTM负责在CRF的特征限定下，依照新的loss function，学习出一套新的非线性变换空间。</p>
+<h4 id="Q2、CRF-源码"><a href="#Q2、CRF-源码" class="headerlink" title="Q2、CRF++源码"></a>Q2、CRF++源码</h4><ul>
+<li>输入</li>
+</ul>
+<p>He reckons the current account deficit will narrow to only #1.8 billion in September .”代表一个训练句子xx，而CRF++要求将这样的句子拆成 <strong>每一个词一行并且是固定列数的数据</strong>，其中列除了原始输入，还可以包含一些其他信息，比如第二列包含了POS信息，最后一列是Label信息。而不同的训练序列与序列之间的相隔，就靠一个空白行来区分。</p>
+<ul>
+<li>特征模版</li>
+</ul>
+<p>1、“%x[row, column]” 代表获得<strong>当前指向位置向上或向下偏移|row|行</strong>，并指向第column列的值。</p>
+<p>2、CRF++中主要有两种特征模版，<strong>Unigram和Bigram 模版</strong>，注意Unigram和Bigram是<strong>相对于输出序列</strong>而言，而不是相对于输入序列。对于”U01:%x[0,1]”这样一个模版，上面例子的输入数据会产生如下的特征函数：</p>
+<p>3、</p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Decorator</title>
     <url>/2021/02/04/Decorator/</url>
     <content><![CDATA[<h2 id="functional-programming-concepts"><a href="#functional-programming-concepts" class="headerlink" title="functional programming concepts"></a><strong>functional programming concepts</strong></h2><p>分两类：</p>
@@ -436,12 +436,19 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2021/05/21/LPR/</url>
-    <content><![CDATA[<p>货币、利率、风险收益</p>
-<h3 id="LPR"><a href="#LPR" class="headerlink" title="LPR"></a>LPR</h3><p>目的，替换贷款利率在贷款定价中发挥基准作用。</p>
-<p>1】利率市场化改革</p>
+    <title>LPR</title>
+    <url>/2021/05/09/LPR/</url>
+    <content><![CDATA[<br>
+
+<h3 id="LPR"><a href="#LPR" class="headerlink" title="LPR"></a>LPR</h3><br>
+
+<p>目的，替换贷款利率在贷款定价中发挥基准作用。</p>
+<br>
+
+<h4 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h4><p>1】利率市场化改革</p>
 <p>​    开始LPR的13年，也取消了贷款利率的下限。</p>
+<span id="more"></span>
+
 <p>​    没有起到作用：</p>
 <p>​        1、政策属性强，盯住的是贷款基准利率而不是货币市场利率 – 盯住MLF 投放规模大、期限合适、使用频率高、央行选定的中期政策利率</p>
 <p>​        2、中小行参与度低 ，报价和lpr的使用方面都只有少量银行参与 – 加入银行</p>
@@ -459,9 +466,14 @@
 <p>货币政策传导受阻，中小企业融资问题仍然突出；贷款基准利率环境下，协同保留贷款利率0.9倍隐性下限。</p>
 <p>改革后的LPR报价方式，相较于4.35%，新增贷款的基准利率的确有所下降。</p>
 <p>基准利率是贷款客户和银行讨价还价的锚，基准利率下降使得企业议价能力上升。并使得银行难以再设置隐形下限。</p>
-<p>问题：</p>
-<p>1、期限 2、参与度与报价广泛性 3、mlf的政策属性强 4、央行借款占比低，对整体负债成本影响小，传导有限。5、融资贵更多贵在风险成本和业务成本。而非资金成本。需要其他配套措施解决融资问题。6、存款利率不下，仍然参考基准存款利率。存贷差收缩，压低银行利润，扩大基差风险。银行需要下沉资质，增强风控能力。</p>
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>1、期限 2、参与度与报价广泛性 3、mlf的政策属性强 4、央行借款占比低，对整体负债成本影响小，传导有限。5、融资贵更多贵在风险成本和业务成本。而非资金成本。需要其他配套措施解决融资问题。6、存款利率不下，仍然参考基准存款利率。存贷差收缩，压低银行利润，扩大基差风险。银行需要下沉资质，增强风控能力。</p>
 ]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
   </entry>
   <entry>
     <title>LSTM</title>
@@ -722,12 +734,6 @@
       </tags>
   </entry>
   <entry>
-    <title>TensorFlow源码解读03</title>
-    <url>/2021/05/02/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB03/</url>
-    <content><![CDATA[<p>1、</p>
-]]></content>
-  </entry>
-  <entry>
     <title>batchnorm</title>
     <url>/2021/04/05/batchnorm/</url>
     <content><![CDATA[<br>
@@ -835,6 +841,12 @@
       <tags>
         <tag>dl</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>TensorFlow源码解读03</title>
+    <url>/2021/05/02/TensorFlow%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB03/</url>
+    <content><![CDATA[<p>1、</p>
+]]></content>
   </entry>
   <entry>
     <title>c++tips上</title>
@@ -1099,6 +1111,36 @@
       </tags>
   </entry>
   <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<span id="more"></span>
+
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+<p>todo</p>
+]]></content>
+      <categories>
+        <category>dubbo</category>
+      </categories>
+      <tags>
+        <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>dubbo</title>
     <url>/2021/04/05/dubbo/</url>
     <content><![CDATA[<p>dubbo–rpc框架相关</p>
@@ -1179,36 +1221,6 @@
 </ul>
 </li>
 </ul>
-]]></content>
-      <categories>
-        <category>dubbo</category>
-      </categories>
-      <tags>
-        <tag>dubbo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<span id="more"></span>
-
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
-<p>todo</p>
 ]]></content>
       <categories>
         <category>dubbo</category>
@@ -1435,80 +1447,6 @@
       </tags>
   </entry>
   <entry>
-    <title>hive</title>
-    <url>/2021/03/03/hive/</url>
-    <content><![CDATA[<br>
-
-
-<ul>
-<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
-<span id="more"></span>
-<blockquote>
-<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
-</blockquote>
-</li>
-<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
-</li>
-<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
-</li>
-<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
-</li>
-<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
-</li>
-<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
-</li>
-<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
-</li>
-<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
-</li>
-</ul>
-<ul>
-<li> Making Multiple Passes over the Same Data<blockquote>
-<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
-</blockquote>
-</li>
-</ul>
-<p>因此如下方式更加高效,并且可开启并行：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>日期处理<br>查看N天前的日期：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
-<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
-<li><p>left outer join</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
-</li>
-<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
-</li>
-<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
-<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
-</li>
-<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
-</li>
-<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
-<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure></li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure>
-<ul>
-<li><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></li>
-<li>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>大数据</category>
-      </categories>
-      <tags>
-        <tag>大数据</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>git命令</title>
     <url>/2021/04/13/git%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[]]></content>
@@ -1589,6 +1527,80 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hive</title>
+    <url>/2021/03/03/hive/</url>
+    <content><![CDATA[<br>
+
+
+<ul>
+<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
+<span id="more"></span>
+<blockquote>
+<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
+</blockquote>
+</li>
+<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
+</li>
+<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
+</li>
+<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
+</li>
+<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
+</li>
+<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
+</li>
+<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
+</li>
+<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
+</li>
+</ul>
+<ul>
+<li> Making Multiple Passes over the Same Data<blockquote>
+<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
+</blockquote>
+</li>
+</ul>
+<p>因此如下方式更加高效,并且可开启并行：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>日期处理<br>查看N天前的日期：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
+<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
+<li><p>left outer join</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
+</li>
+<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
+</li>
+<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
+<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
+</li>
+<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
+</li>
+<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
+<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></li>
+<li>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -2012,44 +2024,6 @@
       </tags>
   </entry>
   <entry>
-    <title>node2vec</title>
-    <url>/2021/04/05/node2vec/</url>
-    <content><![CDATA[<ul>
-<li><p>node2vec的随机游走</p>
-<span id="more"></span>
-<ul>
-<li><p><a href="https://blog.csdn.net/rover2002/article/details/106760664">Alias Method: 非均匀随机抽样算法</a></p>
-<ul>
-<li>空间换时间的方法，在常数时间内，完成非均匀到均匀采样的映射。</li>
-<li>主要思想： 概率转换为面积，然后把面积填到其他地方，总体长方形面积最小。由于有填到其他地方的，就有alias。这样之后再掷筛子，随机。</li>
-</ul>
-</li>
-<li><p>跳转概率</p>
-<ul>
-<li><p>Node2vec 的跳转概率为 自定义的权重*有向边权重。</p>
-</li>
-<li><p>自定义权重，考虑了当前点vi的所有相关点 和 vi前一个node的距离。距离为0则概率1/p(即重复访问刚刚访问过的node)，为1则1，为2则1/q。</p>
-</li>
-<li><p>根据论文做法，对p q在{0.25,0.5,1,2,4}中进行grid search。</p>
-</li>
-<li><p>参数p控制重复访问刚刚访问过的顶点的概率。若p较大，则访问刚刚访问过的顶点的概率会变低。</p>
-</li>
-<li><p>参数q控制着游走是向外还是向内：<br>  若q&gt;1，随机游走倾向于访问和上一次的t接近的顶点(偏向BFS)；<br>  若q&lt;1，倾向于访问远离t的顶点(偏向DFS)</p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>dl</category>
-      </categories>
-      <tags>
-        <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>python</title>
     <url>/2021/04/05/python/</url>
     <content><![CDATA[<br>
@@ -2208,39 +2182,41 @@
       </tags>
   </entry>
   <entry>
-    <title>redis</title>
-    <url>/2021/01/31/redis/</url>
-    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+    <title>node2vec</title>
+    <url>/2021/04/05/node2vec/</url>
+    <content><![CDATA[<ul>
+<li><p>node2vec的随机游走</p>
 <span id="more"></span>
-<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
-<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
-<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
-<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
-<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
-<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
-<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
-<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
-<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
-<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
-<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
-<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
-<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
-<p>14、cluster<br>Cluster bus通信、gossip协议</p>
-<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
-<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
-<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
-<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
-<p>19、穿透<br>没查到则写一个空值到redis</p>
-<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
-<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
-<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
-<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
+<ul>
+<li><p><a href="https://blog.csdn.net/rover2002/article/details/106760664">Alias Method: 非均匀随机抽样算法</a></p>
+<ul>
+<li>空间换时间的方法，在常数时间内，完成非均匀到均匀采样的映射。</li>
+<li>主要思想： 概率转换为面积，然后把面积填到其他地方，总体长方形面积最小。由于有填到其他地方的，就有alias。这样之后再掷筛子，随机。</li>
+</ul>
+</li>
+<li><p>跳转概率</p>
+<ul>
+<li><p>Node2vec 的跳转概率为 自定义的权重*有向边权重。</p>
+</li>
+<li><p>自定义权重，考虑了当前点vi的所有相关点 和 vi前一个node的距离。距离为0则概率1/p(即重复访问刚刚访问过的node)，为1则1，为2则1/q。</p>
+</li>
+<li><p>根据论文做法，对p q在{0.25,0.5,1,2,4}中进行grid search。</p>
+</li>
+<li><p>参数p控制重复访问刚刚访问过的顶点的概率。若p较大，则访问刚刚访问过的顶点的概率会变低。</p>
+</li>
+<li><p>参数q控制着游走是向外还是向内：<br>  若q&gt;1，随机游走倾向于访问和上一次的t接近的顶点(偏向BFS)；<br>  若q&lt;1，倾向于访问远离t的顶点(偏向DFS)</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 ]]></content>
       <categories>
-        <category>redis</category>
+        <category>dl</category>
       </categories>
       <tags>
-        <tag>redis</tag>
+        <tag>dl</tag>
       </tags>
   </entry>
   <entry>
@@ -2310,6 +2286,42 @@
 </li>
 </ul>
 <p><img src="/2021/04/05/redis-mindroad/redis.png" alt="脑图"></p>
+]]></content>
+      <categories>
+        <category>redis</category>
+      </categories>
+      <tags>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>redis</title>
+    <url>/2021/01/31/redis/</url>
+    <content><![CDATA[<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、从自己拉还是定期拉 还是master发<br>第一次全量复制的时候，从发命令后主发rdb和写缓存<br>续传的时候：master维护backlog里有offset、master run id,从发送offset给主，如果没有则全量<br>其他情况，master会异步发送</p>
+<span id="more"></span>
+<p>2、单机写 读的并发量、集群并发量<br>几万、十万qps、几十万<br>单个value 1g</p>
+<p>3、哨兵没有检测到主failure， 主自动重启，导致数据清空</p>
+<p>4、通信及复制：<br>启动slave时：PSYNC给master<br>第一次连接—全量复制中，两个点：1rdb快照 2写命令缓存<br>全量参数：1时间60s 2内存缓冲区持续消耗和一次性超过<br>断点续传：网络故障的部分复制，offset</p>
+<p>5、哨兵+主从复制<br>不保证0丢失，保证高可用</p>
+<p>6、heartbeat<br>互相发送，主每10s、从每1s</p>
+<p>7、主备切换前提、选举算法、哨兵master信息同步<br>选举前提 quorum和majority,至少满足max(quorum,majority)<br>选举算法：四个参数。<br>切换后其他的哨兵更新master配置：通过监听的channel中的version号，version号是负责切换的哨兵从新的master中获得的configuration epoch</p>
+<p>8、持久化方式、优缺点、实现<br>Rdb：定期地冷备数据 — fork子进程进行磁盘io，不影响高性能，但如果rdb文件特别大则会影响服务，每隔5min宕机丢数据<br>aof：每1s后台fsync，最多丢1s数据。append写入文件，无磁盘寻址时间，文件尾部破损容易修复(?)、命令基于内存的数据重新构建而不是基于旧的指令日志 – rewrite log（指令压缩、旧的仍然提供服务，新的好了后替换），灾难性误删除.</p>
+<p>9、并发竞争<br>redis的cas？zookeeper分布式锁？<br>采用CAS协议，则是如下的情景。<br> •第一步，A取出数据对象X，并获取到CAS-ID1；<br>•第二步，B取出数据对象X，并获取到CAS-ID2； <br>•第三步，B修改数据对象X，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“一致”，就将修改后的带有CAS-ID2的X写入到缓存。<br> •第四步，A修改数据对象Y，在写入缓存前，检查CAS-ID与缓存空间中该数据的CAS-ID是否一致。结果是“不一致”，则拒绝写入，返回存储失败。<br>这样CAS协议就用了“版本号”的思想，解决了冲突问题。（乐观锁概念）</p>
+<p>在使用redis的setnx方法和memcace的add方法时，如果指定的key已经存在，则返回false。利用这个特性，实现全局锁<br>每次生成全局id前，先检测指定的key是否存在，如果不存在则使用redis的incr方法或者memcache的increment进行加1操作。这两个方法的返回值是加1后的值，如果存在，则程序进入循环等待状态。循环过程中不断检测key是否还存在，如果key不存在就执行上面的操作。</p>
+<p>10、数据恢复<br>放到指定目录，然后重启redis，redis会恢复内存中的数据然后继续提供服务</p>
+<p>11、哨兵–分布式<br>监控、修改地址(确保slave连接正确的master)、主从切换（确保潜在master的slave复制了所有的数据）、故障通知<br>两个配置：quorum、majority<br>quorum是至少多少哨兵认为宕机，才是master真的宕机<br>majority是必须满足大多数的哨兵是运行，才能进行故障转移。<br>=&gt;主备切换至少满足max(quorum,majority)<br>sdown odown</p>
+<p>12、丢失：<br>case1slave没有同步完master的数据，master宕机<br>case2master机器脱离了集群，但是仍然运行，哨兵又选举了新的master。但是client还是在旧的写，旧的成为slave去新的master更新数据。这部分写丢失。<br>解决：两个参数。master宕机控制在丢失数据10s内。一点超过10s的数据复制，则master停止写请求。</p>
+<p>13、哨兵自动发现<br>1往自己监控的channel里发消息 ，包括： runid、master监控配置、hostip<br>2监听channel，感知其他的哨兵<br>3监控配置的同步</p>
+<p>14、cluster<br>Cluster bus通信、gossip协议</p>
+<p>15、集群元数据维护方式<br>集中式：zookeeper作为实现，时效性高，存储更新有压力<br>gossip：分散更新，滞后</p>
+<p>16、一致性hash、hash slot<br>hash的值空间组成一个环，将master的ip进行hash，确定在环的位置。数据找到位置后，存入顺时针走的第一个遇到的master。<br>当master宕机，则master和前一个master之间的数据受到影响。<br>热点问题：master计算多个hash值，在环中增加虚拟节点<br>slot：每个key计算crc16值，然后对16384取模，对应到相应的hash slot。每个master持有部分的slot</p>
+<p>17、cluster中的选举、复制和哨兵<br>大于一半的master投票给该slave则该slave可以替换为master<br>cluster直接集成了复制和哨兵功能</p>
+<p>18、缓存雪崩<br>所有的请求在redis都没有命中<br>解决：<br>redis高可用(主从+哨兵)、hystrix限流+本地ehcache缓存、redis持久化<br>先查本地、再redis、再限流，未通过的请求则降级</p>
+<p>19、穿透<br>没查到则写一个空值到redis</p>
+<p>20、击穿<br>热点key失效时缓存被瞬时击穿<br>1不用更新则永不过期 2更新频率高或者时间长则定时线程提前主动重新构建缓存或者延后过期时间 3更新频率低或者时间短，则分布式互斥锁或者本地锁保证少量请求能重新构建缓存，其余则锁释放后再访问新的缓存</p>
+<p>21、双写一致性<br>Cache aside：读-先读缓存、再读数据库、再写入缓存，更新则先更新数据库、再删除缓存<br>为什么是删除不是更新？lazy<br>删除缓存失败？–先删除缓存再更新数据库<br>先删除缓存再更新数据库–还是会有不一致，每秒并发几万：当更新没完成，一个请求来了，写入缓存的是旧数据，然后又更新了数据库。</p>
+<p>解决：串行化。<br>更新的数据都附带上数据标识，如果不在缓存中，则将读和更新发到一个队列中，线程从队列中串行地拿操作执行。<br>注意：1请求操作的超时（过多的写操作积压，一般单机20个队列，qps500的写可以支持，200ms里100个写，每个队列5个，每个20ms完成，那么读请求也可以在200ms内返回。否则扩容机器） 2读并发高 3热点商品的请求倾斜 4路由到同一台机子</p>
+<p>22、线上部署情况<br>cluster模式，10台机器，5台master，一主一从<br>每个master高峰的qps 5w<br>master配置：32g8core+1T，分给redis内存最多10g<br>内存中放商品数据，每条数据大概10kb，10w条则1g，一般200w条，占20g。目前的qps高峰是3500左右请求量。</p>
 ]]></content>
       <categories>
         <category>redis</category>
@@ -2610,6 +2622,21 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>供给侧改革</title>
+    <url>/2021/05/22/%E4%BE%9B%E7%BB%99%E4%BE%A7%E6%94%B9%E9%9D%A9/</url>
+    <content><![CDATA[<br>
+
+
+
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3>]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
@@ -3172,10 +3199,63 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2021/05/22/%E5%88%A9%E7%8E%87/</url>
-    <content><![CDATA[<h3 id="利率"><a href="#利率" class="headerlink" title="利率"></a>利率</h3><p>1、</p>
+    <title>利率</title>
+    <url>/2021/05/09/%E5%88%A9%E7%8E%87/</url>
+    <content><![CDATA[<br>
+
+
+
+<h3 id="利率"><a href="#利率" class="headerlink" title="利率"></a>利率</h3><h5 id="定义与分类"><a href="#定义与分类" class="headerlink" title="定义与分类"></a>定义与分类</h5><span id="more"></span>
+
+<p>定义：金融资产的到期收益率</p>
+<p>别名：贴现率、要求回报率</p>
+<p>构成： 无风险收益率+风险溢价(系统性风险的回报) </p>
+<p>风险构成： <code>期限、违约(信用)、流动性、通胀</code></p>
+<p>结构分析：利率期限结构、利率风险结构(控制期限变量分析)</p>
+<p>分类：官定/市场，基准利率/一般利率，名义利率/实际利率、固定利率/浮动利率</p>
+<p>其他：</p>
+<p>​    违约评级机构：标普、穆迪、惠誉</p>
+<p>​    国家信用：税收、债务货币化(内债)、政局稳定性</p>
+<p>​    经济衰退-&gt;违约风险溢价上升</p>
+<p>​    流动性风险：交易佣金、买卖价差(做市商 <code>市场交易的活跃度</code> 影响来bid 和 ask)、市场冲击(<code>市场规模</code>大则冲击压力越小) …</p>
+<p>​    税后收益率 = 税前收益率 * (1- 税率) ，税收优惠的债券，可以接受更低的税前收益率</p>
+<h5 id="利率决定论"><a href="#利率决定论" class="headerlink" title="利率决定论"></a>利率决定论</h5><p>1、古典利率决定理论(实际利率决定理论)</p>
+<p>储蓄和利率正相关  投资和利率负相关 投资和储蓄决定均衡利率(产品市场出清)</p>
+<p>货币只是交易媒介，不影响经济行为。货币和商品的二元无关论。</p>
+<p>​    </p>
+<p>2、凯恩斯利率决定理论(流动性偏好理论)</p>
+<p>货币供给与利率无关 货币需求与利率成负相关 货币需求和货币供给决定均衡利率(货币市场出清)</p>
+<p>预防、交易、投机都影响货币需求。</p>
+<p>古典的不成立：均衡利率取决于S位置，S取决于收入，收入取决于I，I取决于均衡利率。</p>
+<p>延期消费带来利息不成立：等待或者延期不能带来利息，而是 流动性，也即放弃周转的灵活换来利息。</p>
+<p>3、可贷资金理论</p>
+<p>可贷资金的需求包括投资和新增货币需求，与利率负相关</p>
+<p>可贷资金的供给包括储蓄和新增货币供给，与利率正相关</p>
+<p>可贷资金供求决定均衡利率(可贷资金市场出清)</p>
+<p>和流动性偏好，相似之处：</p>
+<p>4、IS-LM 模型</p>
+<h5 id="一般影响因素"><a href="#一般影响因素" class="headerlink" title="一般影响因素"></a>一般影响因素</h5><p>长期因素、短期因素；行为主体；国内国际；模型中 经济或金融变量(P I S C π e Ms Md …)；供需两面；</p>
+<p>财政支出(预算赤字↑) - 总投资↑ - 货币需求↑ </p>
+<p>国债↑ - 国债价格↓ 利率↑</p>
+<p>放水(准备金率、回购) - 货币供给↑ - 名义利率↓</p>
+<p>疫情 - 分情况看</p>
+<p>价格↑ - 货币需求↑ -（货币供给不变时）名义利率↑</p>
+<p>收入↑ - 货币需求↑ -（货币供给不变时）名义利率↑</p>
+<p>通胀预期↑ - 现金持有↓ - 购买国债或其他权益证券↑ - 利率↓ ； 通胀预期↑ - (实际利率不变时)名义利率↓</p>
+<p>经济上行(边际消费倾向、投资) ↑- (收入水平给定时)储蓄(货币供给)↓ - 资金成本↑ ，实际利率↑ - (通胀不变)名义利率↑</p>
+<p>结论：利率是顺周期变量</p>
+<p>…</p>
+<h5 id="利率市场化改革"><a href="#利率市场化改革" class="headerlink" title="利率市场化改革"></a>利率市场化改革</h5><p>why</p>
+<p>利率传导效率、货币政策价格型转变(对基准利率的可控性、可测性；货币供应量为中介目标影响越来越弱)、信贷配给的腐败(银行国企盆满锅满 – LPR倒逼)、资源配置效率低下 … </p>
+<p>金融与互联网的结合，更是利率市场化和金融脱媒的推手。人们越来越难以忍受这种双轨制的损失。</p>
+<p>利率是市场经济中最核心也是最主要的<code>生产要素的价格</code>。<code>提高生产力的办法之一就是提高生产要素的供给，降低生产要素的价格。</code>这就是利率市场化的本质原因。</p>
 ]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
   </entry>
   <entry>
     <title>协同过滤</title>
