@@ -53,6 +53,116 @@
       </tags>
   </entry>
   <entry>
+    <title>CRF前续知识</title>
+    <url>/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/</url>
+    <content><![CDATA[<br>
+
+<p>从HMM MEMM介绍概率图、生成和判别模型</p>
+<br>
+
+<span id="more"></span>
+
+<h2 id="简述"><a href="#简述" class="headerlink" title="简述"></a>简述</h2><p>我理解，机器学习，本质是一种反向求解过程。数据的具象世界里找到抽象的规律。比由规律推演出具象要复杂。</p>
+<p>并且反向求解还有各种现实的局限，数据上、算力上、可行性上、性能约束上。就会有各种trick。就像工程中缓存击穿穿透问题，通过小trick来避免。而其根基还是在于统计。</p>
+<p>由机器学习到深度学习，根基和理论框架都没有变。</p>
+<p>CRF即是一种对序列数据的建模。放松了HMM的1-gram依赖假设和观测独立假设。转移和发射矩阵也进一步抽象为函数。因此就比HMM更实际些。也由于放松， 需要各种理论(和SVM一样涉及到了许多定理，更多是概率统计里分布相关的定理)支持，就比HMM 更加复杂。</p>
+<p>很容易从概率图，看到机器学习为何向深度转化。本质都是对现实世界里的学习任务进行建模。</p>
+<h2 id="00-生成和判别模型"><a href="#00-生成和判别模型" class="headerlink" title="00 生成和判别模型"></a>00 生成和判别模型</h2><p>概率图为什么那么难。核心在 是否理解 生成和判别模型的区别。</p>
+<p>神经网络模型、SVM、perceptron、LR、DT……</p>
+<p>NB、LDA ……</p>
+<p>核心区别在于： 对 联合概率  还是对 条件概率 建模。</p>
+<p><strong>角度一</strong>用inference过程举例：假设我知道P(X) P(X,Y) ，那我就根据条件概率公式预测出来y_pred 了。</p>
+<p>这个是 生成模型。</p>
+<p>而判别 ： 假设我知道P(Y|X) ，那我直接代入X就可得到y_pred</p>
+<p><strong>角度二</strong>用learning过程举例：生成我要对 P(X,Y) 建模，判别我要对P(Y|X) 建模。</p>
+<p>其实是很简单的。但是我们 对于不同模型去整体把握的时候 ，忽略了top down思维方式。bottom up的确是不容易想清楚。</p>
+<p>进一步： 你能从这里思考出，生成和判别的各自局限吗？</p>
+<p>判别边界和(结果的)生成过程、先验假设、数据量和性能</p>
+<h2 id="01-概率图"><a href="#01-概率图" class="headerlink" title="01 概率图"></a>01 概率图</h2><p>序列数据 – 标注 分类 走势分析 –&gt;其中概率图解决标注和分类</p>
+<p>概率图的话，需要去学习基本的有向图表示含义，图画出来(如下)则能判断，给出隐状态c，a\b之间是否独立。</p>
+<p>来自知乎某文：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/tu.png" alt="img"></p>
+<p>focus在HMM MEMM CRF –&gt;如何解决标注问题</p>
+<h2 id="02-马尔科夫随机场定义-概率无向图定义"><a href="#02-马尔科夫随机场定义-概率无向图定义" class="headerlink" title="02 马尔科夫随机场定义(概率无向图定义)"></a>02 马尔科夫随机场定义(概率无向图定义)</h2><p>马尔科夫假设 – 马尔科夫模型的前提与局限</p>
+<p>马尔科夫性质 – a. 成对，b. 局部，c. 全局。</p>
+<p>这个性质主要有助于无向图里势函数的推导。不在乎数学，可忽略。势函数见下04。</p>
+<h2 id="03-有向图和无向图"><a href="#03-有向图和无向图" class="headerlink" title="03 有向图和无向图"></a>03 有向图和无向图</h2><p>图模型 – 有向(贝叶斯网络)和无向(马尔科夫网络)  </p>
+<p>HMM、 Karman filter是有向，boltzman 、CRF是无向</p>
+<p>核心区别：在于建模过程如何求 node 代表的token ，该随机变量的联合概率</p>
+<h2 id="04-无向图的联合概率-–-势函数"><a href="#04-无向图的联合概率-–-势函数" class="headerlink" title="04 无向图的联合概率 – 势函数"></a>04 无向图的联合概率 – 势函数</h2><p>势函数哪里来的or为啥这个样子？ – 或者说为啥无向图的联合概率是这个样子的因子分解？</p>
+<p>： 由 Hammersley-Clifford定理 保证。</p>
+<h2 id="05-HMM"><a href="#05-HMM" class="headerlink" title="05 HMM"></a>05 HMM</h2><h3 id="HMM之前的NB"><a href="#HMM之前的NB" class="headerlink" title="HMM之前的NB"></a>HMM之前的NB</h3><p>来自google图片：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/nb.png" alt="img"></p>
+<h3 id="HMM五要素"><a href="#HMM五要素" class="headerlink" title="HMM五要素"></a>HMM五要素</h3><p>第一个隐状态的概率分布、转移矩阵、发射矩阵、状态集、观测集</p>
+<p>来自google图片：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/hmm.png" alt="img"></p>
+<p>进一步： 你能从这里思考出，HMM是生成还是判别？</p>
+<p>这也是HMM痛点。假设不合实际、生成自身局限、没有更多特征信息。</p>
+<h3 id="HMM问题"><a href="#HMM问题" class="headerlink" title="HMM问题"></a>HMM问题</h3><p>1、学习过程 ，即计算出五要素(建模过程)</p>
+<p>监督学习：</p>
+<p>MLE – 本质就是频率来估计概率</p>
+<p>非监督学习：</p>
+<p> Baum-Welch– 本质即EM</p>
+<p>2、概率计算过程 ，即建好的模型下(五要素已知下)，当前观测序列的联合概率</p>
+<p>直接计算 – 本质就是个暴力穷举</p>
+<p>前向算法、后向算法  – 本质和viterbi一样也是DP优化</p>
+<p>3、预测过程 ，即预测出当前时刻，哪个隐状态概率最大</p>
+<p>近似算法 – 复杂度高且是局部最优：即使当转移概率为0时，仍可能出现在预测出来的状态序列里</p>
+<p>viterbi算法 – 本质就是个动态规划</p>
+<p>4、filter问题</p>
+<p>略</p>
+<p>5、smoothing问题</p>
+<p>略</p>
+<p>这些算法并不需要太复杂的证明，都比较直观。这也是HMM好理解的原因。</p>
+<p>感兴趣来bili  一键三连。</p>
+<h2 id="06-MEMM最大熵马尔科夫模型"><a href="#06-MEMM最大熵马尔科夫模型" class="headerlink" title="06 MEMM最大熵马尔科夫模型"></a>06 MEMM最大熵马尔科夫模型</h2><p>整个模型的框架和HMM一样，不同之处在于：</p>
+<p>1、观测独立的假设被打破</p>
+<p>2、局部采用LR(最大熵模型)</p>
+<p>3、因为2，建模过程就通过梯度下降</p>
+<h3 id="MEMM的概率图"><a href="#MEMM的概率图" class="headerlink" title="MEMM的概率图"></a>MEMM的概率图</h3><p>来自google图片：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memm.png" alt="img"></p>
+<p>从图中可见：</p>
+<p>1、根据01概率图的基础知识，MEMM中，当y_t已知，这种是个v字形的有向图，则x_t和y_t-1 、x_t-1 是相关的–即路径是连通的。因此打破了HMM的观测独立假设。</p>
+<p>2、这里是判别模型，因此对P(Y|X,θ)建模</p>
+<p>3、“x_t-&gt;y_t” 每个这个箭头的过程，都是一个逻辑回归LR。因此，每一个这样的局部都需要进行一次softmax，而softmax中e的指数是：w*f( h, y_t) ，也叫做质量分数(mass score)(这个mass来自pmf的m)，其中h是 (y_t-1, x_1:t)</p>
+<p>4、概率计算：</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memmp.jpg" alt="img"></p>
+<p>这里，就是softmax得到的隐状态y的概率，加上log就是最大似然</p>
+<p>其中，t为第几个隐状态，i为隐状态值，o为观测值，a为不同特征函数个数–自定义，Z为softmax的归一化。</p>
+<p>特征函数是自己定义的，可求导即可。(本质即为，从某个词到某个词性的函数)。特征函数权重是可训练参数。</p>
+<p>相当于dfm的子网、graphsage或者GCN的聚合子网。</p>
+<p>又找到了一个图，这个更清楚：👈🏻左边为HMM 右边👉🏻为MEMM</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memm3.png" alt="img"></p>
+<h3 id="MEMM问题"><a href="#MEMM问题" class="headerlink" title="MEMM问题"></a>MEMM问题</h3><p>和HMM一样，涉及到建模、预测。</p>
+<p>区别的地方是：</p>
+<p>建模：MEMM的loss是-log极大似然，然后梯度下降去求。</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memmloss.png" alt="img"></p>
+<p>这里，对n个样本，每个样本长度为mi，的softmax结果求log，然后加了正则。</p>
+<p>最大熵推导出softmax。整个loss的本质框架是MLE。</p>
+<h2 id="END"><a href="#END" class="headerlink" title="END"></a>END</h2><p>补充：</p>
+<p>来自google图片：</p>
+<p>NB在sequence建模下拓展到了HMM；LR在sequence建模下拓展到了CRF。</p>
+<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/more.png" alt="img"></p>
+<p>reference：</p>
+<p><a href="http://www.cs.columbia.edu/~mcollins/fall2014-loglineartaggers.pdf">http://www.cs.columbia.edu/~mcollins/fall2014-loglineartaggers.pdf</a></p>
+<p><a href="http://www.ai.mit.edu/courses/6.891-nlp/READINGS/maxent.pdf">http://www.ai.mit.edu/courses/6.891-nlp/READINGS/maxent.pdf</a></p>
+<p><a href="https://blog.csdn.net/taoqick/article/details/102672110">https://blog.csdn.net/taoqick/article/details/102672110</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/37163081">https://zhuanlan.zhihu.com/p/37163081</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/33397147">https://zhuanlan.zhihu.com/p/33397147</a></p>
+<p><a href="https://www.quora.com/What-is-the-best-resource-to-understand-Conditional-Random-Fields">https://www.quora.com/What-is-the-best-resource-to-understand-Conditional-Random-Fields</a></p>
+<p>谷歌图片</p>
+<p><a href="https://zhuanlan.zhihu.com/p/113187662">https://zhuanlan.zhihu.com/p/113187662</a></p>
+<p><a href="https://repository.upenn.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&amp;httpsredir=1&amp;article=1162&amp;context=cis_papers">https://repository.upenn.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&amp;httpsredir=1&amp;article=1162&amp;context=cis_papers</a></p>
+<p><a href="https://www.bilibili.com/video/BV19t411R7QU?p=3">https://www.bilibili.com/video/BV19t411R7QU?p=3</a></p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CRF</title>
     <url>/2021/03/09/CRF/</url>
     <content><![CDATA[<br>
@@ -185,116 +295,6 @@
       </tags>
   </entry>
   <entry>
-    <title>CRF前续知识</title>
-    <url>/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/</url>
-    <content><![CDATA[<br>
-
-<p>从HMM MEMM介绍概率图、生成和判别模型</p>
-<br>
-
-<span id="more"></span>
-
-<h2 id="简述"><a href="#简述" class="headerlink" title="简述"></a>简述</h2><p>我理解，机器学习，本质是一种反向求解过程。数据的具象世界里找到抽象的规律。比由规律推演出具象要复杂。</p>
-<p>并且反向求解还有各种现实的局限，数据上、算力上、可行性上、性能约束上。就会有各种trick。就像工程中缓存击穿穿透问题，通过小trick来避免。而其根基还是在于统计。</p>
-<p>由机器学习到深度学习，根基和理论框架都没有变。</p>
-<p>CRF即是一种对序列数据的建模。放松了HMM的1-gram依赖假设和观测独立假设。转移和发射矩阵也进一步抽象为函数。因此就比HMM更实际些。也由于放松， 需要各种理论(和SVM一样涉及到了许多定理，更多是概率统计里分布相关的定理)支持，就比HMM 更加复杂。</p>
-<p>很容易从概率图，看到机器学习为何向深度转化。本质都是对现实世界里的学习任务进行建模。</p>
-<h2 id="00-生成和判别模型"><a href="#00-生成和判别模型" class="headerlink" title="00 生成和判别模型"></a>00 生成和判别模型</h2><p>概率图为什么那么难。核心在 是否理解 生成和判别模型的区别。</p>
-<p>神经网络模型、SVM、perceptron、LR、DT……</p>
-<p>NB、LDA ……</p>
-<p>核心区别在于： 对 联合概率  还是对 条件概率 建模。</p>
-<p><strong>角度一</strong>用inference过程举例：假设我知道P(X) P(X,Y) ，那我就根据条件概率公式预测出来y_pred 了。</p>
-<p>这个是 生成模型。</p>
-<p>而判别 ： 假设我知道P(Y|X) ，那我直接代入X就可得到y_pred</p>
-<p><strong>角度二</strong>用learning过程举例：生成我要对 P(X,Y) 建模，判别我要对P(Y|X) 建模。</p>
-<p>其实是很简单的。但是我们 对于不同模型去整体把握的时候 ，忽略了top down思维方式。bottom up的确是不容易想清楚。</p>
-<p>进一步： 你能从这里思考出，生成和判别的各自局限吗？</p>
-<p>判别边界和(结果的)生成过程、先验假设、数据量和性能</p>
-<h2 id="01-概率图"><a href="#01-概率图" class="headerlink" title="01 概率图"></a>01 概率图</h2><p>序列数据 – 标注 分类 走势分析 –&gt;其中概率图解决标注和分类</p>
-<p>概率图的话，需要去学习基本的有向图表示含义，图画出来(如下)则能判断，给出隐状态c，a\b之间是否独立。</p>
-<p>来自知乎某文：</p>
-<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/tu.png" alt="img"></p>
-<p>focus在HMM MEMM CRF –&gt;如何解决标注问题</p>
-<h2 id="02-马尔科夫随机场定义-概率无向图定义"><a href="#02-马尔科夫随机场定义-概率无向图定义" class="headerlink" title="02 马尔科夫随机场定义(概率无向图定义)"></a>02 马尔科夫随机场定义(概率无向图定义)</h2><p>马尔科夫假设 – 马尔科夫模型的前提与局限</p>
-<p>马尔科夫性质 – a. 成对，b. 局部，c. 全局。</p>
-<p>这个性质主要有助于无向图里势函数的推导。不在乎数学，可忽略。势函数见下04。</p>
-<h2 id="03-有向图和无向图"><a href="#03-有向图和无向图" class="headerlink" title="03 有向图和无向图"></a>03 有向图和无向图</h2><p>图模型 – 有向(贝叶斯网络)和无向(马尔科夫网络)  </p>
-<p>HMM、 Karman filter是有向，boltzman 、CRF是无向</p>
-<p>核心区别：在于建模过程如何求 node 代表的token ，该随机变量的联合概率</p>
-<h2 id="04-无向图的联合概率-–-势函数"><a href="#04-无向图的联合概率-–-势函数" class="headerlink" title="04 无向图的联合概率 – 势函数"></a>04 无向图的联合概率 – 势函数</h2><p>势函数哪里来的or为啥这个样子？ – 或者说为啥无向图的联合概率是这个样子的因子分解？</p>
-<p>： 由 Hammersley-Clifford定理 保证。</p>
-<h2 id="05-HMM"><a href="#05-HMM" class="headerlink" title="05 HMM"></a>05 HMM</h2><h3 id="HMM之前的NB"><a href="#HMM之前的NB" class="headerlink" title="HMM之前的NB"></a>HMM之前的NB</h3><p>来自google图片：</p>
-<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/nb.png" alt="img"></p>
-<h3 id="HMM五要素"><a href="#HMM五要素" class="headerlink" title="HMM五要素"></a>HMM五要素</h3><p>第一个隐状态的概率分布、转移矩阵、发射矩阵、状态集、观测集</p>
-<p>来自google图片：</p>
-<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/hmm.png" alt="img"></p>
-<p>进一步： 你能从这里思考出，HMM是生成还是判别？</p>
-<p>这也是HMM痛点。假设不合实际、生成自身局限、没有更多特征信息。</p>
-<h3 id="HMM问题"><a href="#HMM问题" class="headerlink" title="HMM问题"></a>HMM问题</h3><p>1、学习过程 ，即计算出五要素(建模过程)</p>
-<p>监督学习：</p>
-<p>MLE – 本质就是频率来估计概率</p>
-<p>非监督学习：</p>
-<p> Baum-Welch– 本质即EM</p>
-<p>2、概率计算过程 ，即建好的模型下(五要素已知下)，当前观测序列的联合概率</p>
-<p>直接计算 – 本质就是个暴力穷举</p>
-<p>前向算法、后向算法  – 本质和viterbi一样也是DP优化</p>
-<p>3、预测过程 ，即预测出当前时刻，哪个隐状态概率最大</p>
-<p>近似算法 – 复杂度高且是局部最优：即使当转移概率为0时，仍可能出现在预测出来的状态序列里</p>
-<p>viterbi算法 – 本质就是个动态规划</p>
-<p>4、filter问题</p>
-<p>略</p>
-<p>5、smoothing问题</p>
-<p>略</p>
-<p>这些算法并不需要太复杂的证明，都比较直观。这也是HMM好理解的原因。</p>
-<p>感兴趣来bili  一键三连。</p>
-<h2 id="06-MEMM最大熵马尔科夫模型"><a href="#06-MEMM最大熵马尔科夫模型" class="headerlink" title="06 MEMM最大熵马尔科夫模型"></a>06 MEMM最大熵马尔科夫模型</h2><p>整个模型的框架和HMM一样，不同之处在于：</p>
-<p>1、观测独立的假设被打破</p>
-<p>2、局部采用LR(最大熵模型)</p>
-<p>3、因为2，建模过程就通过梯度下降</p>
-<h3 id="MEMM的概率图"><a href="#MEMM的概率图" class="headerlink" title="MEMM的概率图"></a>MEMM的概率图</h3><p>来自google图片：</p>
-<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memm.png" alt="img"></p>
-<p>从图中可见：</p>
-<p>1、根据01概率图的基础知识，MEMM中，当y_t已知，这种是个v字形的有向图，则x_t和y_t-1 、x_t-1 是相关的–即路径是连通的。因此打破了HMM的观测独立假设。</p>
-<p>2、这里是判别模型，因此对P(Y|X,θ)建模</p>
-<p>3、“x_t-&gt;y_t” 每个这个箭头的过程，都是一个逻辑回归LR。因此，每一个这样的局部都需要进行一次softmax，而softmax中e的指数是：w*f( h, y_t) ，也叫做质量分数(mass score)(这个mass来自pmf的m)，其中h是 (y_t-1, x_1:t)</p>
-<p>4、概率计算：</p>
-<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memmp.jpg" alt="img"></p>
-<p>这里，就是softmax得到的隐状态y的概率，加上log就是最大似然</p>
-<p>其中，t为第几个隐状态，i为隐状态值，o为观测值，a为不同特征函数个数–自定义，Z为softmax的归一化。</p>
-<p>特征函数是自己定义的，可求导即可。(本质即为，从某个词到某个词性的函数)。特征函数权重是可训练参数。</p>
-<p>相当于dfm的子网、graphsage或者GCN的聚合子网。</p>
-<p>又找到了一个图，这个更清楚：👈🏻左边为HMM 右边👉🏻为MEMM</p>
-<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memm3.png" alt="img"></p>
-<h3 id="MEMM问题"><a href="#MEMM问题" class="headerlink" title="MEMM问题"></a>MEMM问题</h3><p>和HMM一样，涉及到建模、预测。</p>
-<p>区别的地方是：</p>
-<p>建模：MEMM的loss是-log极大似然，然后梯度下降去求。</p>
-<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/memmloss.png" alt="img"></p>
-<p>这里，对n个样本，每个样本长度为mi，的softmax结果求log，然后加了正则。</p>
-<p>最大熵推导出softmax。整个loss的本质框架是MLE。</p>
-<h2 id="END"><a href="#END" class="headerlink" title="END"></a>END</h2><p>补充：</p>
-<p>来自google图片：</p>
-<p>NB在sequence建模下拓展到了HMM；LR在sequence建模下拓展到了CRF。</p>
-<p><img src="/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/more.png" alt="img"></p>
-<p>reference：</p>
-<p><a href="http://www.cs.columbia.edu/~mcollins/fall2014-loglineartaggers.pdf">http://www.cs.columbia.edu/~mcollins/fall2014-loglineartaggers.pdf</a></p>
-<p><a href="http://www.ai.mit.edu/courses/6.891-nlp/READINGS/maxent.pdf">http://www.ai.mit.edu/courses/6.891-nlp/READINGS/maxent.pdf</a></p>
-<p><a href="https://blog.csdn.net/taoqick/article/details/102672110">https://blog.csdn.net/taoqick/article/details/102672110</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/37163081">https://zhuanlan.zhihu.com/p/37163081</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/33397147">https://zhuanlan.zhihu.com/p/33397147</a></p>
-<p><a href="https://www.quora.com/What-is-the-best-resource-to-understand-Conditional-Random-Fields">https://www.quora.com/What-is-the-best-resource-to-understand-Conditional-Random-Fields</a></p>
-<p>谷歌图片</p>
-<p><a href="https://zhuanlan.zhihu.com/p/113187662">https://zhuanlan.zhihu.com/p/113187662</a></p>
-<p><a href="https://repository.upenn.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&amp;httpsredir=1&amp;article=1162&amp;context=cis_papers">https://repository.upenn.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&amp;httpsredir=1&amp;article=1162&amp;context=cis_papers</a></p>
-<p><a href="https://www.bilibili.com/video/BV19t411R7QU?p=3">https://www.bilibili.com/video/BV19t411R7QU?p=3</a></p>
-]]></content>
-      <categories>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>CRF后续</title>
     <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
     <content><![CDATA[<br>
@@ -370,6 +370,82 @@
       </tags>
   </entry>
   <entry>
+    <title>GPT</title>
+    <url>/2021/07/14/GPT/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><span id="more"></span>
+
+<ol>
+<li>GPT 1.0采取预训练+FineTuning两个阶段，它采取<strong>Transformer作为特征抽取器</strong>。</li>
+<li>预训练阶段采用<strong>“单向语言模型”作为训练任务</strong>，把语言知识编码到Transformer里。第二阶段，在第一阶段训练好的模型基础上，通过Finetuning来做具体的NLP任务。</li>
+<li>Bert基本就是GPT 1.0的结构，除了预训练阶段采取的是“双向语言模型”之外，它们并没什么本质差异。</li>
+<li>首先把Transformer模型参数扩容，常规的Transformer Big包含24个叠加的Block，扩容到48层。其次，大量的不同领域的数据，以及数据筛选。之后，GPT 2.0用这些网页做“单向语言模型”。最后，第二阶段的finetune，2.0采用的是无监督地进行下游任务的学习(只是GPT作者想说明在第一阶段Transformer学到了很多通用的包含各个领域的知识)。</li>
+<li>BPE输入改动</li>
+<li></li>
+</ol>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LPR</title>
+    <url>/2021/05/09/LPR/</url>
+    <content><![CDATA[<br>
+
+<h3 id="LPR"><a href="#LPR" class="headerlink" title="LPR"></a>LPR</h3><br>
+
+<p>目的，替换贷款利率在贷款定价中发挥基准作用。</p>
+<br>
+
+<h4 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h4><p>1】利率市场化改革</p>
+<p>​    开始LPR的13年，也取消了贷款利率的下限。</p>
+<span id="more"></span>
+
+<p>​    没有起到作用：</p>
+<p>​        1、政策属性强，盯住的是贷款基准利率而不是货币市场利率 – 盯住MLF 投放规模大、期限合适、使用频率高、央行选定的中期政策利率</p>
+<p>​        2、中小行参与度低 ，报价和lpr的使用方面都只有少量银行参与 – 加入银行</p>
+<p>​        3、只有1年期限的报价，对其他期限的利率无法提供参照 – 增加5y期</p>
+<br>    
+
+<p>意义-新增贷款盯住LPR，LPR盯住MLF。MLF由央行市场化招标形成，兼具灵活(相对于贷款基准利率)和稳定性(相对于货币市场利率)。</p>
+<p>提高了LPR的市场化程度，淡化了贷款基准利率影响，促进解决货币市场化利率和贷款基准利率并存的 利率双轨制问题。推动贷款利率市场化改革。</p>
+<br>
+
+<p>2】提高利率传导效率</p>
+<p>18年通过MLF等扩张性操作投放了流动性后，货币市场利率下降后，贷款利率并没有随之下降。价格型传导机制受阻。</p>
+<p>欧美经验中，市场化利率传导路径：</p>
+<p>央行制定政策利率（欧元区利率走廊、降准、MLF、美国公开市场操作、隔夜逆回购等操作）-&gt;货币市场利率（同业拆借、回购）-&gt;存款利率（银行的负债分为存款性和借款性，两者具有替代性。如货币市场利率低时瑞银对存款征收年费）-&gt;货币市场利率和存款利率导致负债成本降低，决定了银行的贷款利率（贷款的成本加成定价模型FTP 贷款利率=资金成本+风险成本+业务成本+合理利润）</p>
+<br>
+
+<p>传导成立条件：1存款和 同业负债的替代性（监管机构对银行负债结构的考核使得替代性弱，有专门针对存款的考核如存贷比&lt;=3/4、同业负债占比&lt;1/3。因为借款占比更高时则有流动性和交叉风险。处于对稳定性考虑，银行人才稀缺，放开这样的约束不太现实。） 2银行内部完善的FTP（我国存在双轨制，银行内部存在资产负债部和金融市场部，资产负债部进行存贷款定价，参考存贷款基准利率，然后将多余的资金给金融市场部交易，金融市场参考货币市场利率。货币市场作为后发一方对于存贷款利率影响较小）。我国不满足。</p>
+<br>
+
+<p>在我国不太可行的欧美路线，央行考虑跳过欧美传导的路径。通过MLF影响LPR，然后LPR传导给贷款利率。”子午谷奇谋“。1、增加了利率的可控性，货币调控向价格型转变创造空间 2增加了MLF中期货币政策利率的影响力，完善了短期利率走廊+中期政策利率的调控框架</p>
+<br>
+
+<p>3】降低实体经济融资成本</p>
+<p>货币政策传导受阻，中小企业融资问题仍然突出；贷款基准利率环境下，协同保留贷款利率0.9倍隐性下限。</p>
+<p>改革后的LPR报价方式，相较于4.35%，新增贷款的基准利率的确有所下降。</p>
+<p>基准利率是贷款客户和银行讨价还价的锚，基准利率下降使得企业议价能力上升。并使得银行难以再设置隐形下限。</p>
+<br>
+
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>1、期限 2、参与度与报价广泛性 3、mlf的政策属性强 4、央行借款占比低，对整体负债成本影响小，传导有限。5、融资贵更多贵在风险成本和业务成本。而非资金成本。需要其他配套措施解决融资问题。6、存款利率不下，仍然参考基准存款利率。存贷差收缩，压低银行利润，扩大基差风险。银行需要下沉资质，增强风控能力。</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DeepFm</title>
     <url>/2021/03/08/DeepFm/</url>
     <content><![CDATA[<br>
@@ -433,57 +509,6 @@
       </categories>
       <tags>
         <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>LPR</title>
-    <url>/2021/05/09/LPR/</url>
-    <content><![CDATA[<br>
-
-<h3 id="LPR"><a href="#LPR" class="headerlink" title="LPR"></a>LPR</h3><br>
-
-<p>目的，替换贷款利率在贷款定价中发挥基准作用。</p>
-<br>
-
-<h4 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h4><p>1】利率市场化改革</p>
-<p>​    开始LPR的13年，也取消了贷款利率的下限。</p>
-<span id="more"></span>
-
-<p>​    没有起到作用：</p>
-<p>​        1、政策属性强，盯住的是贷款基准利率而不是货币市场利率 – 盯住MLF 投放规模大、期限合适、使用频率高、央行选定的中期政策利率</p>
-<p>​        2、中小行参与度低 ，报价和lpr的使用方面都只有少量银行参与 – 加入银行</p>
-<p>​        3、只有1年期限的报价，对其他期限的利率无法提供参照 – 增加5y期</p>
-<br>    
-
-<p>意义-新增贷款盯住LPR，LPR盯住MLF。MLF由央行市场化招标形成，兼具灵活(相对于贷款基准利率)和稳定性(相对于货币市场利率)。</p>
-<p>提高了LPR的市场化程度，淡化了贷款基准利率影响，促进解决货币市场化利率和贷款基准利率并存的 利率双轨制问题。推动贷款利率市场化改革。</p>
-<br>
-
-<p>2】提高利率传导效率</p>
-<p>18年通过MLF等扩张性操作投放了流动性后，货币市场利率下降后，贷款利率并没有随之下降。价格型传导机制受阻。</p>
-<p>欧美经验中，市场化利率传导路径：</p>
-<p>央行制定政策利率（欧元区利率走廊、降准、MLF、美国公开市场操作、隔夜逆回购等操作）-&gt;货币市场利率（同业拆借、回购）-&gt;存款利率（银行的负债分为存款性和借款性，两者具有替代性。如货币市场利率低时瑞银对存款征收年费）-&gt;货币市场利率和存款利率导致负债成本降低，决定了银行的贷款利率（贷款的成本加成定价模型FTP 贷款利率=资金成本+风险成本+业务成本+合理利润）</p>
-<br>
-
-<p>传导成立条件：1存款和 同业负债的替代性（监管机构对银行负债结构的考核使得替代性弱，有专门针对存款的考核如存贷比&lt;=3/4、同业负债占比&lt;1/3。因为借款占比更高时则有流动性和交叉风险。处于对稳定性考虑，银行人才稀缺，放开这样的约束不太现实。） 2银行内部完善的FTP（我国存在双轨制，银行内部存在资产负债部和金融市场部，资产负债部进行存贷款定价，参考存贷款基准利率，然后将多余的资金给金融市场部交易，金融市场参考货币市场利率。货币市场作为后发一方对于存贷款利率影响较小）。我国不满足。</p>
-<br>
-
-<p>在我国不太可行的欧美路线，央行考虑跳过欧美传导的路径。通过MLF影响LPR，然后LPR传导给贷款利率。”子午谷奇谋“。1、增加了利率的可控性，货币调控向价格型转变创造空间 2增加了MLF中期货币政策利率的影响力，完善了短期利率走廊+中期政策利率的调控框架</p>
-<br>
-
-<p>3】降低实体经济融资成本</p>
-<p>货币政策传导受阻，中小企业融资问题仍然突出；贷款基准利率环境下，协同保留贷款利率0.9倍隐性下限。</p>
-<p>改革后的LPR报价方式，相较于4.35%，新增贷款的基准利率的确有所下降。</p>
-<p>基准利率是贷款客户和银行讨价还价的锚，基准利率下降使得企业议价能力上升。并使得银行难以再设置隐形下限。</p>
-<br>
-
-<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>1、期限 2、参与度与报价广泛性 3、mlf的政策属性强 4、央行借款占比低，对整体负债成本影响小，传导有限。5、融资贵更多贵在风险成本和业务成本。而非资金成本。需要其他配套措施解决融资问题。6、存款利率不下，仍然参考基准存款利率。存贷差收缩，压低银行利润，扩大基差风险。银行需要下沉资质，增强风控能力。</p>
-]]></content>
-      <categories>
-        <category>金融经济</category>
-      </categories>
-      <tags>
-        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
@@ -615,6 +640,28 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>News投资逻辑摘抄</title>
+    <url>/2021/05/12/News%E6%8A%95%E8%B5%84%E9%80%BB%E8%BE%91%E6%91%98%E6%8A%84/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+
+<h1 id="David-Swensen："><a href="#David-Swensen：" class="headerlink" title="David Swensen："></a>David Swensen：</h1><span id="more"></span>
+
+<p>1、Led by Tobin’s ideas, he stressed<strong>asset allocation rather than stock picking, or attempts to time the market</strong> — beyond the mechanical market timing that came with his policy of regularly rebalancing Yale’s portfolio. At the margin, that entailed <strong>buying more of assets that had done badly and selling some of those that had done well</strong>.</p>
+<p>2、With the public markets deeply liquid and exhaustively researched, there was no point in trying to beat them. But <strong>private markets were less efficient</strong>, and he could reasonably hope to find bargains if his team was smart enough. </p>
+<p>3、The first was that equities were indubitably better than bonds or cash for the longer term — and that “equities” should not be restricted merely to shares traded on public stock exchanges but should include <strong>any investment with a non-guaranteed upside for the investor</strong>. His second was that diversification was important. </p>
+<p>4、 He regularly attacked excessive fees in his later years. If his team couldn’t find any place where Yale’s long-term horizon might give them a chance to beat the market, he might even have left money in index funds.</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
@@ -897,11 +944,17 @@
 
 <br>
 
-
-
+<p>c++总的思想角度是，告诉编译器要干嘛。以及内存上的管理。</p>
+<p>相关关键词都在指示，将内存如何安排。</p>
+<ul>
+<li><p>extern</p>
+<p> means it is only a declaration, its definition is later or external to this file, asking the compiler not to assign memory or generate code</p>
+</li>
+</ul>
 <ul>
 <li><p>内存对齐</p>
 </li>
+<li></li>
 <li><p>构造与析构函数</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、是否在析构函数抛出异常：</span><br><span class="line">	1异常点之后的程序如果有释放资源，会造成诸如资源泄漏</span><br><span class="line">	2通常异常发生时，c++的机制会调用已经构造对象的析构函数来释放资源，此时若析构函数本身也抛出异常，则前一个异常尚未处理，又有新的异常，会造成程序崩溃的问题。</span><br><span class="line">	3把异常完全封装在析构函数内部，决不让异常抛出函数之外</span><br><span class="line">	</span><br><span class="line">2、构造函数是否可以抛出异常：</span><br><span class="line">	1构造函数可以抛出异常。构造函数中尽量不要抛出异常。</span><br><span class="line">	2既需要分配内存，又需要抛出异常时要特别注意防止内存泄露的情况发生。因为在构造函数中抛出异常，在概念上将被视为该对象没有被成功构造，因此当前对象的析构函数就不会被调用，就会造成内存泄漏。</span><br><span class="line">	3同时，由于构造函数本身也是一个函数，在函数体内抛出异常将导致当前函数运行结束，并释放已经构造的成员对象，包括其基类的成员，即执行直接基类和成员对象的析构函数</span><br><span class="line">	</span><br><span class="line">3、构造函数和析构函数可以调用虚函数吗：</span><br><span class="line">	1当创建某个派生类的对象时，如果在它的基类的构造函数中调用虚函数，那么此时派生类的构造函数并未执行，所调用的函数可能操作还没有被初始化的成员，将导致灾难的发生。</span><br><span class="line">	2即使想在构造函数中实现动态联编，在实现上也会遇到困难。这涉及到对象虚指针（vptr）的建立问题。一个类的构造函数在执行时，并不能保证该函数所能访问到的虚指针就是当前被构造对象最后所拥有的虚指针，因为后面派生类的构造函数会对当前被构造对象的虚指针进行重写，因此无法完成动态联编</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
 <li><p>堆栈</p>
@@ -936,7 +989,7 @@
 </li>
 <li><p>shared_ptr/weak_ptr</p>
 </li>
-<li><p> regexp</p>
+<li><p>regexp</p>
 </li>
 <li><p>cost of exception handling</p>
 </li>
@@ -956,8 +1009,14 @@
 </li>
 <li><p>Rvalue reference</p>
 </li>
-<li><p>function/bind</p>
-</li>
+</ul>
+<ul>
+<li>function/bind 适配器、取反器等</li>
+</ul>
+<p>call operator被重写了，即()被重写。避免函数调用开销，作为inline。可以加入全局变量，以面向对象的角度考虑。支持泛型。</p>
+<p>bind即将某个参数固定为，第一个或第二个操作数。</p>
+<p>函数适配器，就像复合函数，将各个类型的函数进行组合。进行一些自定义来能够将自己的函数可以用在适配器里。</p>
+<ul>
 <li><p>Lambda expression and closure</p>
 </li>
 <li><p>auto/decltype</p>
@@ -967,19 +1026,19 @@
 <li><p>可变模板参数</p>
 </li>
 <li><p>指针和引用</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、指针可以是null，是对象</span><br><span class="line">2、引用必须初始化，不是对象，且不能重新赋值</span><br><span class="line">3、传入函数时带上&amp; 如s(&amp;a)，则对形参的修改其实就是对实参的修改。传入的是变量a的地址。而s(int* x)里，*x即为a的值，x为传入的a的地址。</span><br><span class="line">4、double &amp;b &#x3D; a中，b引用和变量a本质是是同一块内存</span><br><span class="line">5、引用最主要的作用是减少了内存拷贝的过程</span><br><span class="line"></span><br><span class="line">而当我们通过引用减少内存拷贝，传入的则为实参本身时，加上const可以保证，函数体内对实参不进行修改</span><br></pre></td></tr></table></figure></li>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、指针可以是null，是对象</span><br><span class="line">2、引用必须初始化，不是对象，且不能重新赋值</span><br><span class="line"></span><br><span class="line">Using Reference when you find </span><br><span class="line">1、It always represents a non-null object</span><br><span class="line">2、And it will not represent any other objects</span><br></pre></td></tr></table></figure></li>
 </ul>
 <ul>
 <li><p>全局作用域</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">::</span><br></pre></td></tr></table></figure></li>
 <li><p>static</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">面向过程：</span><br><span class="line">静态全局变量</span><br><span class="line">静态局部变量</span><br><span class="line">静态函数</span><br><span class="line"></span><br><span class="line">面向对象：</span><br><span class="line">静态成员变量</span><br><span class="line">静态成员函数</span><br></pre></td></tr></table></figure></li>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">1、定义一个全局变量有许多缺点，最明显的缺点是破坏了此变量的访问范围（使得在此函数中定义的变量，不仅仅只受此函数控制）。static 关键字则可以很好的解决这个问题。</span><br><span class="line"></span><br><span class="line">2、在 C++ 中，需要一个数据对象为整个类而非某个对象服务,同时又力求不破坏类的封装性,即要求此成员隐藏在类的内部，对外不可见时，可将其定义为静态数据。</span><br><span class="line"></span><br><span class="line">即，需要class享有且隐藏在类内，或者，只受某个函数控制而不是受类控制。</span><br><span class="line"></span><br><span class="line">3、</span><br><span class="line">全局（静态）存储区：分为 DATA 段和 BSS 段。这段数据在程序刚开始运行时就完成初始化。</span><br><span class="line"></span><br><span class="line">DATA 段（全局初始化区）存放初始化的全局变量和静态变量；</span><br><span class="line">BSS 段（全局未初始化区）存放未初始化的全局变量和静态变量。程序执行之前已经为0。</span><br><span class="line"></span><br><span class="line">4、面向过程：</span><br><span class="line">静态全局变量 -- 只能在本文件中访问，不能在其它文件中访问，即便是 extern 外部声明也不可以</span><br><span class="line">静态局部变量 -- 程序运行结束以后才释放</span><br><span class="line">静态函数 -- 只能在本文件中调用，不能被其他文件调用</span><br><span class="line"></span><br><span class="line">面向对象：</span><br><span class="line">静态成员变量</span><br><span class="line">静态成员函数</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">static 修饰的变量存放在全局数据区的静态变量区，包括全局静态变量和局部静态变量，都在全局数据区分配内存。初始化的时候自动初始化为 0。</span><br><span class="line">（4）不想被释放的时候，可以使用static修饰。比如修饰函数中存放在栈空间的数组。如果不想让这个数组在函数调用结束释放可以使用 static 修饰。</span><br><span class="line">（5）考虑到数据安全性（当程序想要使用全局变量的时候应该先考虑使用 static）。</span><br></pre></td></tr></table></figure></li>
 </ul>
 <ul>
 <li><p>malloc free 和new delete</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、malloc只分配指定大小的堆内存空间，而new可以根据对象类型分配合适的堆内存空间，当然还可以通过重载operator new 自定义内存分配策略，其次还能够构造对象</span><br><span class="line">2、free释放对应的堆内存空间，delete,先执行对象的析构函数，在释放对象所占空间。</span><br><span class="line">3、malloc与free是C++&#x2F;C 语言的标准库函数，new&#x2F;delete 是C++的运算符。</span><br><span class="line">4、malloc返回类型是void*,使用时需要类型转换，而new在分配时，编译器能够根据对象类型自动计算出大小，返回类型是指向对象类型的指针，其封装了sizeof和类型转换功能，实际上new分为两步，第一步是通过调用operator new函数分配一块合适，原始的，未命名的内存空间，返回类型也是void *,而且operator new可以重载，可以自定义内存分配策略，甚至不做内存分配，甚至分配到非内存设备上，而malloc无能为力，第二步，调用构造函数构造对象，new将调用constructor，而malloc不能；delete将调用destructor，而free不能</span><br><span class="line"></span><br><span class="line">总结：1、大小or分配策略是否可自定义 2、析构和构造函数 3、库函数和运算符(重载) </span><br></pre></td></tr></table></figure></li>
 <li><p>const</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、变量 初始化后，不被改变</span><br><span class="line"></span><br><span class="line">2、函数 </span><br><span class="line">1. 修饰返回值 const int func() -- 不能改变返回值</span><br><span class="line">2. 修饰参数 int func(const ) -- 函数体内不能改变参数</span><br><span class="line">3. 修饰成员函数 int func() const -- 函数体内不能改变成员变量的值</span><br><span class="line"></span><br><span class="line">3、指针</span><br><span class="line">1. const int* -- 常量指针，pointer指向的变量的值不能变，pointer可指向其他对象</span><br><span class="line">2. int const* -- 指针常量，可以改变指针指向变量的值，pointer不能指向其他对象</span><br><span class="line"></span><br><span class="line">4、对象 const对象只能调用const成员函数，不能调用普通函数</span><br></pre></td></tr></table></figure></li>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、变量 初始化后，不被改变</span><br><span class="line"></span><br><span class="line">2、函数 </span><br><span class="line">1. 修饰返回值 const int func() -- 不能改变返回值</span><br><span class="line">2. 修饰参数 int func(const ) -- 函数体内不能改变参数</span><br><span class="line">3. 修饰成员函数 int func() const -- 函数体内不能改变成员变量的值</span><br><span class="line"></span><br><span class="line">3、指针</span><br><span class="line">1. const int* 、int const*-- 常量指针，pointer指向的变量的值不能变，pointer可指向其他对象</span><br><span class="line">2. int* const -- 指针常量，可以改变指针指向变量的值，pointer不能指向其他对象</span><br><span class="line"></span><br><span class="line">4、对象 const对象只能调用const成员函数，不能调用普通函数</span><br><span class="line"></span><br><span class="line">const int* const p&#x3D;&amp;i;</span><br></pre></td></tr></table></figure></li>
 <li><p>多态</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、虚函数的类 至少有一个(多继承会有多个)一维的虚函数表叫做虚表(virtual table)，属于类成员，虚表的元素值是虚函数的入口地址，在编译时就已经为其在数据端分配了空间</span><br><span class="line"></span><br><span class="line">2、确定的虚函数对应virtual table中一个固定位置n，n是一个在编译时期就确定的常量，所以，使用vptr加上对应的n，就可以得到对应的函数入口地址。C++采用的这种绝对地址+偏移量的方法调用虚函数，查找速度快执行效率高，时间复杂度为O(1)</span><br></pre></td></tr></table></figure>
 
@@ -987,8 +1046,15 @@
 </li>
 <li><p>c++ 与java .NET</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">第一，C++的难不仅仅在于其静态结构体系，还有很多源于语言设计上的包袱，比如对C的兼容，比如没有垃圾收集机制，比如对效率的强调，等等。一旦把这些包袱丢掉，设计的难度确实可以大大下降。</span><br><span class="line"></span><br><span class="line">第二，Java和.NET的核心类库是在C++十几年成功和失败的经验教训基础之上，结合COM体系优点设计实现的，自然要好上一大块。事实上，在Java和.NET核心类库的设计中很多地方，体现的是基于接口的设计，和真正的基于对象的设计。有了这两个主角站台，“面向类的设计”不能喧宾夺主，也能发挥一些好的作用。</span><br><span class="line"></span><br><span class="line">第三，Java和.NET中分别对C++最大的问题——缺少对象级别的delegate机制做出了自己的回应，这就大大弥补了原来的问题。</span><br><span class="line"></span><br><span class="line">尽管如此，Java还是沾染上了“面向类设计”的癌症，基础类库里就有很多架床叠屋的设计，而J2EE&#x2F;Java EE当中，这种形而上学的设计也很普遍，所以也引发了好几次轻量化的运动。</span><br><span class="line"></span><br><span class="line">至于.NET，我听陈榕介绍过，在设计.NET的时候，微软内部对于是否允许继承爆发了非常激烈的争论。很多资深高人都强烈反对继承。至于最后引入继承，很大程度上是营销需要压倒了技术理性。尽管如此，由于有COM的基础，又实现了非常彻底的delegate，所以 .NET 的设计水平还是很高的。它的主要问题不在这，在于太急于求胜，更新速度太快，基础不牢。当然，根本问题还是微软没有能够在Web和Mobile领域里占到多大的优势，也就使得.NET没有用武之地。</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>命名规范</p>
+</li>
+</ul>
+<p>指针：p；指针指针：pp；句柄：h；引用：ref；array rg</p>
+<p>成员变量：m_ ；全局变量 ：g_  ；静态变量：s_  ；类class：C ；接口：I</p>
+<p>i fl ui ch ul(ULONG) dw fn w(USHORT, SHORT, WORD) b v d f(BOOL)  hr(HRESULT)</p>
+<ul>
 <li><p>c++ 与 c</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、C面向过程，C++面向对象</span><br></pre></td></tr></table></figure></li>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1、C面向过程，C++面向对象--Support data abstraction</span><br><span class="line">2、Protect legacy codes </span><br><span class="line">3、More safe</span><br><span class="line">4、c++支持面向对象、基于对象、基于过程、泛型编程</span><br></pre></td></tr></table></figure></li>
 </ul>
 <p>reference：<br><a href="https://blog.csdn.net/myan/article/details/5928531">https://blog.csdn.net/myan/article/details/5928531</a></p>
 ]]></content>
@@ -1003,6 +1069,32 @@
     <title>cmake</title>
     <url>/2021/04/13/cmake/</url>
     <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>c++感受</title>
+    <url>/2021/06/19/c-%E6%84%9F%E5%8F%97/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><span id="more"></span>
+
+<br>
+
+<p>1、面向过程、面向对象、泛型编程。</p>
+<p>过程是topdown思维，像递归，或者动态规划里的转移方程，将问题拆解成子问题，直到可以解决。而问题规模是从大问题到子问题的唯一区别，那么通过递归解决问题规模上的转化。</p>
+<p>过程里，有 模块 对应为class 、 调用 对应为message–通信 、records 对应为 objects 、 procedure对应着成员函数。关于数据，过程编程里的数据，直到需要才有，而对象编程里，数据是已经初始化，存放在内存。 </p>
+<p>对象则是需要将系统拆分考虑。对象自身，也就需要考虑构造、析构、new&amp;delete、this、成员变量、成员函数，以及一些operator、重载和重写。访问级别、static、以及const。别名 – typedef。对象之间的关系，则需要考虑继承多态、以及关系，是is 还是 has。</p>
+<p>有意思的是，function object。其实也只是正常的class，重载operator ()，可以传入到泛型函数里。函数相关还有成员函数指针，也算语法糖。而引用和指针、深浅拷贝的问题，也都是语法层面的问题，本质从内存管理上去考虑就很容易理解。</p>
+<p>函数有几种，一种是只有一个实现，一种是多种实现方式，但是input不变，另一种是input的类型也在变化。对应就可以通过默认参数、重写以及template模板，来实现。</p>
+<p>2、</p>
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+      </tags>
   </entry>
   <entry>
     <title>cuda编程</title>
@@ -1067,6 +1159,33 @@
       <tags>
         <tag>gpu</tag>
         <tag>cuda</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>debug训诫</title>
+    <url>/2021/05/26/debug%E8%AE%AD%E8%AF%AB/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<p>1、感觉很难，错误都在细节。</p>
+<span id="more"></span>
+
+<p>2、error好好看。</p>
+<p>3、并不是难。而是繁复。改动处有很多。但少量。</p>
+<p>4、改了一处，考虑是否对其他地方有影响。等到发现问题，又难以和之前的改动联系起来。导致锁定时间不能更快。</p>
+<p>5、除了业务逻辑，还有 nil 数组越界 除以0 之类的小错误</p>
+<p>6、还有你用的接口，虽然是别人提供的，但未必正确 – check功能即可。mock数据。即业务数据是否准确。</p>
+<p>7、能配置的 是否都尽量配置化了。方便线上出问题不用发版。</p>
+<p>8、日志和性能监控的，时间打点</p>
+<p>9、kibana用法：性能上、error上</p>
+<p>10、更多时间消耗在：定位，不仔细地排查到，而是根据感觉、设想找到错误的地方然后改动，结果又需要进一步排查。这个使得时间成倍地被消耗。</p>
+]]></content>
+      <categories>
+        <category>训诫</category>
+      </categories>
+      <tags>
+        <tag>训诫</tag>
       </tags>
   </entry>
   <entry>
@@ -1149,6 +1268,30 @@
       </categories>
       <tags>
         <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>elasticsearch</title>
+    <url>/2021/04/27/elasticsearch/</url>
+    <content><![CDATA[<br>
+
+<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、搜索引擎或者elk(es、logstash、kibana)系统，都是根据内容中的关键字建立倒排索引即反向索引，便于搜索。</p>
+<span id="more"></span>
+
+
+
+<p>2、 在 Lucene 的基础上进行封装，实现了分布式搜索引擎。</p>
+<p>3、es的索引、类型和文档的概念比较重要，类似于 MySQL 中的数据库、表和行。</p>
+<p>4、Elasticsearch 也是 Master-slave 架构，也实现了数据的分片和备份。写入index和type时是和master打交道，然后同步到slave，但是写入doc数据，不需要如此。为了提高性能，写数据是采取routing，将写入压力分散。</p>
+<p>5、</p>
+<p>Reference:</p>
+<p><a href="https://zhuanlan.zhihu.com/p/62892586">https://zhuanlan.zhihu.com/p/62892586</a></p>
+]]></content>
+      <categories>
+        <category>es</category>
+      </categories>
+      <tags>
+        <tag>es</tag>
       </tags>
   </entry>
   <entry>
@@ -1238,30 +1381,6 @@
       </categories>
       <tags>
         <tag>dubbo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>elasticsearch</title>
-    <url>/2021/04/27/elasticsearch/</url>
-    <content><![CDATA[<br>
-
-<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、搜索引擎或者elk(es、logstash、kibana)系统，都是根据内容中的关键字建立倒排索引即反向索引，便于搜索。</p>
-<span id="more"></span>
-
-
-
-<p>2、 在 Lucene 的基础上进行封装，实现了分布式搜索引擎。</p>
-<p>3、es的索引、类型和文档的概念比较重要，类似于 MySQL 中的数据库、表和行。</p>
-<p>4、Elasticsearch 也是 Master-slave 架构，也实现了数据的分片和备份。写入index和type时是和master打交道，然后同步到slave，但是写入doc数据，不需要如此。为了提高性能，写数据是采取routing，将写入压力分散。</p>
-<p>5、</p>
-<p>Reference:</p>
-<p><a href="https://zhuanlan.zhihu.com/p/62892586">https://zhuanlan.zhihu.com/p/62892586</a></p>
-]]></content>
-      <categories>
-        <category>es</category>
-      </categories>
-      <tags>
-        <tag>es</tag>
       </tags>
   </entry>
   <entry>
@@ -1458,11 +1577,6 @@
       </tags>
   </entry>
   <entry>
-    <title>git命令</title>
-    <url>/2021/04/13/git%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>graphsage</title>
     <url>/2021/03/08/graphsage/</url>
     <content><![CDATA[<h4 id="GCN"><a href="#GCN" class="headerlink" title="GCN"></a>GCN</h4><ul>
@@ -1541,68 +1655,6 @@
       </tags>
   </entry>
   <entry>
-    <title>juc</title>
-    <url>/2021/04/05/juc/</url>
-    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
-<span id="more"></span>
-
-
-<ul>
-<li><p>线程池</p>
-<ul>
-<li>阻塞队列<ul>
-<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
-<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
-</ul>
-</li>
-<li>任务类型<ul>
-<li>CPU密集型任务<ul>
-<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
-</ul>
-</li>
-<li>IO密集型任务<ul>
-<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
-</ul>
-</li>
-<li>混合<ul>
-<li>分别用不同的线程池去处理</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>4类<ul>
-<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>乐观锁 悲观锁</p>
-<ul>
-<li>悲观<ul>
-<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
-</ul>
-</li>
-<li>乐观<ul>
-<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
-<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>编程语言</category>
-        <category>java</category>
-        <category>并发</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>java</tag>
-        <tag>并发</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>hive</title>
     <url>/2021/03/03/hive/</url>
     <content><![CDATA[<br>
@@ -1677,6 +1729,68 @@
       </tags>
   </entry>
   <entry>
+    <title>juc</title>
+    <url>/2021/04/05/juc/</url>
+    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
+<span id="more"></span>
+
+
+<ul>
+<li><p>线程池</p>
+<ul>
+<li>阻塞队列<ul>
+<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
+<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
+</ul>
+</li>
+<li>任务类型<ul>
+<li>CPU密集型任务<ul>
+<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
+</ul>
+</li>
+<li>IO密集型任务<ul>
+<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
+</ul>
+</li>
+<li>混合<ul>
+<li>分别用不同的线程池去处理</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>4类<ul>
+<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>乐观锁 悲观锁</p>
+<ul>
+<li>悲观<ul>
+<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
+</ul>
+</li>
+<li>乐观<ul>
+<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
+<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程语言</category>
+        <category>java</category>
+        <category>并发</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>java</tag>
+        <tag>并发</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>linux&amp;mac命令</title>
     <url>/2021/04/13/linux%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[<br> 
@@ -1724,6 +1838,47 @@
         <tag>linux</tag>
         <tag>mac</tag>
         <tag>cheetsheet</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>macd</title>
+    <url>/2021/06/20/macd/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+
+<h4 id="数学"><a href="#数学" class="headerlink" title="数学"></a>数学</h4><p><strong>DIF=12日EMA-26日EMA。</strong></p>
+<span id="more"></span>
+
+<p><strong>DIF绝对值大小，代表着长短期均线距离（开口）的大小。</strong>当12日均线在26日均线之上时，股价处于上升状态，DIF在0轴之上；当12日均线在26日均线之下时，股价处于下跌状态，DIF在0轴之下。</p>
+<p><strong>当DIF上穿0轴时，即12均线与26日均线金叉；当DIF下穿0轴时，即12日均线与26日均线死叉。在趋势行情中，金叉与死叉是有效的买卖信号，但在震荡行情中，金叉与死叉基本上都是假信号。</strong></p>
+<p>股价在上涨，但DIF却在不断下跌，即<strong>随着股价上涨，两条均线之间的距离未能创出新高。</strong>也就意味着上涨的势头越来越弱，虽然从股价上看还是上涨的，但随时都可能开始下跌。</p>
+<p><strong>DEA：DIF值的移动平均线，一般是软件默认是9日平均线。</strong></p>
+<p>如果DIF上穿DEA（金叉），意味着最近的DIF正在变大；如果DIF下穿DEA（死叉），意味着最近的DIF正在变小。</p>
+<p>当DIF在零轴之上时：</p>
+<p><strong>DIF与DEA金叉，意味着DIF正在变大，即股价的长短期均线距离在变大，股价上涨势头越来越猛。</strong></p>
+<p><strong>DIF与DEA死叉，意味着DIF正在变小，即股价的长短期均线的距离正在变小，股价目前上涨势头正在变弱。</strong></p>
+<p>当DIF在零轴之下时：</p>
+<p><strong>DIF与DEA金叉，此时DIF是负值，也就是说DIF的绝对值在变小，即股价的长短期均线距离在变小，股价下跌势头正在变弱。</strong></p>
+<p><strong>DIF与DEA死叉，此时DIF是负值，也就是说DIF的绝对值在变大，即股价的长短期均线距离在变大，股价下跌势头越来越强。</strong></p>
+<p><strong>红柱与绿柱：（DIF-DEA）*2，即是柱子的数值，红柱为正值，绿柱为负值。</strong></p>
+<p>当红柱变为绿柱时，对应着DIF与DEA的死叉；当绿柱变为红柱时，对应着DIF与DEA的金叉。</p>
+<p><br><br></p>
+<h4 id="均值系统"><a href="#均值系统" class="headerlink" title="均值系统"></a>均值系统</h4><p>1、三种情况，一是交织缠绕，二是女上，三是男上。</p>
+<p>2、响应地，就有 从女上减弱进入缠绕，男上减弱进入缠绕，以及由缠绕突破成女上或者男上。</p>
+<p>3、而形状按照力量分有，走平后按照原来的情况继续、靠近而不突破后按照原来的情况继续、突破后缠绕。</p>
+<p>4、买卖点：男上位最后一次缠绕后背弛构成的空头陷阱抄底进入，这是第一个值得买入的位置，而第二个值得买入或加码的位置，就是女上位后第一次缠绕形成的低位。</p>
+<p>5、买尽量买男上的转折，卖尽量卖女上的缠绕背驰。  </p>
+<p>6、</p>
+<h4 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h4><h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><p>1、本质上都是一个评价系统，也就是告诉你在这个系统的标准下，评价对象的强弱</p>
+<p>2、</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
@@ -2035,6 +2190,44 @@
       </tags>
   </entry>
   <entry>
+    <title>node2vec</title>
+    <url>/2021/04/05/node2vec/</url>
+    <content><![CDATA[<ul>
+<li><p>node2vec的随机游走</p>
+<span id="more"></span>
+<ul>
+<li><p><a href="https://blog.csdn.net/rover2002/article/details/106760664">Alias Method: 非均匀随机抽样算法</a></p>
+<ul>
+<li>空间换时间的方法，在常数时间内，完成非均匀到均匀采样的映射。</li>
+<li>主要思想： 概率转换为面积，然后把面积填到其他地方，总体长方形面积最小。由于有填到其他地方的，就有alias。这样之后再掷筛子，随机。</li>
+</ul>
+</li>
+<li><p>跳转概率</p>
+<ul>
+<li><p>Node2vec 的跳转概率为 自定义的权重*有向边权重。</p>
+</li>
+<li><p>自定义权重，考虑了当前点vi的所有相关点 和 vi前一个node的距离。距离为0则概率1/p(即重复访问刚刚访问过的node)，为1则1，为2则1/q。</p>
+</li>
+<li><p>根据论文做法，对p q在{0.25,0.5,1,2,4}中进行grid search。</p>
+</li>
+<li><p>参数p控制重复访问刚刚访问过的顶点的概率。若p较大，则访问刚刚访问过的顶点的概率会变低。</p>
+</li>
+<li><p>参数q控制着游走是向外还是向内：<br>  若q&gt;1，随机游走倾向于访问和上一次的t接近的顶点(偏向BFS)；<br>  若q&lt;1，倾向于访问远离t的顶点(偏向DFS)</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>python</title>
     <url>/2021/04/05/python/</url>
     <content><![CDATA[<br>
@@ -2265,85 +2458,6 @@
       </categories>
       <tags>
         <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>tensorflow</title>
-    <url>/2021/04/05/tensorflow/</url>
-    <content><![CDATA[<br>
-
-<p>基础、遇到的问题、源码相关汇总</p>
-<span id="more"></span>
-
-<ul>
-<li>tensorflow的调试<ul>
-<li>nan灾难<ul>
-<li>Debugger V2</li>
-<li>tensorboard Debugger V2 GUI</li>
-<li>tf.print()</li>
-<li>tfdbg</li>
-</ul>
-</li>
-<li>显存不断增长<ul>
-<li>释放临时节点  auto reuse\是不是需要train的变量</li>
-<li>避免在run里面进行运算产生临时节点，即出了结果再计算</li>
-</ul>
-</li>
-<li>emb lookup耗时</li>
-<li>多个id统一hash </li>
-<li>gpu cpu copy</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li><p>神经网络八股<br>就不搞了。太多人做过了。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">checkpoint_save_path &#x3D; &quot;.&#x2F;checkpoint&#x2F;fashion.ckpt&quot;</span><br><span class="line">if os.path.exists(checkpoint_save_path + &#39;.index&#39;):</span><br><span class="line">    print(&#39;-------------load the model-----------------&#39;)</span><br><span class="line">    model.load_weights(checkpoint_save_path)</span><br><span class="line"></span><br><span class="line">cp_callback &#x3D; tf.keras.callbacks.ModelCheckpoint(filepath&#x3D;checkpoint_save_path,</span><br><span class="line">                                                 save_weights_only&#x3D;True,</span><br><span class="line">                                                 save_best_only&#x3D;True)</span><br><span class="line"></span><br><span class="line">history &#x3D; model.fit(x_train, y_train, batch_size&#x3D;32, epochs&#x3D;5, validation_data&#x3D;(x_test, y_test), validation_freq&#x3D;1,</span><br><span class="line">                    callbacks&#x3D;[cp_callback])</span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">print(model.trainable_variables)</span><br><span class="line">file &#x3D; open(&#39;.&#x2F;weights.txt&#39;, &#39;w&#39;)</span><br><span class="line">for v in model.trainable_variables:</span><br><span class="line">    file.write(str(v.name) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.shape) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.numpy()) + &#39;\n&#39;)</span><br><span class="line">file.close()</span><br><span class="line"></span><br><span class="line"># 显示训练集和验证集的acc和loss曲线</span><br><span class="line">acc &#x3D; history.history[&#39;sparse_categorical_accuracy&#39;]</span><br><span class="line">val_acc &#x3D; history.history[&#39;val_sparse_categorical_accuracy&#39;]</span><br><span class="line">loss &#x3D; history.history[&#39;loss&#39;]</span><br><span class="line">val_loss &#x3D; history.history[&#39;val_loss&#39;]</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 1)</span><br><span class="line">plt.plot(acc, label&#x3D;&#39;Training Accuracy&#39;)</span><br><span class="line">plt.plot(val_acc, label&#x3D;&#39;Validation Accuracy&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Accuracy&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 2)</span><br><span class="line">plt.plot(loss, label&#x3D;&#39;Training Loss&#39;)</span><br><span class="line">plt.plot(val_loss, label&#x3D;&#39;Validation Loss&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Loss&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure></li>
-<li></li>
-</ul>
-]]></content>
-      <categories>
-        <category>dl</category>
-      </categories>
-      <tags>
-        <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>node2vec</title>
-    <url>/2021/04/05/node2vec/</url>
-    <content><![CDATA[<ul>
-<li><p>node2vec的随机游走</p>
-<span id="more"></span>
-<ul>
-<li><p><a href="https://blog.csdn.net/rover2002/article/details/106760664">Alias Method: 非均匀随机抽样算法</a></p>
-<ul>
-<li>空间换时间的方法，在常数时间内，完成非均匀到均匀采样的映射。</li>
-<li>主要思想： 概率转换为面积，然后把面积填到其他地方，总体长方形面积最小。由于有填到其他地方的，就有alias。这样之后再掷筛子，随机。</li>
-</ul>
-</li>
-<li><p>跳转概率</p>
-<ul>
-<li><p>Node2vec 的跳转概率为 自定义的权重*有向边权重。</p>
-</li>
-<li><p>自定义权重，考虑了当前点vi的所有相关点 和 vi前一个node的距离。距离为0则概率1/p(即重复访问刚刚访问过的node)，为1则1，为2则1/q。</p>
-</li>
-<li><p>根据论文做法，对p q在{0.25,0.5,1,2,4}中进行grid search。</p>
-</li>
-<li><p>参数p控制重复访问刚刚访问过的顶点的概率。若p较大，则访问刚刚访问过的顶点的概率会变低。</p>
-</li>
-<li><p>参数q控制着游走是向外还是向内：<br>  若q&gt;1，随机游走倾向于访问和上一次的t接近的顶点(偏向BFS)；<br>  若q&lt;1，倾向于访问远离t的顶点(偏向DFS)</p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>dl</category>
-      </categories>
-      <tags>
-        <tag>dl</tag>
       </tags>
   </entry>
   <entry>
@@ -2636,6 +2750,309 @@
       </tags>
   </entry>
   <entry>
+    <title>tensorflow</title>
+    <url>/2021/04/05/tensorflow/</url>
+    <content><![CDATA[<br>
+
+<p>基础、遇到的问题、源码相关汇总</p>
+<span id="more"></span>
+
+<ul>
+<li>tensorflow的调试<ul>
+<li>nan灾难<ul>
+<li>Debugger V2</li>
+<li>tensorboard Debugger V2 GUI</li>
+<li>tf.print()</li>
+<li>tfdbg</li>
+</ul>
+</li>
+<li>显存不断增长<ul>
+<li>释放临时节点  auto reuse\是不是需要train的变量</li>
+<li>避免在run里面进行运算产生临时节点，即出了结果再计算</li>
+</ul>
+</li>
+<li>emb lookup耗时</li>
+<li>多个id统一hash </li>
+<li>gpu cpu copy</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>神经网络八股<br>就不搞了。太多人做过了。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">checkpoint_save_path &#x3D; &quot;.&#x2F;checkpoint&#x2F;fashion.ckpt&quot;</span><br><span class="line">if os.path.exists(checkpoint_save_path + &#39;.index&#39;):</span><br><span class="line">    print(&#39;-------------load the model-----------------&#39;)</span><br><span class="line">    model.load_weights(checkpoint_save_path)</span><br><span class="line"></span><br><span class="line">cp_callback &#x3D; tf.keras.callbacks.ModelCheckpoint(filepath&#x3D;checkpoint_save_path,</span><br><span class="line">                                                 save_weights_only&#x3D;True,</span><br><span class="line">                                                 save_best_only&#x3D;True)</span><br><span class="line"></span><br><span class="line">history &#x3D; model.fit(x_train, y_train, batch_size&#x3D;32, epochs&#x3D;5, validation_data&#x3D;(x_test, y_test), validation_freq&#x3D;1,</span><br><span class="line">                    callbacks&#x3D;[cp_callback])</span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">print(model.trainable_variables)</span><br><span class="line">file &#x3D; open(&#39;.&#x2F;weights.txt&#39;, &#39;w&#39;)</span><br><span class="line">for v in model.trainable_variables:</span><br><span class="line">    file.write(str(v.name) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.shape) + &#39;\n&#39;)</span><br><span class="line">    file.write(str(v.numpy()) + &#39;\n&#39;)</span><br><span class="line">file.close()</span><br><span class="line"></span><br><span class="line"># 显示训练集和验证集的acc和loss曲线</span><br><span class="line">acc &#x3D; history.history[&#39;sparse_categorical_accuracy&#39;]</span><br><span class="line">val_acc &#x3D; history.history[&#39;val_sparse_categorical_accuracy&#39;]</span><br><span class="line">loss &#x3D; history.history[&#39;loss&#39;]</span><br><span class="line">val_loss &#x3D; history.history[&#39;val_loss&#39;]</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 1)</span><br><span class="line">plt.plot(acc, label&#x3D;&#39;Training Accuracy&#39;)</span><br><span class="line">plt.plot(val_acc, label&#x3D;&#39;Validation Accuracy&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Accuracy&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line"></span><br><span class="line">plt.subplot(1, 2, 2)</span><br><span class="line">plt.plot(loss, label&#x3D;&#39;Training Loss&#39;)</span><br><span class="line">plt.plot(val_loss, label&#x3D;&#39;Validation Loss&#39;)</span><br><span class="line">plt.title(&#39;Training and Validation Loss&#39;)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure></li>
+<li></li>
+</ul>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>todo</title>
+    <url>/2021/06/10/todo/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h3 id="always-to-do"><a href="#always-to-do" class="headerlink" title="always to do"></a>always to do</h3><p>专利 办理居住证 </p>
+<span id="more"></span>
+
+<p>transformer、命令整理、配置个虚拟账户，开始开发自己有思考的代码</p>
+<br>
+
+<br>
+
+<h3 id="系统"><a href="#系统" class="headerlink" title="系统"></a>系统</h3><ul>
+<li>获得历史每一笔买卖，然后想办法做一些分析。每天的分时图、每一定比例的涨幅中累积的量是多少、统计出所有的筹码分布 – (所有买卖出来了 持仓自然出来了)、每一个价位上的成交笔数、做一些阈值过滤后的成交图形</li>
+</ul>
+<br>
+
+<br>
+
+
+
+<h3 id="每日"><a href="#每日" class="headerlink" title="每日"></a>每日</h3><br>
+
+
+
+<h4 id="0610"><a href="#0610" class="headerlink" title="0610"></a>0610</h4><p>做了些总结，讨论了几个问题(主要是deep wide各自的区别，每一侧特征的选择，以及负采样的一些问题)，脑子足够的，但是一些基本概念会混淆。真是太随性了。</p>
+<p>中午又买东西，买了一个多小时。早上tm没车。时间在我这里不是金钱。反过来了。还是贫穷没脱圈。看着小羊的消费，一下子生了相心。想写写抖音。观察下。晚上被洗了几个小时的脑。</p>
+<p>一楼就是，返水、采光、潮湿、蚊虫、烟头。可避免也不可。有法子也费心。看机缘吧。</p>
+<br>
+
+<blockquote>
+<p>全分类和框架、悬空与抽象性、实践性–即程序、细节、oneshot</p>
+</blockquote>
+<br>
+
+
+
+<p>这几天没有记录时间和写zhimap。总是分散和旁支地被干扰。一周又将凋谢。</p>
+<br>
+
+<p>王朔(两个节目一个锵锵)，看了杂七八的。做了几道题。看了些高数。看了些缠书。看了些c++。抖音洗脑性太强了。</p>
+<p>chamath让我开始对英文的news重视起来。以及带着我那些讨论的问题看论文的方案。我还没有真的解决一个问题去查找文献。</p>
+<p>看了很多阴谋论的东西。资本市场的血雨腥风。以及赤裸地直面程度。没有艺术面纱。</p>
+<p>讨论了些问题，仍然纷乱。自己的思想还没有构建起来。</p>
+<p>上周看了些顾颉刚的书。不行。周末看了房子。</p>
+<p>我还干嘛了呢上周。对了花了一个晚上时间对tf来debug，还是内存不够。没能跑起来。整个框架光看代码还是头绪不多。没能坚持日结。</p>
+<p>也有大部分时间在购物。</p>
+<br>
+
+<br>
+
+<h4 id="0612-13-14"><a href="#0612-13-14" class="headerlink" title="0612 13 14"></a>0612 13 14</h4><p>和老公吃饭，看金水苑二手房，练车，写了篇不太价值的文–这类文章还是别写了、行为也别有了，去大嫂那边，和李聊，来公司吃喝加简单看了点–效率几乎无。</p>
+<p>大部分时间在车上。瞎聊。</p>
+<p>“不要从手机获取资讯。而只是必要时用。”</p>
+<p>没用心想，也是没有精力。没有锻炼。没看论文。没写啥笔记。</p>
+<br>
+
+<h4 id="0615"><a href="#0615" class="headerlink" title="0615"></a>0615</h4><p>1、复习到20课。√</p>
+<p>2、活动开发，哪里开发，怎么测试√</p>
+<p>3、c++对象模型√</p>
+<p>比如，const和return by reference，以及析构–基本的对象是否含有指针，以及inline，以及构造函数的默认初始化。这些细节，trick，影响着性能。</p>
+<p>人生就是各个trick。有能力从理论上自动地自然地，捕捉到trick，使得人生越走越高。其他很多情况，是各种碰了。比如胆子大比知识多，大概率地碰对。就对准到了那个情境下的trick。</p>
+<p>他会告诉你，从那个全分类的角度，为什么需要这样的trick。</p>
+<p>比如析构函数，为什么需要析构，为什么编译器不能自动地销毁。那么就需要手动。</p>
+<p>比如，为什么这样写更好…</p>
+<p>比如，为什么要有class，struct哪里不够。</p>
+<p>比如，这个语言根本的模式好在哪里。是多态、封装，那么这些有体现在哪些写法或者设计上。而这个特性又将产生哪些影响。</p>
+<p>这样的思考，就会从根源知道区别。并且更加理解。</p>
+<p>4、go反射√</p>
+<br>
+
+<h4 id="0616"><a href="#0616" class="headerlink" title="0616"></a>0616</h4><p>为什么资本泡沫破裂来沉淀市场里的优质公司？</p>
+<p>院线为什么能保证万达商业地产的业态能够快速的扩张？</p>
+<p>资本市场商誉减值的问题，什么引起的？</p>
+<p>其实资本还有一个很大的作用，把这个公司作为一个基础，把我们的产业链可以高度的整合融合起来。</p>
+<p>四家影视公司的市值目前分别是224亿元、350亿元、336.5亿元和101.4亿元，市值之和为1011.9亿元。</p>
+<br>
+
+<p>一天了，活动开发还没完成</p>
+<p>这些代码都很简单，在清楚了大概框架逻辑之后去看。不能不看。其实很简单。从上到下和从下到上的思维都有了。</p>
+<br>
+
+<br>
+
+<h4 id="0617"><a href="#0617" class="headerlink" title="0617"></a>0617</h4><p>极慢。事情零散地做。不集中快速消灭。今天至少把代码看完、该改的开发完。</p>
+<br>
+
+<br>
+
+<h4 id="0621"><a href="#0621" class="headerlink" title="0621"></a>0621</h4><p>1、30课尽力吧</p>
+<p>2、高数看完两ch吧 </p>
+<p>3、想好自己的反馈机制。</p>
+<br>
+
+<br>
+
+<h4 id="0622"><a href="#0622" class="headerlink" title="0622"></a>0622</h4><p>30课</p>
+<br>
+
+<p>巴菲特 – 真正的价值在于不患；搞清楚你背后的逻辑、看好你自己的那个篮子，严格要求逻辑清楚、有理据、想清楚前后，才能够坚定，要的就是坚定性；材料要公开的。</p>
+<p>1、本质上来说，短期投资和长期投资的理念是一致的。一致性在于 长期的时间也是有限的。长期需要估值，那么是一年期的估值，还是永久现金流的贴现估值呢。是一两年的增长，还是十年呢。长期短期总是有分界和阈值的。</p>
+<p>2、长期的逻辑：进行估值，和价格成本相比较。</p>
+<p>背后是因为，市场是不完美的。市场的波动性是随机、疯子一样的。而根本的价值在于，管理层以及企业未来的前景。投资的能力：是能够对企业内在价值有判断，并且能和市场的噪音想隔离。</p>
+<p>市场不完美：资金力量、各种因素都在用影响着短期的供需的均衡。没有办法找到里面的不患。</p>
+<p>对于内幕：知道是无意义的。市场节奏难以踏准。因为这样的短差带来了因小失大。主要因为，其中没有规律可循。</p>
+<p>对于持有期：他们甚至想一直持有，只要增长是符合他们的预期。</p>
+<p>但是缠论，理论基础在于说，他找了不患。</p>
+<p>3、“捡烟头”的思路在当下还可行吗，他那时候是57年之后，每年的收益高则近50%，低也在8%，我觉得这些数字就算一个上限或者阈值了。并且波动性是小于指数的。他的资料是一手的研报和财报，他从中获得对于价值的分析(财报上作假？比对…等等，还是对于材料有很大的运用能力)。</p>
+<p>虽然那些公司的安全边际也不是很大空间，但是足以能够开始，有了第一桶金。</p>
+<br>
+
+<p>4、材料是一致的，优质的。然后就是理解力的问题。</p>
+<p>5、生活，真实的生活和想象的、憧憬的。现实和虚幻的。能够识辨已经很少人了。</p>
+<p>6、强势文化和弱势文化的问题，是信仰的坚定性问题。以及信仰自身和行动，还是信仰别人–消息、见解等。做长期的，要信仰长期价值，不轻易所动。但是都是自己去决断，而不受别人左右。要严格。对思路、逻辑的严格。</p>
+<p>7、贫穷的本质，健康、教育质量、以及经济上的做法。经济上的问题，是本质。”电视机比食物更重要“：代表娱乐、希望，而越缺乏则越渴望。渴望的层级也只是到电视机的层次了。那么也就不可能像富人一样去思考向富裕进步。</p>
+<p>富人不用太过节制欲望，而是将时间放在思考进步上。而穷人在一天劳作之后，根本只想享受。这样看，大多数的工薪阶层，都是穷人。因为他们只能通过放纵一些”消费“性欲望来排解。而不能像富人一样，相对自由，不那么报复性地”满足“，因为他们的消费欲望是不需要节制的。他们能够完全满足。</p>
+<p>只有当你没有被限制，而一直是满足的状态，你才能够不去陷入。只要缺乏，必会陷入。越低层次的缺乏，则越低层次的渴望，激发出来报复性地满足，而不是正向地去思考脱离困境的方法。只有你相信能够脱离，才会慢慢地采取行动，哪怕是推迟那种强烈的渴望。否则，最多，也只是拥有一个电视机而已。</p>
+<br>
+
+<p>反馈机制：</p>
+<p>没有按照原来的想法做。思考更重要。哪怕做了一点，是否有自己的思考。</p>
+<p>对问题的总结就是反馈。思考和复盘都是有效的反馈。</p>
+<br>
+
+
+
+
+
+<p>业务指标：</p>
+<p>大多的badcase，类型就几种：1 相关的（实时行为或者是）却没有及时地推出来；2 该排上来的没上来 – 低效；3 ee的部分做的不够，太过头部、指向指标，不利于长期 ； 4 gmv和其他指标的此消彼长，指标变动的解释</p>
+<p>解决方案：1 没召回出来，要么是召回路数需要增加、在粗排排分时候考虑更多行为和交叉特征。多队列 ； 2 精排优化，或者精排后人工规则的重排 ； 3 指标之间的权衡，需要考虑如何在尽量不变成本的情况下，增加新策略的好处。即一个 f ；</p>
+<p>总结，目前的一贯方式，要么是找到“公式”，也是一个分解目标的过程，拆解出来因子后，分析关系。构成f，即建模和进行假设。其次的方式，就是从头部角度去解释。比如，为什么某个没有上来，因为这个的整体转化低或者这个的整体ctr低，那么我不推其他的是更利于全局指标的。–即个例不能保证。因为有全局的目标。这就是整体上指标和个例的差异性。</p>
+<p>大多数的人，基本对数据是不够了解的。最基本的，基础信息在哪里、埋点数据在哪里、有没有问题、有没有检验。以及指标的大概值。大部分的工作，也只是在追查而已。创造性不多。</p>
+<h4 id="0623"><a href="#0623" class="headerlink" title="0623"></a>0623</h4><p>t检验中用户群pair</p>
+<p>模拟交易和行情数据</p>
+<p>35课</p>
+<br>
+
+<h4 id="0625"><a href="#0625" class="headerlink" title="0625"></a>0625</h4><p>1、我没有去看数据，再进一步思考和分析。包括一些正在出现的问题。没有去发现。</p>
+<p>2、我的思考会漫游出去，但是很多相关是否真的有价值，还没来得及深入。这也显得自己特别不清晰。初心要坚持，一些自己总结的也应当在行为里避免。</p>
+<p>3、下午来罗森和星巴克了。如果我工程上能够cover，策略上能够专注于数据找到问题。并且比他们更加敏感和迅速。为什么不被认可。承认自己的不足。对代码不够熟悉。没能一下子get。</p>
+<p>3：50出来，15min在罗森，4：20到星巴克。</p>
+<p>1h看了几页，和同事聊。5：20-6：20，买饭，菜。-7：10，看了企微。 3h，效率非常低。如果我不以15min</p>
+<p>4、活动总结：</p>
+<p>被推动的时候，我都是能够找到原因的。但是没有推动力，我总是在拖。我不想主动地投入。总觉得小事，不想去付出。</p>
+<p>只是捡一些边边角角无关紧要的东西，扣一扣。太过因小失大。</p>
+<br>
+
+<h4 id="0628"><a href="#0628" class="headerlink" title="0628"></a>0628</h4><p>1、独立和干货。要负责。</p>
+<p>论文，整理，学习代码。考研。复习。</p>
+<p>2、周末晚上睡不太着。青春不再。积累不够。飘摇。但是飘摇也应乐观，有坚持才能自信。</p>
+<p>35课</p>
+<p>3、发现还是没有应用。比如去看万达的时候，盘整、背离、趋势，这些概念还是没法说清楚。买点卖点如果不是对照着结局看，很难看到迹象似的。</p>
+<p>重复的遍数少了。</p>
+<p>4、发现一个道理</p>
+<p>如果你能发现价值，无论是长期还是短期，只要你比别人看到真实的价值，基于你的经验、知识或者睿智，只要你能够评估和判断出来真正的价值或者看到不同、差值。就是你的价值。因为你可以利用。</p>
+<p>而这才是核心。是关于理解、评判的核心。大的方向的把握。</p>
+<br>
+
+<h4 id="0629"><a href="#0629" class="headerlink" title="0629"></a>0629</h4><p>1、网络ch 1和2 ，ch3</p>
+<p>2、35课</p>
+<p>3、无穷级数和常微分方程  多元微分多元积分</p>
+<br>
+
+<h4 id="0710"><a href="#0710" class="headerlink" title="0710"></a>0710</h4><p>昨天熬夜了，今天状态不太好。</p>
+<p>1、整理每个点 – 提取和重复</p>
+<p>2、熟悉后建立框架</p>
+<p>3、视频输出、白纸上提取 </p>
+<p>4、英文重要性</p>
+<br>
+
+<p>今天，1 “学习去学习”，讲了两种思维模式，专注和发散，在学习新事物的时候，对模式不够清晰的情况下，在两者之间进行切换反复。 2记忆分为工作记忆和长期记忆，对于长期记忆需要 多次少量的重复。根据时间间隔来重复多次。 3经济学人每天一篇 </p>
+<br>
+
+
+
+<p>4vue的router，从单html页面的跳转(to)，到工程里按钮点击后跳转到另一个link。后面是我需要的。</p>
+<p>还有一些技巧，比如flex 和content，以及elementui和viewui有区别，以及es6的语法–缩写，以及scss，.+类名，scope不影响其他页面的样式。</p>
+<p>5计网的视频</p>
+<p>6猫的一篇讲私立幼儿园，结论是钱不够也没必要。说到底还是英语问题。</p>
+<br>
+
+<h4 id="0711"><a href="#0711" class="headerlink" title="0711"></a>0711</h4><p>吵架。去了奉贤、闵行。没有阅读。</p>
+<p>1、不要吵架，非常耽误精力和时间。用沟通来解决问题。</p>
+<p>2、利他思维、独立思考和判断</p>
+<br>
+
+<h4 id="0712"><a href="#0712" class="headerlink" title="0712"></a>0712</h4><p>1、经济学人</p>
+<p>2、看看宁德时代和隆基股份、上海机场和美的的有没有印证</p>
+<p>3、猫的文章，除了感受的部分，“基础知识” + “信息源” + “个股”</p>
+<p>4、几个基础概念整理</p>
+<p>5、打压热门item</p>
+<p>6、sql统计标签</p>
+<p>7、计网到ch4的第三个视频</p>
+<br>
+
+<h4 id="0713"><a href="#0713" class="headerlink" title="0713"></a>0713</h4><p>1、经济学人</p>
+<p>2、计网到ch4的第9个</p>
+<p>3、高数多元微分和定积分</p>
+<p>4、整理昨天的</p>
+<p>5、做个算法题、看篇论文-gpt</p>
+<br>
+
+<h4 id="0714"><a href="#0714" class="headerlink" title="0714"></a>0714</h4><p>1、ch4结束</p>
+<p>2、极限结束</p>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>transformer</title>
+    <url>/2021/06/07/transformer/</url>
+    <content><![CDATA[<br>
+
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>lstm的门机制对长依赖的解决不够彻底。更长的依赖关系无法学习到。并且门机制并行度提不上去。</p>
+<span id="more"></span>
+
+<br>
+
+<h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><p>encoder-decoder架构，本质上是seqtoseq加上attention。</p>
+<p>整体思想是，encoder接收初始序列，六层的最终输出，再输入到decoder的每一层模块。decoder能输出翻译后的句子。</p>
+<p>encoder：输入序列进行embedding，然后加上position的encoding，进入self attention。self attention后面加入一个前馈网络层。（selfattention + 前馈FNN）为encoder的一个模块。</p>
+<p>decoder：接收encoder的输入以及上一模块的输入。（self attention +encoderdecoder 的atten+ 前馈FNN）为decoder的一个模块。</p>
+<br>
+
+<h3 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h3><h4 id="self-attention"><a href="#self-attention" class="headerlink" title="self attention"></a>self attention</h4><p>假设输入词序列A B，对应的embedding为 a b。三个矩阵，Q K V。</p>
+<p>a b分别和Q K V相乘，各得到三个向量，aq ak av，bq bk bv。</p>
+<p>aq * ak = aq_ak_score ;aq * bk = aq_bk_score。两个➗8。再将这些分数softmax。得到0-1之间。</p>
+<p>这里，得到了a对所有其他词的分数向量。</p>
+<p>再将av  bv分别和这些分数相乘后加和，得到了第一词A的输出。</p>
+<p>类似得到B的输出。</p>
+<br> 
+
+<h4 id="矩阵形式"><a href="#矩阵形式" class="headerlink" title="矩阵形式"></a>矩阵形式</h4><p>inputX * WQ = Q;inputX * WK = K;inputX * WV = V</p>
+<p>softmax( Q*K / 8 ) * V = attentionOut</p>
+<br> 
+
+
+
+<h4 id="多头"><a href="#多头" class="headerlink" title="多头"></a>多头</h4><p>多个attentionOut进行concat然后再*W0 = 新的out</p>
+<p>W0进入模型一起训练</p>
+<br> 
+
+
+
+<h4 id="Positional-Encoding"><a href="#Positional-Encoding" class="headerlink" title="Positional Encoding"></a>Positional Encoding</h4><p><br> <br> </p>
+<h4 id="ref"><a href="#ref" class="headerlink" title="ref"></a>ref</h4><p><a href="https://jalammar.github.io/illustrated-transformer/">https://jalammar.github.io/illustrated-transformer/</a><br>        <a href="https://zhuanlan.zhihu.com/p/127774251">https://zhuanlan.zhihu.com/p/127774251</a></p>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>xgboost</title>
     <url>/2021/03/11/xgboost/</url>
     <content><![CDATA[<br>
@@ -2718,18 +3135,102 @@
       </tags>
   </entry>
   <entry>
-    <title>供给侧改革</title>
-    <url>/2021/05/22/%E4%BE%9B%E7%BB%99%E4%BE%A7%E6%94%B9%E9%9D%A9/</url>
-    <content><![CDATA[<br>
+    <title>《做生意的艺术》读后感</title>
+    <url>/2021/05/23/%E3%80%8A%E5%81%9A%E7%94%9F%E6%84%8F%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E8%AF%BB%E5%90%8E%E6%84%9F/</url>
+    <content><![CDATA[<p>1、夸张大胆，想象力</p>
+<span id="more"></span>
 
-
-
-<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3>]]></content>
+<p>2、专注而游戏，能够悬空</p>
+<p>3、重视宣传</p>
+<p>4、对拒绝和批评，不太过放在心上</p>
+<p>5、直觉判断。非常强悍的判断力</p>
+<p>有了一个眼光后，认识到宝地。就开始找人商议，筹划合作。肯定是顶着压力的。但是大方向没有错。</p>
+<p>6、手段</p>
+<p>7、道德 ？ 生意？</p>
+<p>很大程度是演戏和忽悠。但是有一定的真实度。演戏和演说的说服力，是一种能力。和道德无关。</p>
+]]></content>
       <categories>
+        <category>读后感</category>
         <category>金融经济</category>
       </categories>
       <tags>
-        <tag>金融经济</tag>
+        <tag>读后感</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>书list</title>
+    <url>/2021/06/29/%E4%B9%A6list/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<p>Balanced Asset Allocation</p>
+<span id="more"></span>
+
+<p>大幅提及的金属在RPAR中被弱化（被黄金和金属股票代替），如果拉出数据跑一跑，就知道虽然金属在2008年前表现不错，但2008年危机和之后一直在亏，如果RPAR用了20%的金属就无法宣传自己是equity-like return了。如果对历史再有了解，就知道金属之前的表现部分是因为其本身原是小众市场，而当其变为主流后是否能够复制之前的表现是值得商榷的（而这是Milken垃圾债券的逻辑悖论）。</p>
+<p>自己其实可以复制、甚至是改良策略，同时把VOO、VBINX、RPAR当做标杆，看看backtesting是否能够照进现实。</p>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>决策树</title>
+    <url>/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/</url>
+    <content><![CDATA[<br>
+让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。
+<br>
+<br>
+
+<h4 id="基本问题"><a href="#基本问题" class="headerlink" title="基本问题"></a>基本问题</h4><p>Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？</p>
+<ul>
+<li>分析这棵树需要满足的基本性质<br>互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。</li>
+</ul>
+<span id="more"></span>
+
+<ul>
+<li><p>生成这棵树的过程<br>1、要得到中间节点(特征)。分类能力越强的特征，越靠近根。<br>2、要找到当前特征的切分点，而进行分叉。<br>即涉及到特征选择(特征间重要性比较以及当前特征的切分点)。<br>而构建的过程，则是递归地选择特征的过程。<br>直到，没有特征可选、或者样本点已经完全覆盖(特征选择的标准达到阈值，不再分叉)。</p>
+</li>
+<li><p>分析回归树<br>1、回归树对特征选择和切分点选择的标准，肯定是区别于分类树的。<br>2、回归树的y如何生成？<br>分类树的label来自于多数投票。回归树则来自于，落入叶子的样本的均值。</p>
+</li>
+</ul>
+<p>综上，<br>1、特征选择只在当前考虑选择最优，属于贪心策略，为局部最优。<br>2、本质上，是将样本空间进行直线(线性棱的空间体)切割。是概率中的条件概率。多个特征规则组合的条件下，样本所属类别的判定。<br>3、由于1，生成的树易产生过拟合。<br>4、回归树的回归结果，相比于lr等回归预测模型，结果数量是少的。</p>
+<p>Q2：如何进行特征选择？</p>
+<ul>
+<li><p>对于分类树：<br>1、例如性别、年龄，如果已知性别能够比已知年龄，是更好的信息–即可以更大概率地判断出所属类别，那么就是更重要的特征。<br>2、其中，更大概率地判断出所属类别 – 即降低经验条件熵。<br>3、而经验条件熵的缺点是，对于取值比较多的特征，具有偏向性。其公式导致，取值多则经验条件熵值会小。可以考虑极端情况，当每个样本的该特征都取值不同，则经验条件熵为0。就有了C4.5，通过信息增益比来选择特征。<br>4、CART的gini系数本质和熵类似。越小，熵越小，确定性越高，特征越重要。</p>
+</li>
+<li><p>对于回归树：<br>1、cart回归树是二叉，要么是要么否。<br>2、回归树的切分选择不以熵入手考虑，而以均方误差作为判断标准。<br>3、对于当前特征，找到这样的切分点 – 使得此切分下的两个叶子样本集中，均方误差和最小。误差为：y-所有样本y的均值。<br>4、生成树过程和分类树一样。</p>
+</li>
+<li><p>为什么不用相关性？<br>余弦相似度是特征向量在label向量方向上的投影长度。一定程度也是特征重要的体现。<br>但是，在树模型中，由于本质是条件概率模型，熵就更能反映出概率模型的好坏。</p>
+</li>
+</ul>
+<p>Q3：过拟合处理？</p>
+<ul>
+<li><p>剪枝<br>1、ID3,C4.5的剪枝是一个动态规划算法。对于某个非叶节点，计算剪去子树后的树的loss和不剪的loss。根据loss小的选择相应动作。而loss大小的比较，可以进行局部计算。因此可用动规实现。<br>2、loss为，每棵树的所有叶子上样本的熵之和，加上惩罚项(叶子数量或者节点数量)。<br>3、本质为，正则化的极大似然函数，来选择概率模型。</p>
+</li>
+<li><p>CART剪枝<br>1、区别于ID3&amp;C4.5，利用了递归思想，对所生成的树进行剪枝。<br>2、对于某个中间节点，找到进行剪枝动作的阈值–a的大小，a大于阈值则剪枝。即对于每一个中间节点，都有这样的阈值thre所决定的区间[thre,正无穷），剪枝后的树优于生成树。<br>3、对于所有的最优字数，交叉验证得到最终的最优树，并得到响应的a的thre。</p>
+</li>
+</ul>
+<br>
+
+
+<h4 id="扩展问题"><a href="#扩展问题" class="headerlink" title="扩展问题"></a>扩展问题</h4><p>Q4：信息增益比的缺点？<br>偏好取值少的特征。<br>C4.5不是直接选择增益比最大的特征，而是之前先把信息增益低于均值的属性剔除，然后在剩下的特征中选择而信息增益比最大的。得到兼顾。</p>
+<p>Q5：预剪枝？<br>1、对当前节点在划分时，进行估计，如果不能够提升泛化能力则不进行划分。<br>2、本质是基于贪心，对当前节点进行判断是否划分。<br>3、坏处：当前虽然不能提升泛化能力，但可能划分后子树能够提升泛化能力。导致模型欠拟合。</p>
+<p>Q6：对比LR和决策树？<br>1、y的结果上，决策树是固定的几个值。<br>2、LR比决策树慢，时间复杂度高。<br>3、LR无法处理缺失值，需要赋值。并且对极端值更敏感<br>4、LR对线性关系、全局拟合较好。决策树则是局部最优、局部数据探查更细致，不能更好地对多个特征同时考量。</p>
+<p>Q7：CART做了哪些简化？<br>1、log函数的计算量大，而gini由图形可知，是对熵模型的很好的近似。<br>2、CART是二叉树，对每个特征进行二分而非多分，减少了特征选择时的计算。</p>
+<p>Q8：测试集上缺失值的处理？<br>1、赋平均值或出现频次最高的值<br>2、走特征的常用分支<br>3、特征值专门处理的分支<br>C4.5的方式是，探查所有的分支，然后得到每个类别的概率，取最大的赋给该样本。</p>
+<p>Q9：CART对于离散特征处理、连续特征处理的不同之处？<br>1、ID3&amp;C4.5都是多叉，特征只出现在一个中间节点；CART是对离散特征不断地二分。<br>2、连续特征：遍历每个特征，对某特征找到最小化均方误差(loss)的thre点，该点作为该特征的切分点。在所有特征中找到最小的loss，得到最优的(特征，特征切分点)作为中间节点。二分后，对每个孩子继续进行最优的(特征，特征切分点)的查找。同离散特征一样，连续特征可以重复出现，作为中间节点。直到达到停止条件。<br>3、CART连续特征：换种表述：对于任意划分特征A，对应的任意划分点s两边划分成的数据集D1和D2，求出使D1和D2各自集合的均方差最小，同时D1和D2的均方差之和最小所对应的特征和特征值划分点。<br>4、ID3不支持连续特征划分。C4.5的做法是，将连续值进行排序，取两个值的中间值作为划分点，然后算信息增益比，(连续和离散的)最大的信息增益比为该中间节点。当连续值较多时，计算量的大。并且和CART一样，该连续特征同样可以继续作为中间节点，而非和离线一样一次性地生成多个孩子分叉。</p>
+<p>Q10：缺点或者优化？<br>1、分类决策不应该是由某一个特征决定的，而是应该由一组特征决定的。这样决策得到的决策树更加准确。这个决策树叫做多变量决策树(multi-variate decision tree)。在选择最优特征的时候，多变量决策树不是选择某一个最优特征，而是选择最优的一个特征线性组合来做决策。这个算法的代表是OC1。<br>2、如果样本发生一点点的改动，就会导致树结构的剧烈改变。这个可以通过集成学习里面的随机森林之类的方法解决。</p>
+<p>其他–都可以在上述问题中找到答案：<br>如何找到切分点？</p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -2882,62 +3383,6 @@
       </categories>
       <tags>
         <tag>分布式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>决策树</title>
-    <url>/2021/02/21/%E5%86%B3%E7%AD%96%E6%A0%91/</url>
-    <content><![CDATA[<br>
-让我联想到博弈论中的决策树。根据多种可能地情况路径，利用概率和已知知识，进行决策判断。
-<br>
-<br>
-
-<h4 id="基本问题"><a href="#基本问题" class="headerlink" title="基本问题"></a>基本问题</h4><p>Q1：如果建立一颗树，使得经过路径判断，走到叶子时候，能够得到最终样本归属的label(类别)或者y(连续值)？</p>
-<ul>
-<li>分析这棵树需要满足的基本性质<br>互斥、完备。即通过各条到叶子的不同路径，能够最终覆盖绝多数的样本。</li>
-</ul>
-<span id="more"></span>
-
-<ul>
-<li><p>生成这棵树的过程<br>1、要得到中间节点(特征)。分类能力越强的特征，越靠近根。<br>2、要找到当前特征的切分点，而进行分叉。<br>即涉及到特征选择(特征间重要性比较以及当前特征的切分点)。<br>而构建的过程，则是递归地选择特征的过程。<br>直到，没有特征可选、或者样本点已经完全覆盖(特征选择的标准达到阈值，不再分叉)。</p>
-</li>
-<li><p>分析回归树<br>1、回归树对特征选择和切分点选择的标准，肯定是区别于分类树的。<br>2、回归树的y如何生成？<br>分类树的label来自于多数投票。回归树则来自于，落入叶子的样本的均值。</p>
-</li>
-</ul>
-<p>综上，<br>1、特征选择只在当前考虑选择最优，属于贪心策略，为局部最优。<br>2、本质上，是将样本空间进行直线(线性棱的空间体)切割。是概率中的条件概率。多个特征规则组合的条件下，样本所属类别的判定。<br>3、由于1，生成的树易产生过拟合。<br>4、回归树的回归结果，相比于lr等回归预测模型，结果数量是少的。</p>
-<p>Q2：如何进行特征选择？</p>
-<ul>
-<li><p>对于分类树：<br>1、例如性别、年龄，如果已知性别能够比已知年龄，是更好的信息–即可以更大概率地判断出所属类别，那么就是更重要的特征。<br>2、其中，更大概率地判断出所属类别 – 即降低经验条件熵。<br>3、而经验条件熵的缺点是，对于取值比较多的特征，具有偏向性。其公式导致，取值多则经验条件熵值会小。可以考虑极端情况，当每个样本的该特征都取值不同，则经验条件熵为0。就有了C4.5，通过信息增益比来选择特征。<br>4、CART的gini系数本质和熵类似。越小，熵越小，确定性越高，特征越重要。</p>
-</li>
-<li><p>对于回归树：<br>1、cart回归树是二叉，要么是要么否。<br>2、回归树的切分选择不以熵入手考虑，而以均方误差作为判断标准。<br>3、对于当前特征，找到这样的切分点 – 使得此切分下的两个叶子样本集中，均方误差和最小。误差为：y-所有样本y的均值。<br>4、生成树过程和分类树一样。</p>
-</li>
-<li><p>为什么不用相关性？<br>余弦相似度是特征向量在label向量方向上的投影长度。一定程度也是特征重要的体现。<br>但是，在树模型中，由于本质是条件概率模型，熵就更能反映出概率模型的好坏。</p>
-</li>
-</ul>
-<p>Q3：过拟合处理？</p>
-<ul>
-<li><p>剪枝<br>1、ID3,C4.5的剪枝是一个动态规划算法。对于某个非叶节点，计算剪去子树后的树的loss和不剪的loss。根据loss小的选择相应动作。而loss大小的比较，可以进行局部计算。因此可用动规实现。<br>2、loss为，每棵树的所有叶子上样本的熵之和，加上惩罚项(叶子数量或者节点数量)。<br>3、本质为，正则化的极大似然函数，来选择概率模型。</p>
-</li>
-<li><p>CART剪枝<br>1、区别于ID3&amp;C4.5，利用了递归思想，对所生成的树进行剪枝。<br>2、对于某个中间节点，找到进行剪枝动作的阈值–a的大小，a大于阈值则剪枝。即对于每一个中间节点，都有这样的阈值thre所决定的区间[thre,正无穷），剪枝后的树优于生成树。<br>3、对于所有的最优字数，交叉验证得到最终的最优树，并得到响应的a的thre。</p>
-</li>
-</ul>
-<br>
-
-
-<h4 id="扩展问题"><a href="#扩展问题" class="headerlink" title="扩展问题"></a>扩展问题</h4><p>Q4：信息增益比的缺点？<br>偏好取值少的特征。<br>C4.5不是直接选择增益比最大的特征，而是之前先把信息增益低于均值的属性剔除，然后在剩下的特征中选择而信息增益比最大的。得到兼顾。</p>
-<p>Q5：预剪枝？<br>1、对当前节点在划分时，进行估计，如果不能够提升泛化能力则不进行划分。<br>2、本质是基于贪心，对当前节点进行判断是否划分。<br>3、坏处：当前虽然不能提升泛化能力，但可能划分后子树能够提升泛化能力。导致模型欠拟合。</p>
-<p>Q6：对比LR和决策树？<br>1、y的结果上，决策树是固定的几个值。<br>2、LR比决策树慢，时间复杂度高。<br>3、LR无法处理缺失值，需要赋值。并且对极端值更敏感<br>4、LR对线性关系、全局拟合较好。决策树则是局部最优、局部数据探查更细致，不能更好地对多个特征同时考量。</p>
-<p>Q7：CART做了哪些简化？<br>1、log函数的计算量大，而gini由图形可知，是对熵模型的很好的近似。<br>2、CART是二叉树，对每个特征进行二分而非多分，减少了特征选择时的计算。</p>
-<p>Q8：测试集上缺失值的处理？<br>1、赋平均值或出现频次最高的值<br>2、走特征的常用分支<br>3、特征值专门处理的分支<br>C4.5的方式是，探查所有的分支，然后得到每个类别的概率，取最大的赋给该样本。</p>
-<p>Q9：CART对于离散特征处理、连续特征处理的不同之处？<br>1、ID3&amp;C4.5都是多叉，特征只出现在一个中间节点；CART是对离散特征不断地二分。<br>2、连续特征：遍历每个特征，对某特征找到最小化均方误差(loss)的thre点，该点作为该特征的切分点。在所有特征中找到最小的loss，得到最优的(特征，特征切分点)作为中间节点。二分后，对每个孩子继续进行最优的(特征，特征切分点)的查找。同离散特征一样，连续特征可以重复出现，作为中间节点。直到达到停止条件。<br>3、CART连续特征：换种表述：对于任意划分特征A，对应的任意划分点s两边划分成的数据集D1和D2，求出使D1和D2各自集合的均方差最小，同时D1和D2的均方差之和最小所对应的特征和特征值划分点。<br>4、ID3不支持连续特征划分。C4.5的做法是，将连续值进行排序，取两个值的中间值作为划分点，然后算信息增益比，(连续和离散的)最大的信息增益比为该中间节点。当连续值较多时，计算量的大。并且和CART一样，该连续特征同样可以继续作为中间节点，而非和离线一样一次性地生成多个孩子分叉。</p>
-<p>Q10：缺点或者优化？<br>1、分类决策不应该是由某一个特征决定的，而是应该由一组特征决定的。这样决策得到的决策树更加准确。这个决策树叫做多变量决策树(multi-variate decision tree)。在选择最优特征的时候，多变量决策树不是选择某一个最优特征，而是选择最优的一个特征线性组合来做决策。这个算法的代表是OC1。<br>2、如果样本发生一点点的改动，就会导致树结构的剧烈改变。这个可以通过集成学习里面的随机森林之类的方法解决。</p>
-<p>其他–都可以在上述问题中找到答案：<br>如何找到切分点？</p>
-]]></content>
-      <categories>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -3210,14 +3655,6 @@
       </tags>
   </entry>
   <entry>
-    <title>debug训诫</title>
-    <url>/2021/05/26/debug%E8%AE%AD%E8%AF%AB/</url>
-    <content><![CDATA[<p>1、感觉很难，错误都在细节。</p>
-<p>2、error好好看。</p>
-<p>3、</p>
-]]></content>
-  </entry>
-  <entry>
     <title>利率</title>
     <url>/2021/05/09/%E5%88%A9%E7%8E%87/</url>
     <content><![CDATA[<br>
@@ -3311,11 +3748,6 @@
       </tags>
   </entry>
   <entry>
-    <title>历史中国宪制</title>
-    <url>/2021/04/11/%E5%8E%86%E5%8F%B2%E4%B8%AD%E5%9B%BD%E5%AE%AA%E5%88%B6/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>协同过滤</title>
     <url>/2021/04/05/%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4/</url>
     <content><![CDATA[<ul>
@@ -3345,29 +3777,6 @@
       <tags>
         <tag>ml</tag>
         <tag>推荐系统</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>《做生意的艺术》读后感</title>
-    <url>/2021/05/23/%E3%80%8A%E5%81%9A%E7%94%9F%E6%84%8F%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E8%AF%BB%E5%90%8E%E6%84%9F/</url>
-    <content><![CDATA[<p>1、夸张大胆，想象力</p>
-<span id="more"></span>
-
-<p>2、专注而游戏，能够悬空</p>
-<p>3、重视宣传</p>
-<p>4、对拒绝和批评，不太过放在心上</p>
-<p>5、直觉判断。非常强悍的判断力</p>
-<p>有了一个眼光后，认识到宝地。就开始找人商议，筹划合作。肯定是顶着压力的。但是大方向没有错。</p>
-<p>6、手段</p>
-<p>7、道德 ？ 生意？</p>
-<p>很大程度是演戏和忽悠。但是有一定的真实度。演戏和演说的说服力，是一种能力。和道德无关。</p>
-]]></content>
-      <categories>
-        <category>读后感</category>
-        <category>金融经济</category>
-      </categories>
-      <tags>
-        <tag>读后感</tag>
       </tags>
   </entry>
   <entry>
@@ -3432,6 +3841,11 @@
       </tags>
   </entry>
   <entry>
+    <title>回溯</title>
+    <url>/2021/04/13/%E5%9B%9E%E6%BA%AF/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>学习模型的模式</title>
     <url>/2021/02/21/%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<p>伪代码的算法流程 + 数学逻辑 –&gt;才能真的掌握住这个模型的本质。<br>而其他都是表象。所以数学肯定是要啃的。矩阵论和概率统计，微积分，必然是需要的。<br>更多的应用和实践，会深化对于模型的认知。</p>
@@ -3447,11 +3861,6 @@
       <tags>
         <tag>方法论</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>回溯</title>
-    <url>/2021/04/13/%E5%9B%9E%E6%BA%AF/</url>
-    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>对偶</title>
@@ -3505,6 +3914,92 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>工作问题repo</title>
+    <url>/2021/06/11/%E5%B7%A5%E4%BD%9C%E9%97%AE%E9%A2%98repo/</url>
+    <content><![CDATA[<p><br> <br></p>
+<h4 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h4><span id="more"></span>
+
+<p>1、AUC与点击率的关系，解释为什么rerank会使AUC上升但是点击率下降的问题</p>
+<p>模型a的线上效果auc降低还是提高于离线</p>
+<p>模型a对模型b的线上auc高于模型b自身的线上auc吗</p>
+<p>gauc呢</p>
+<p>ctr和auc gauc关系</p>
+<p>gauc直接用click次数作为权重是否存在偏差和问题</p>
+<br>
+
+<p>实验流量的auc和基线流量的auc。孰高孰低</p>
+<p><br> <br></p>
+<p>2、id的emb含义，包含了所有特征？比属性特征的本质区别？</p>
+<p><br> <br></p>
+<p>3、为什么统计上的一些头部推荐 auc高于模型。或者 ，模型没有显著高</p>
+<p><br> <br></p>
+<p>4、特征一点点地加进去，auc变化的解释</p>
+<p><br> <br></p>
+<p>5、矩阵分解的好处和弊端，对比于deep。</p>
+<p>什么情况下用矩阵分解是有效的，效果是否和先验的加入以及数据的分布问题相关。</p>
+<p>根据id共现来推荐的思路，有什么问题。</p>
+<p>个性化推荐里，用户会购买的商品到底是不是估出来分数高的</p>
+<p><br> <br></p>
+<p>6、加入先验约束后的影响</p>
+<p><br> <br></p>
+<p>7、deep侧和wide侧，加入什么去强化，什么样的特征放在哪里，为什么wide起了效果</p>
+<p><br> <br></p>
+<p>8、bert</p>
+<p>1、bert层数、参数、如何微调</p>
+<p>2、bert base还是…</p>
+<p>3、两两计算的简化</p>
+<p>4、关键词检索…？知识图谱（问题是属性还是label）</p>
+<p><br> <br></p>
+<p>9、itemid的编码来加和成用户向量，存在的问题</p>
+<p><br> <br></p>
+<p>10、漏斗越到下面，样本、模型、特征都有怎样的适配更好</p>
+<p><br> <br></p>
+<p>11、负采样里通过哈夫曼树，弊端。</p>
+<p>以频次进行负采样的好处和优化点。</p>
+<p><br> <br></p>
+<p>12、loss变化的解释</p>
+<p><br> <br></p>
+<p>13、batch size的选择</p>
+<p><br> <br></p>
+<p>14、为什么 parallel_interleave来并发from_generator并不比最先版本单进程单队列性能高。</p>
+<p><br> <br></p>
+<p>15、</p>
+<p><br> <br></p>
+<p>key tips：多种badcase</p>
+]]></content>
+      <categories>
+        <category>破站</category>
+      </categories>
+      <tags>
+        <tag>破站</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>庄家</title>
+    <url>/2021/02/22/%E5%BA%84%E5%AE%B6/</url>
+    <content><![CDATA[<br>
+<br>
+
+<p>Q1：庄家坐庄步骤？<br>1吸货 2拉升 3洗盘 4出货✅<br>1吸货 2洗盘 3拉升 4出货❎</p>
+<span id="more"></span>
+<p>需要先拉升，在于底部吸货不足，卖家少。<br>拉升2倍左右，开始洗盘，洗盘过程中获利盘出货，给庄家吸货机会。这同时也抬高了吸货成本。<br>洗盘时间视情况而定，有时一个月左右。</p>
+<p>Q2：庄家吸货方法？<br>跌停板吸货 （亿安科技）<br>熊市顺势低吸（底部但是爆量）<br>抬升吸货 （洗盘但是无量）</p>
+<p>Q3：洗盘？<br>洗盘的目的：洗掉大户和集中的持股人。避免在高位卖出砸盘。<br>大户：几万、几十万都不是大户，几百万、上千万股的”人“。这样的人，属于对手。（主力和老庄家(被套的)–对手）</p>
+<p>Q4：主力和庄家？</p>
+<p>Q5：出货？<br>拉高出货，以变现锁定的获利。<br>成本区在之前的拉升和吸货之间的位置。<br>填权再拉。<br>然后高位震荡也能出货。<br>之前的拉升，净吃入。拉高出货不能吃，要卖。拉两三天，做个平台，拉两三天再做个平台，别人就会认为每次到平台就突破，就会买入。如果大盘面差，要跑的时候，向下钓鱼出货法–开始砸、跌停板打下来，然后巨大买盘，买盘巨大，不停再往上推，就会有买盘跟进，卖盘都是庄的，择机再砸掉买盘，又往上推，再砸，再推。1天可以卖掉好几千万资金。利用追涨杀跌。</p>
+<p>Q6：大波段操作<br>胆大心细。有胆量入场，指定止损–买入后预计涨结果跌了、或者预计强势结果未强势–&gt;改错择机出来。<br>买错即卖。<br>国家政策–&gt;板块和强势股(股票强度、涨停板)–&gt;龙头、二三龙头、补涨股等<br>–&gt;F10基本面符合–&gt;看技术面，平台突破点找买点</p>
+<p>Q7：二龙头补涨<br>二龙头的突破(某一天放量、十几分钟拉了3%-5%、分时线k线高于原来的平台)时加仓。补涨等不到回调机会。<br>卖出点只和技术面有关。<br>跌破五日线，先卖1/3。五日线十日线高位死叉卖1/3。死叉后又跌则全出。</p>
+<p><img src="/2021/02/22/%E5%BA%84%E5%AE%B6/yakj.png" alt="yakj"></p>
+]]></content>
+      <categories>
+        <category>股市理论</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>股市理论</tag>
       </tags>
   </entry>
   <entry>
@@ -3568,31 +4063,6 @@
       </categories>
       <tags>
         <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>庄家</title>
-    <url>/2021/02/22/%E5%BA%84%E5%AE%B6/</url>
-    <content><![CDATA[<br>
-<br>
-
-<p>Q1：庄家坐庄步骤？<br>1吸货 2拉升 3洗盘 4出货✅<br>1吸货 2洗盘 3拉升 4出货❎</p>
-<span id="more"></span>
-<p>需要先拉升，在于底部吸货不足，卖家少。<br>拉升2倍左右，开始洗盘，洗盘过程中获利盘出货，给庄家吸货机会。这同时也抬高了吸货成本。<br>洗盘时间视情况而定，有时一个月左右。</p>
-<p>Q2：庄家吸货方法？<br>跌停板吸货 （亿安科技）<br>熊市顺势低吸（底部但是爆量）<br>抬升吸货 （洗盘但是无量）</p>
-<p>Q3：洗盘？<br>洗盘的目的：洗掉大户和集中的持股人。避免在高位卖出砸盘。<br>大户：几万、几十万都不是大户，几百万、上千万股的”人“。这样的人，属于对手。（主力和老庄家(被套的)–对手）</p>
-<p>Q4：主力和庄家？</p>
-<p>Q5：出货？<br>拉高出货，以变现锁定的获利。<br>成本区在之前的拉升和吸货之间的位置。<br>填权再拉。<br>然后高位震荡也能出货。<br>之前的拉升，净吃入。拉高出货不能吃，要卖。拉两三天，做个平台，拉两三天再做个平台，别人就会认为每次到平台就突破，就会买入。如果大盘面差，要跑的时候，向下钓鱼出货法–开始砸、跌停板打下来，然后巨大买盘，买盘巨大，不停再往上推，就会有买盘跟进，卖盘都是庄的，择机再砸掉买盘，又往上推，再砸，再推。1天可以卖掉好几千万资金。利用追涨杀跌。</p>
-<p>Q6：大波段操作<br>胆大心细。有胆量入场，指定止损–买入后预计涨结果跌了、或者预计强势结果未强势–&gt;改错择机出来。<br>买错即卖。<br>国家政策–&gt;板块和强势股(股票强度、涨停板)–&gt;龙头、二三龙头、补涨股等<br>–&gt;F10基本面符合–&gt;看技术面，平台突破点找买点</p>
-<p>Q7：二龙头补涨<br>二龙头的突破(某一天放量、十几分钟拉了3%-5%、分时线k线高于原来的平台)时加仓。补涨等不到回调机会。<br>卖出点只和技术面有关。<br>跌破五日线，先卖1/3。五日线十日线高位死叉卖1/3。死叉后又跌则全出。</p>
-<p><img src="/2021/02/22/%E5%BA%84%E5%AE%B6/yakj.png" alt="yakj"></p>
-]]></content>
-      <categories>
-        <category>股市理论</category>
-        <category>基础知识</category>
-      </categories>
-      <tags>
-        <tag>股市理论</tag>
       </tags>
   </entry>
   <entry>
@@ -3706,28 +4176,6 @@
       </tags>
   </entry>
   <entry>
-    <title>投资逻辑摘抄</title>
-    <url>/2021/05/12/%E6%8A%95%E8%B5%84%E9%80%BB%E8%BE%91%E6%91%98%E6%8A%84/</url>
-    <content><![CDATA[<br>
-<br>
-
-
-
-<h1 id="David-Swensen："><a href="#David-Swensen：" class="headerlink" title="David Swensen："></a>David Swensen：</h1><span id="more"></span>
-
-<p>1、Led by Tobin’s ideas, he stressed<strong>asset allocation rather than stock picking, or attempts to time the market</strong> — beyond the mechanical market timing that came with his policy of regularly rebalancing Yale’s portfolio. At the margin, that entailed <strong>buying more of assets that had done badly and selling some of those that had done well</strong>.</p>
-<p>2、With the public markets deeply liquid and exhaustively researched, there was no point in trying to beat them. But <strong>private markets were less efficient</strong>, and he could reasonably hope to find bargains if his team was smart enough. </p>
-<p>3、The first was that equities were indubitably better than bonds or cash for the longer term — and that “equities” should not be restricted merely to shares traded on public stock exchanges but should include <strong>any investment with a non-guaranteed upside for the investor</strong>. His second was that diversification was important. </p>
-<p>4、 He regularly attacked excessive fees in his later years. If his team couldn’t find any place where Yale’s long-term horizon might give them a chance to beat the market, he might even have left money in index funds.</p>
-]]></content>
-      <categories>
-        <category>金融经济</category>
-      </categories>
-      <tags>
-        <tag>金融经济</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>推荐系统</title>
     <url>/2021/04/05/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/</url>
     <content><![CDATA[<br>
@@ -3787,43 +4235,54 @@
 </ul>
 </li>
 </ul>
+<ul>
+<li><p>推荐系统召回层打压热门item</p>
+<ol>
+<li>首先，大方向分为统计和算法两类模型。</li>
+<li>召回阶段区别于排序，在于<ol>
+<li>数量级千万级，一般为双塔。以便于**单独生成user embedding和item embedding，喂入的特征禁止含有user/item之间的交叉特征 **user特征喂入user tower得到user embedding，item特征喂入item tower得到item embedding。离线时，先将item embedding喂入FAISS建立索引，线上召回时，拿user embedding去FAISS里进行top-k近邻搜索，找到与其最接受的item embedding。</li>
+<li>样本选择上， 正样本没有太多的争议，以内容推荐为例，选“用户点击”的item为正样本。最多考虑一下用户停留时长，将“用户误点击”排除在外。负样本的选择比较有讲究。如果说排序是特征的艺术，那么召回就是（负）样本的艺术。 </li>
+<li>原则之一就是不能（只）拿“曝光未点击”做负样本，负样本的绝大部分应该由“<strong>随机负采样</strong>”生成。具体原因见我的另一篇文章《**<a href="https://zhuanlan.zhihu.com/p/165064102">负样本为王</a>**》。原则之二就是要打压热门item</li>
+<li>因为绝大多数负样本是通过随机采样生成的，含有一定的噪声，因此召回不适合采用CTR预估常用的pointwise cross-entropy loss，而经常采用pairwise loss，比如margin-based bpr loss或hinge loss。（具体原因见我的另一篇文章《**<a href="https://www.zhihu.com/question/341529083/answer/1616964921">CTR和推荐算法有什么本质区别？</a>**》） </li>
+<li>因此喂入模型的样本，区别于排序中常见的&lt;user, item, label&gt;，而是三元组&lt;user, item+, item-&gt;，预测的目标是MatchScore(user, item正)要远高于MatchScore(user, item负)</li>
+</ol>
+</li>
+<li>20%的热门item占据了80%的曝光量或点击量。</li>
+<li>为什么要打压<ol>
+<li>训练时，为了降低loss，<strong>算法会使每个user embedding尽可能接近少数热门item embedding</strong></li>
+<li>预测时，每个user embedding从FAISS检索出来的邻居都是那少数几个热门item embedding，<strong>完全失去了个性化</strong></li>
+</ol>
+</li>
+<li>如何打压：<ol>
+<li>item越热门，其成为item+的概率就应该越低。公式略。图形<img src="https://pic3.zhimg.com/80/v2-556679fa3e11b0cb0ba11e533bfc3793_1440w.jpg?source=1940ef5c" alt="img"></li>
+<li><strong>提升热门item成为item-的概率</strong>。在随机采样负样本时，一方面需要采集到的item-能够尽可能广泛地覆盖所有候选item，另一方面又需要使采集到的item-尽量集中于高热item。</li>
+</ol>
+</li>
+</ol>
+  <br>
+
+  <br>
+
+<hr>
+  <br>
+
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><ol>
+<li>随机负采样时，ctr的loss和推荐召回的loss各自适合什么？</li>
+</ol>
+<p>  召回不适合采用CTR预估常用的pointwise cross-entropy loss，而经常采用pairwise loss，比如margin-based bpr loss或hinge loss</p>
+<ol start="2">
+<li>ctr和推荐算法本质区别</li>
+<li>负样本为什么用随机采样更好</li>
+<li></li>
+</ol>
+</li>
+</ul>
 ]]></content>
       <categories>
         <category>推荐系统</category>
       </categories>
       <tags>
         <tag>推荐系统</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>整体思维</title>
-    <url>/2021/04/15/%E6%95%B4%E4%BD%93%E6%80%9D%E7%BB%B4/</url>
-    <content><![CDATA[<br>
-
-<p>人生怎么走，成为什么人</p>
-<span id="more"></span>
-
-
-
-<p>时间，大多被浪费。各种事情打散了力量。</p>
-<p>能量如果不凝聚起来，和热量有什么大区别？</p>
-<p>深度。体系地思考决定深度。而小聪明，片段化地推理，没有温故和反复的逻辑，无法体现深度。</p>
-<p>体系，需要书籍、积累、重复构建。需要阅历、经验和磨炼。有质量地思考。</p>
-<p>力求成为什么样的人，就去照着那样行动。不要太过顾忌，在意别人的想法。甚至有时候你觉得，这样是不是太故作姿态了。但是也要做。不去模仿，没有可能性成为。</p>
-<p>理性和思考，让你自信。大家都能想到的思路和方案，不是你的特殊性。要在你自己的特殊性上发力，要进一步去思考和抽象。而不是停留在表象，或者前滩。其实这样的随笔也不过是警戒。不必要写太多，起到作用就行。更多还是要自己去创造。走到最前方。关注着有思想的人。</p>
-<p>去解决问题。</p>
-<p>研究生博士生上不了，你能够有创造出产品的能力吗。研究生博士生最终还是为了创造和能力的提升。</p>
-<p>你能到达的优秀必须有厚重的基底。否则还是走不远。</p>
-<p>我需要去读。因为我需要时间再去沉淀。我看得到自己的智慧，我希望能够发光。而不是在局部里挣扎。</p>
-<p>不过始终还是为了站得更高。</p>
-<p>语言、倾听、拒绝、让人信赖……</p>
-<p>都是要你去反思和提升深度广度。</p>
-]]></content>
-      <categories>
-        <category>随笔</category>
-      </categories>
-      <tags>
-        <tag>随笔</tag>
       </tags>
   </entry>
   <entry>
@@ -3914,6 +4373,37 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>整体思维</title>
+    <url>/2021/04/15/%E6%95%B4%E4%BD%93%E6%80%9D%E7%BB%B4/</url>
+    <content><![CDATA[<br>
+
+<p>人生怎么走，成为什么人</p>
+<span id="more"></span>
+
+
+
+<p>时间，大多被浪费。各种事情打散了力量。</p>
+<p>能量如果不凝聚起来，和热量有什么大区别？</p>
+<p>深度。体系地思考决定深度。而小聪明，片段化地推理，没有温故和反复的逻辑，无法体现深度。</p>
+<p>体系，需要书籍、积累、重复构建。需要阅历、经验和磨炼。有质量地思考。</p>
+<p>力求成为什么样的人，就去照着那样行动。不要太过顾忌，在意别人的想法。甚至有时候你觉得，这样是不是太故作姿态了。但是也要做。不去模仿，没有可能性成为。</p>
+<p>理性和思考，让你自信。大家都能想到的思路和方案，不是你的特殊性。要在你自己的特殊性上发力，要进一步去思考和抽象。而不是停留在表象，或者前滩。其实这样的随笔也不过是警戒。不必要写太多，起到作用就行。更多还是要自己去创造。走到最前方。关注着有思想的人。</p>
+<p>去解决问题。</p>
+<p>研究生博士生上不了，你能够有创造出产品的能力吗。研究生博士生最终还是为了创造和能力的提升。</p>
+<p>你能到达的优秀必须有厚重的基底。否则还是走不远。</p>
+<p>我需要去读。因为我需要时间再去沉淀。我看得到自己的智慧，我希望能够发光。而不是在局部里挣扎。</p>
+<p>不过始终还是为了站得更高。</p>
+<p>语言、倾听、拒绝、让人信赖……</p>
+<p>都是要你去反思和提升深度广度。</p>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
       </tags>
   </entry>
   <entry>
@@ -4072,141 +4562,6 @@
       </tags>
   </entry>
   <entry>
-    <title>统计角度看ml</title>
-    <url>/2021/03/11/%E7%BB%9F%E8%AE%A1%E8%A7%92%E5%BA%A6%E7%9C%8Bml/</url>
-    <content><![CDATA[<br>
-
-<p>一些思考，从整体上看模型的思路，进行比较。</p>
-<span id="more"></span>
-<p>极大似然？就是后验、大量样本的整体出现概率值最大。样本之间独立。可应用乘法原理。</p>
-<p>条件概率，即某(些)条件下某(些)事件出现的概率。</p>
-<p>决策树则是求其极大值，局部选择当前条件概率最大。条件概率越大，不确定性越低，条件熵越小。整体熵未必减小。考虑整体熵值的是最大熵模型和logistics模型。logistics是可以通过假设先验概率，转化为这样的问题：推导出满足极大似然极值而得到的w参数。都可以通过拉格朗日将问题转化为无约束求极值，偏导为0，算法里有迭代尺度、梯度下降、牛顿插值。牛顿插值迭代收敛快些。</p>
-<p>特征选择无论是熵、增益(比)还是基尼系数都体现出不确定性的思想。增益大则说明特征对结果的影响力大，因为说明条件熵越小，即条件概率越大，该条件下不确定性越低。增益或比越大，而基尼越小越好。因为前者都有-号，类似相反数的关系。本质还条件概率的问题。</p>
-<p>决策生成树可以用动归提高算法效率。</p>
-<p>感知器从loss func出发，求最小。距离如何定义还要看具体应用场景。主要算法里有<a href="https://blog.csdn.net/greenyang5277/article/details/104270803">Gram矩阵</a>，对偶算法。</p>
-<p>k邻很简单，经验风险最小，就是多数为胜，即最简单的频率派概率最大思路，k不一样结果可能瞬间不同了，参数也少。</p>
-<p>朴素贝叶斯主要是独立性假设，在类确定下特征条件独立，才能将公式分子简化，否则不那么容易求最大值，后验概率最大，还是极大似然思路，后验概率这是可用简单的乘法原理表达。如果有0，这里提出可以平滑的思想。</p>
-<p>无论是熵、条件熵、基尼系数，还是贝叶斯、条件概率，还是感知器的loss func，还是c4.5里的loss(在剪枝时通过熵建立的loss，加入了模型复杂度因子，通过比较剪枝前后大小来判断是否剪枝)，还是logistics(初始分布进行求对数几率，求极大似然最大的参数)、最大熵(公式也化为求极大似然最大)两个对数线性模型的经验分布推导出来的无约束最优化公式，都是对初始概率进行包装，要么转为极大似然问题或者说转为条件概率问题，要么转为loss最小问题。概率问题则为监督学习中的两种，生成和判别。非概率则自定义的一些代数loss。</p>
-<p>对给定输入判别输出，判别要么是f(x),要么是P(Y|X)。前者会出现loss func，定义距离如感知器、LDA，后者则决策树、k邻、贝叶斯、GMM。对数线性模型也是P(Y|X)概率分布公式表达的分类模型。都可以说是在对这两种函数求最优的问题。但如决策树、k邻，没有什么公式，也就没有什么参数需要调整，大多重点在算法，如决策树里主要是三个算法里剪枝过程应用到熵之类问题，而kmeans主要kd树解决高维搜索问题。理论框架虽然可以和统计通过加条件等方式相关联，但是更多是另一种思路。</p>
-<p>生成模型，由学习数据得到原始分布，再来求P(Y|X)，如贝叶斯。判别模型，学习数据不从分布入手，而直接对条件概率进行假设，如LR。</p>
-<p>具体细节，如收敛性证明，拉格朗日转化，最大熵的约束公式，包括泛化误差利用切比雪夫求上界的前提条件，感知器中正负，logistics里对数几率特征空间是n+1维，都需落在数学上去一步步转化推证。</p>
-]]></content>
-      <categories>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>编译tensorflow</title>
-    <url>/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/</url>
-    <content><![CDATA[<br> 
-
-<p>记录编译过程</p>
-<span id="more"></span>
-
-<br> 
-
-<h4 id="前序安装"><a href="#前序安装" class="headerlink" title="前序安装"></a>前序安装</h4><p>1、bazel 2.0.0 通过sh安装，需要chmod，然后export环境变量。我的路径在/var/root/bin，添加到source ~/.bash_profile。把这句source添加到 vi .zshrc ，然后source ~/.zshrc ，重启也有bazel了。</p>
-<p>2、tensorflow v2.2.0 </p>
-<p>3、conda环境，选择了python2.7，然后安装requirements (tensorflow-2.2.0/tensorflow/tools/pip_package/setup.py )如下</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">future</span><br><span class="line">absl-py &gt;&#x3D; 0.7.0</span><br><span class="line">astunparse &#x3D;&#x3D; 1.6.3</span><br><span class="line">backports.weakref &gt;&#x3D; 1.0rc1</span><br><span class="line">enum34 &gt;&#x3D; 1.1.6</span><br><span class="line">gast &#x3D;&#x3D; 0.3.3</span><br><span class="line">google_pasta &gt;&#x3D; 0.1.8</span><br><span class="line">h5py &#x3D;&#x3D; 2.10.0</span><br><span class="line">keras_preprocessing &gt;&#x3D; 1.1.0</span><br><span class="line">numpy &#x3D;&#x3D; 1.16.0</span><br><span class="line">opt_einsum &gt;&#x3D; 2.3.2</span><br><span class="line">protobuf &gt;&#x3D; 3.8.0</span><br><span class="line">tensorboard &#x3D;&#x3D; 2.1.0</span><br><span class="line">tensorflow_estimator &#x3D;&#x3D; 2.2.0</span><br><span class="line">termcolor &gt;&#x3D; 1.1.0</span><br><span class="line">wrapt &gt;&#x3D; 1.11.1</span><br><span class="line"></span><br><span class="line"># python3 requires wheel 0.26</span><br><span class="line">wheel &gt;&#x3D; 0.26</span><br><span class="line"></span><br><span class="line"># mock comes with unittest.mock for python3 need to install for python2</span><br><span class="line">mock &gt;&#x3D; 2.0.0</span><br><span class="line"></span><br><span class="line"># functools comes with python3 need to install the backport for python2</span><br><span class="line">functools32 &gt;&#x3D; 3.2.3</span><br><span class="line">six &gt;&#x3D; 1.12.0</span><br><span class="line"></span><br><span class="line"># scipy &lt; 1.4.1 causes segfaults due to pybind11</span><br><span class="line"># Latest scipy pip for py2 is scipy&#x3D;&#x3D;1.2.2</span><br><span class="line">scipy &#x3D;&#x3D; 1.2.2</span><br></pre></td></tr></table></figure>
-
-
-
-<p>4、如果需要gpu，则还要安装cuda 10.1 和 cudnn 7.6.5</p>
-<br> 
-
-<h4 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h4><p>1、配置基本选择N，需要gpu则在CUDAsupport选择y</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">cd tensorflow-2.2.0</span><br><span class="line">.&#x2F;configure</span><br></pre></td></tr></table></figure>
-
-<p>2、bazel</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048  &#x2F;&#x2F;tensorflow&#x2F;tools&#x2F;pip_package:build_pip_package</span><br><span class="line"></span><br><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048 &#x2F;&#x2F;tensorflow:libtensorflow_cc.so</span><br></pre></td></tr></table></figure>
-
-
-
-<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/inprogress.jpg" alt="过程"></p>
-<br>
-
-
-
-<p>编译成功，花了12个小时多。</p>
-<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/success.jpg" alt="success"></p>
-<br>
-
-<h4 id="生成whl"><a href="#生成whl" class="headerlink" title="生成whl"></a>生成whl</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo .&#x2F;tensorflow&#x2F;tools&#x2F;pip_package&#x2F;build_pip_package.sh &#x2F;tmp&#x2F;tensorflow_pkg</span><br><span class="line">#接着我切了conda环境</span><br><span class="line">pip install --upgrade pip</span><br><span class="line">pip uninstall tensorflow</span><br><span class="line">pip uninstall tensorboard</span><br><span class="line">pip uninstall tensorflow-tensorboard</span><br><span class="line">#pip3 install tensorboard&#x3D;&#x3D;2.2.1  #有个巨坑。pip3才能安装2.2.1，但是我们环境用的都是python2.7</span><br><span class="line">#要么把之前的切到3，要么下载下来site-package 装到目录里。我是选择粘贴到目录 #&#x2F;Users&#x2F;wyq&#x2F;anaconda2&#x2F;lib&#x2F;python2.7&#x2F;site-packages&#x2F;tensorboard</span><br><span class="line">pip install -U --ignore-installed wrapt  </span><br><span class="line">#又是坑。wrapt：ERROR: Cannot uninstall &#39;wrapt&#39;. It is a distutils installed project and thus #we cannot accurately determine which files belong to it which would lead to only a partial #uninstall.</span><br><span class="line">pip3 install &#x2F;tmp&#x2F;tensorflow_pkg&#x2F;tensorflow-2.2.0-cp27-cp27m-macosx_10_14_x86_64.whl</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl0.jpg" alt="whl0"></p>
-<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl.jpg" alt="whl"></p>
-<h4 id="python验证"><a href="#python验证" class="headerlink" title="python验证"></a><br>python验证</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#打开ipython </span><br><span class="line">#如果遇到这个问题 ImportError: cannot import name pywrap_tensorflow</span><br><span class="line">#看这个issue </span><br><span class="line"># https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;35953210&#x2F;error-running-basic-tensorflow-example</span><br><span class="line">import tensorflow as tf</span><br><span class="line">tf.__version__</span><br><span class="line">tf.test.is_gpu_available()</span><br></pre></td></tr></table></figure>
-
-<br>
-
-<p>终于成功了</p>
-<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whlsuccess.jpg" alt="whlsuccess"></p>
-<br>
-
-<h4 id="c-验证"><a href="#c-验证" class="headerlink" title="c++验证"></a>c++验证</h4><p>选择了vscode，下次clion可以也试试</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#在tf根目录下运行</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:tutorials_example_trainer</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:client_client_session_test￼</span><br><span class="line"></span><br><span class="line">#然后运行程序</span><br><span class="line">.&#x2F;bazel-bin&#x2F;tensorflow&#x2F;cc&#x2F;client_client_session_test￼</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/csuccess.jpg" alt="csuccess"></p>
-<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/clienttest.jpg" alt="demo"></p>
-<br>
-
-<h4 id><a href="#" class="headerlink" title></a></h4><h4 id="c-demo"><a href="#c-demo" class="headerlink" title="c++demo"></a>c++demo</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;main.cpp</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;client&#x2F;client_session.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;ops&#x2F;standard_ops.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;core&#x2F;framework&#x2F;tensor.h&quot;</span><br><span class="line"></span><br><span class="line">using namespace tensorflow;</span><br><span class="line">using namespace tensorflow::ops;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    Scope root &#x3D; Scope::NewRootScope();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Matrix A &#x3D; [3 2; -1 0]</span><br><span class="line">    auto A &#x3D; Const(root, &#123; &#123;3.f, 2.f&#125;, &#123;-1.f, 0.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; Vector b &#x3D; [3 5]</span><br><span class="line">    auto b &#x3D; Const(root, &#123; &#123;3.f, 5.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; v &#x3D; Ab^T</span><br><span class="line">    auto v &#x3D; MatMul(root.WithOpName(&quot;v&quot;), A, b, MatMul::TransposeB(true));</span><br><span class="line"></span><br><span class="line">    std::vector&lt;Tensor&gt; outputs;</span><br><span class="line">    ClientSession session(root);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Run and fetch v</span><br><span class="line">    TF_CHECK_OK(session.Run(&#123;v&#125;, &amp;outputs));</span><br><span class="line">    std::cout &lt;&lt; &quot;tensorflow session run ok&quot; &lt;&lt; std::endl;</span><br><span class="line">    &#x2F;&#x2F; Expect outputs[0] &#x3D;&#x3D; [19; -3]</span><br><span class="line">    std::cout &lt;&lt; outputs[0].matrix&lt;float&gt;();</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;BUILD file</span><br><span class="line"></span><br><span class="line">load(&quot;&#x2F;&#x2F;tensorflow:tensorflow.bzl&quot;, &quot;tf_cc_binary&quot;)</span><br><span class="line">tf_cc_binary(</span><br><span class="line">     name &#x3D; &quot;main&quot;, #目标文件名</span><br><span class="line">     srcs &#x3D; [&quot;main.cpp&quot;], #源代码文件名</span><br><span class="line">     deps &#x3D; [</span><br><span class="line">        &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:cc_ops&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:client_session&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;core:tensorflow&quot;</span><br><span class="line">         ],</span><br><span class="line"> )</span><br><span class="line"> </span><br><span class="line"> &#x2F;&#x2F;执行</span><br><span class="line"> bazel build &#x2F;&#x2F;tensorflow&#x2F;demo:main</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/demo.jpg" alt="demo"></p>
-<br>
-
-<p>来bili 看跳转~</p>
-<p><a href="https://www.bilibili.com/video/BV1Q54y1b74n">https://www.bilibili.com/video/BV1Q54y1b74n</a></p>
-<h4 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h4><p>相关编译、过程中error issue、cmake、bazel以及用c++ api构建线上服务</p>
-<p><a href="https://github.com/tensorflow/tensorflow/issues/43654">https://github.com/tensorflow/tensorflow/issues/43654</a></p>
-<p><a href="https://xugaoxiang.com/2020/05/22/compile-tensorflow2-with-gpu/">https://xugaoxiang.com/2020/05/22/compile-tensorflow2-with-gpu/</a></p>
-<p><a href="https://www.tensorflow.org/install/errors">https://www.tensorflow.org/install/errors</a></p>
-<p><a href="https://www.javatt.com/p/43568">https://www.javatt.com/p/43568</a></p>
-<p><a href="https://www.jianshu.com/p/72b228223804">https://www.jianshu.com/p/72b228223804</a></p>
-<p><a href="http://sixerwang.github.io/2018/12/24/cpp-call-tf/">http://sixerwang.github.io/2018/12/24/cpp-call-tf/</a></p>
-<p><a href="https://github.com/hemajun815/tutorial/blob/master/tensorflow/compilling-tensorflow-source-code-into-C%2B%2B-library-file.md">https://github.com/hemajun815/tutorial/blob/master/tensorflow/compilling-tensorflow-source-code-into-C%2B%2B-library-file.md</a></p>
-<p><a href="https://cmake.org/cmake/help/latest/guide/tutorial/index.html">https://cmake.org/cmake/help/latest/guide/tutorial/index.html</a></p>
-]]></content>
-      <categories>
-        <category>tensorflow源码</category>
-      </categories>
-      <tags>
-        <tag>tensorflow源码</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>编辑距离</title>
-    <url>/2021/03/11/%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BB/</url>
-    <content><![CDATA[<br>
-<br>
-
-
-<h2 id="编辑距离"><a href="#编辑距离" class="headerlink" title="编辑距离"></a>编辑距离</h2><span id="more"></span>
-
-<br>
-
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static int editDist(String str1 , String str2 , int m ,int n)&#123;</span><br><span class="line"></span><br><span class="line">    if (str1.charAt(m-1) &#x3D;&#x3D; str2.charAt(n-1))</span><br><span class="line">        return editDist(str1, str2, m-1, n-1);</span><br><span class="line"></span><br><span class="line">    return 1 + min ( editDist(str1,  str2, m, n-1),    &#x2F;&#x2F; Insert</span><br><span class="line">                     editDist(str1,  str2, m-1, n),   &#x2F;&#x2F; Remove</span><br><span class="line">                     editDist(str1,  str2, m-1, n-1) &#x2F;&#x2F; Replace                     </span><br><span class="line">                   ); &#x2F;&#x2F;三个子问题</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;s: beforeediting,length&#x3D;n  t: afterediting,length&#x3D;m</span><br><span class="line">&#x2F;&#x2F;d: recording the distance</span><br><span class="line">        d &#x3D; new int[n + 1][m + 1];  </span><br><span class="line">              </span><br><span class="line">        for (i &#x3D; 0; i &lt;&#x3D; n; i++) &#123;  </span><br><span class="line">            d[i][0] &#x3D; i;  </span><br><span class="line">        &#125;  </span><br><span class="line">        for (j &#x3D; 0; j &lt;&#x3D; m; j++) &#123;  </span><br><span class="line">            d[0][j] &#x3D; j;  </span><br><span class="line">        &#125;  </span><br><span class="line">          </span><br><span class="line">         </span><br><span class="line">        for (i &#x3D; 1; i &lt;&#x3D; n; i++) &#123;  </span><br><span class="line">            s_i &#x3D; s.charAt(i - 1);  </span><br><span class="line">              </span><br><span class="line">            for (j &#x3D; 1; j &lt;&#x3D; m; j++) &#123;  </span><br><span class="line">                t_j &#x3D; t.charAt(j - 1);  </span><br><span class="line">                 </span><br><span class="line">                cost &#x3D; (s_i &#x3D;&#x3D; t_j) ? 0 : 1;  </span><br><span class="line">                 </span><br><span class="line">                d[i][j] &#x3D; min(d[i - 1][j] + 1, d[i][j - 1] + 1,  </span><br><span class="line">                        d[i - 1][j - 1] + cost);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if x &#x3D;&#x3D; y, then d[i][j] &#x3D;&#x3D; d[i-1][j-1]</span><br><span class="line">if x !&#x3D; y, 插入y则 d[i][j] &#x3D; d[i][j-1] + 1</span><br><span class="line">if x !&#x3D; y, 删除x则 d[i][j] &#x3D; d[i-1][j] + 1</span><br><span class="line">if x !&#x3D; y, x改变为y则 d[i][j] &#x3D; d[i-1][j-1] + 1</span><br><span class="line">When x!&#x3D;y, d[i][j] 取三中编辑方式最小代价。</span><br><span class="line">初始化条件 ： d[i][0] &#x3D; i, d[0][j] &#x3D; j</span><br></pre></td></tr></table></figure>
-<ul>
-<li><p>为什么不同操作就是对应与d的左移上移或左上移？<br>这个问题递归角度较易理解。<br>DP角度，d记录的是目前最小编辑距离。左、上、左上为子问题，即儿子。若为插入，则j需+1得到t的下一个字符，而x继续与此字符比较，i不变。</p>
-</li>
-<li><p>由递归到DP，实质就是找到递归中子问题。<br>找到后，将子问题结果记录在数组即可。</p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>leetcode</category>
-      </categories>
-      <tags>
-        <tag>leetcode</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>母仪天下</title>
     <url>/2021/05/25/%E6%AF%8D%E4%BB%AA%E5%A4%A9%E4%B8%8B/</url>
     <content><![CDATA[<br>
@@ -4251,11 +4606,6 @@
 <p>如果记不住一些精妙的细节，过程中不带着审视的眼光，只是享受了被动的感情带入而已。</p>
 <p>不过我们成为很难不被带入的动物。不被带入的剥离感，悬空感，需要破除身在此山的迷惑。</p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>说服的技巧</title>
-    <url>/2021/05/25/%E8%AF%B4%E6%9C%8D%E7%9A%84%E6%8A%80%E5%B7%A7/</url>
-    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>汇率</title>
@@ -4403,6 +4753,141 @@
       </tags>
   </entry>
   <entry>
+    <title>统计角度看ml</title>
+    <url>/2021/03/11/%E7%BB%9F%E8%AE%A1%E8%A7%92%E5%BA%A6%E7%9C%8Bml/</url>
+    <content><![CDATA[<br>
+
+<p>一些思考，从整体上看模型的思路，进行比较。</p>
+<span id="more"></span>
+<p>极大似然？就是后验、大量样本的整体出现概率值最大。样本之间独立。可应用乘法原理。</p>
+<p>条件概率，即某(些)条件下某(些)事件出现的概率。</p>
+<p>决策树则是求其极大值，局部选择当前条件概率最大。条件概率越大，不确定性越低，条件熵越小。整体熵未必减小。考虑整体熵值的是最大熵模型和logistics模型。logistics是可以通过假设先验概率，转化为这样的问题：推导出满足极大似然极值而得到的w参数。都可以通过拉格朗日将问题转化为无约束求极值，偏导为0，算法里有迭代尺度、梯度下降、牛顿插值。牛顿插值迭代收敛快些。</p>
+<p>特征选择无论是熵、增益(比)还是基尼系数都体现出不确定性的思想。增益大则说明特征对结果的影响力大，因为说明条件熵越小，即条件概率越大，该条件下不确定性越低。增益或比越大，而基尼越小越好。因为前者都有-号，类似相反数的关系。本质还条件概率的问题。</p>
+<p>决策生成树可以用动归提高算法效率。</p>
+<p>感知器从loss func出发，求最小。距离如何定义还要看具体应用场景。主要算法里有<a href="https://blog.csdn.net/greenyang5277/article/details/104270803">Gram矩阵</a>，对偶算法。</p>
+<p>k邻很简单，经验风险最小，就是多数为胜，即最简单的频率派概率最大思路，k不一样结果可能瞬间不同了，参数也少。</p>
+<p>朴素贝叶斯主要是独立性假设，在类确定下特征条件独立，才能将公式分子简化，否则不那么容易求最大值，后验概率最大，还是极大似然思路，后验概率这是可用简单的乘法原理表达。如果有0，这里提出可以平滑的思想。</p>
+<p>无论是熵、条件熵、基尼系数，还是贝叶斯、条件概率，还是感知器的loss func，还是c4.5里的loss(在剪枝时通过熵建立的loss，加入了模型复杂度因子，通过比较剪枝前后大小来判断是否剪枝)，还是logistics(初始分布进行求对数几率，求极大似然最大的参数)、最大熵(公式也化为求极大似然最大)两个对数线性模型的经验分布推导出来的无约束最优化公式，都是对初始概率进行包装，要么转为极大似然问题或者说转为条件概率问题，要么转为loss最小问题。概率问题则为监督学习中的两种，生成和判别。非概率则自定义的一些代数loss。</p>
+<p>对给定输入判别输出，判别要么是f(x),要么是P(Y|X)。前者会出现loss func，定义距离如感知器、LDA，后者则决策树、k邻、贝叶斯、GMM。对数线性模型也是P(Y|X)概率分布公式表达的分类模型。都可以说是在对这两种函数求最优的问题。但如决策树、k邻，没有什么公式，也就没有什么参数需要调整，大多重点在算法，如决策树里主要是三个算法里剪枝过程应用到熵之类问题，而kmeans主要kd树解决高维搜索问题。理论框架虽然可以和统计通过加条件等方式相关联，但是更多是另一种思路。</p>
+<p>生成模型，由学习数据得到原始分布，再来求P(Y|X)，如贝叶斯。判别模型，学习数据不从分布入手，而直接对条件概率进行假设，如LR。</p>
+<p>具体细节，如收敛性证明，拉格朗日转化，最大熵的约束公式，包括泛化误差利用切比雪夫求上界的前提条件，感知器中正负，logistics里对数几率特征空间是n+1维，都需落在数学上去一步步转化推证。</p>
+]]></content>
+      <categories>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>编译tensorflow</title>
+    <url>/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/</url>
+    <content><![CDATA[<br> 
+
+<p>记录编译过程</p>
+<span id="more"></span>
+
+<br> 
+
+<h4 id="前序安装"><a href="#前序安装" class="headerlink" title="前序安装"></a>前序安装</h4><p>1、bazel 2.0.0 通过sh安装，需要chmod，然后export环境变量。我的路径在/var/root/bin，添加到source ~/.bash_profile。把这句source添加到 vi .zshrc ，然后source ~/.zshrc ，重启也有bazel了。</p>
+<p>2、tensorflow v2.2.0 </p>
+<p>3、conda环境，选择了python2.7，然后安装requirements (tensorflow-2.2.0/tensorflow/tools/pip_package/setup.py )如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">future</span><br><span class="line">absl-py &gt;&#x3D; 0.7.0</span><br><span class="line">astunparse &#x3D;&#x3D; 1.6.3</span><br><span class="line">backports.weakref &gt;&#x3D; 1.0rc1</span><br><span class="line">enum34 &gt;&#x3D; 1.1.6</span><br><span class="line">gast &#x3D;&#x3D; 0.3.3</span><br><span class="line">google_pasta &gt;&#x3D; 0.1.8</span><br><span class="line">h5py &#x3D;&#x3D; 2.10.0</span><br><span class="line">keras_preprocessing &gt;&#x3D; 1.1.0</span><br><span class="line">numpy &#x3D;&#x3D; 1.16.0</span><br><span class="line">opt_einsum &gt;&#x3D; 2.3.2</span><br><span class="line">protobuf &gt;&#x3D; 3.8.0</span><br><span class="line">tensorboard &#x3D;&#x3D; 2.1.0</span><br><span class="line">tensorflow_estimator &#x3D;&#x3D; 2.2.0</span><br><span class="line">termcolor &gt;&#x3D; 1.1.0</span><br><span class="line">wrapt &gt;&#x3D; 1.11.1</span><br><span class="line"></span><br><span class="line"># python3 requires wheel 0.26</span><br><span class="line">wheel &gt;&#x3D; 0.26</span><br><span class="line"></span><br><span class="line"># mock comes with unittest.mock for python3 need to install for python2</span><br><span class="line">mock &gt;&#x3D; 2.0.0</span><br><span class="line"></span><br><span class="line"># functools comes with python3 need to install the backport for python2</span><br><span class="line">functools32 &gt;&#x3D; 3.2.3</span><br><span class="line">six &gt;&#x3D; 1.12.0</span><br><span class="line"></span><br><span class="line"># scipy &lt; 1.4.1 causes segfaults due to pybind11</span><br><span class="line"># Latest scipy pip for py2 is scipy&#x3D;&#x3D;1.2.2</span><br><span class="line">scipy &#x3D;&#x3D; 1.2.2</span><br></pre></td></tr></table></figure>
+
+
+
+<p>4、如果需要gpu，则还要安装cuda 10.1 和 cudnn 7.6.5</p>
+<br> 
+
+<h4 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h4><p>1、配置基本选择N，需要gpu则在CUDAsupport选择y</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">cd tensorflow-2.2.0</span><br><span class="line">.&#x2F;configure</span><br></pre></td></tr></table></figure>
+
+<p>2、bazel</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048  &#x2F;&#x2F;tensorflow&#x2F;tools&#x2F;pip_package:build_pip_package</span><br><span class="line"></span><br><span class="line">bazel build --noincompatible_do_not_split_linking_cmdline --local_ram_resources&#x3D;2048 &#x2F;&#x2F;tensorflow:libtensorflow_cc.so</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/inprogress.jpg" alt="过程"></p>
+<br>
+
+
+
+<p>编译成功，花了12个小时多。</p>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/success.jpg" alt="success"></p>
+<br>
+
+<h4 id="生成whl"><a href="#生成whl" class="headerlink" title="生成whl"></a>生成whl</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo .&#x2F;tensorflow&#x2F;tools&#x2F;pip_package&#x2F;build_pip_package.sh &#x2F;tmp&#x2F;tensorflow_pkg</span><br><span class="line">#接着我切了conda环境</span><br><span class="line">pip install --upgrade pip</span><br><span class="line">pip uninstall tensorflow</span><br><span class="line">pip uninstall tensorboard</span><br><span class="line">pip uninstall tensorflow-tensorboard</span><br><span class="line">#pip3 install tensorboard&#x3D;&#x3D;2.2.1  #有个巨坑。pip3才能安装2.2.1，但是我们环境用的都是python2.7</span><br><span class="line">#要么把之前的切到3，要么下载下来site-package 装到目录里。我是选择粘贴到目录 #&#x2F;Users&#x2F;wyq&#x2F;anaconda2&#x2F;lib&#x2F;python2.7&#x2F;site-packages&#x2F;tensorboard</span><br><span class="line">pip install -U --ignore-installed wrapt  </span><br><span class="line">#又是坑。wrapt：ERROR: Cannot uninstall &#39;wrapt&#39;. It is a distutils installed project and thus #we cannot accurately determine which files belong to it which would lead to only a partial #uninstall.</span><br><span class="line">pip3 install &#x2F;tmp&#x2F;tensorflow_pkg&#x2F;tensorflow-2.2.0-cp27-cp27m-macosx_10_14_x86_64.whl</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl0.jpg" alt="whl0"></p>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whl.jpg" alt="whl"></p>
+<h4 id="python验证"><a href="#python验证" class="headerlink" title="python验证"></a><br>python验证</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#打开ipython </span><br><span class="line">#如果遇到这个问题 ImportError: cannot import name pywrap_tensorflow</span><br><span class="line">#看这个issue </span><br><span class="line"># https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;35953210&#x2F;error-running-basic-tensorflow-example</span><br><span class="line">import tensorflow as tf</span><br><span class="line">tf.__version__</span><br><span class="line">tf.test.is_gpu_available()</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>终于成功了</p>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/whlsuccess.jpg" alt="whlsuccess"></p>
+<br>
+
+<h4 id="c-验证"><a href="#c-验证" class="headerlink" title="c++验证"></a>c++验证</h4><p>选择了vscode，下次clion可以也试试</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#在tf根目录下运行</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:tutorials_example_trainer</span><br><span class="line">bazel build &#x2F;&#x2F;tensorflow&#x2F;cc:client_client_session_test￼</span><br><span class="line"></span><br><span class="line">#然后运行程序</span><br><span class="line">.&#x2F;bazel-bin&#x2F;tensorflow&#x2F;cc&#x2F;client_client_session_test￼</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/csuccess.jpg" alt="csuccess"></p>
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/clienttest.jpg" alt="demo"></p>
+<br>
+
+<h4 id><a href="#" class="headerlink" title></a></h4><h4 id="c-demo"><a href="#c-demo" class="headerlink" title="c++demo"></a>c++demo</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;main.cpp</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;client&#x2F;client_session.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;cc&#x2F;ops&#x2F;standard_ops.h&quot;</span><br><span class="line">#include &quot;tensorflow&#x2F;core&#x2F;framework&#x2F;tensor.h&quot;</span><br><span class="line"></span><br><span class="line">using namespace tensorflow;</span><br><span class="line">using namespace tensorflow::ops;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    Scope root &#x3D; Scope::NewRootScope();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Matrix A &#x3D; [3 2; -1 0]</span><br><span class="line">    auto A &#x3D; Const(root, &#123; &#123;3.f, 2.f&#125;, &#123;-1.f, 0.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; Vector b &#x3D; [3 5]</span><br><span class="line">    auto b &#x3D; Const(root, &#123; &#123;3.f, 5.f&#125; &#125;);</span><br><span class="line">    &#x2F;&#x2F; v &#x3D; Ab^T</span><br><span class="line">    auto v &#x3D; MatMul(root.WithOpName(&quot;v&quot;), A, b, MatMul::TransposeB(true));</span><br><span class="line"></span><br><span class="line">    std::vector&lt;Tensor&gt; outputs;</span><br><span class="line">    ClientSession session(root);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Run and fetch v</span><br><span class="line">    TF_CHECK_OK(session.Run(&#123;v&#125;, &amp;outputs));</span><br><span class="line">    std::cout &lt;&lt; &quot;tensorflow session run ok&quot; &lt;&lt; std::endl;</span><br><span class="line">    &#x2F;&#x2F; Expect outputs[0] &#x3D;&#x3D; [19; -3]</span><br><span class="line">    std::cout &lt;&lt; outputs[0].matrix&lt;float&gt;();</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;BUILD file</span><br><span class="line"></span><br><span class="line">load(&quot;&#x2F;&#x2F;tensorflow:tensorflow.bzl&quot;, &quot;tf_cc_binary&quot;)</span><br><span class="line">tf_cc_binary(</span><br><span class="line">     name &#x3D; &quot;main&quot;, #目标文件名</span><br><span class="line">     srcs &#x3D; [&quot;main.cpp&quot;], #源代码文件名</span><br><span class="line">     deps &#x3D; [</span><br><span class="line">        &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:cc_ops&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;cc:client_session&quot;,</span><br><span class="line">         &quot;&#x2F;&#x2F;tensorflow&#x2F;core:tensorflow&quot;</span><br><span class="line">         ],</span><br><span class="line"> )</span><br><span class="line"> </span><br><span class="line"> &#x2F;&#x2F;执行</span><br><span class="line"> bazel build &#x2F;&#x2F;tensorflow&#x2F;demo:main</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/04/12/%E7%BC%96%E8%AF%91tensorflow/demo.jpg" alt="demo"></p>
+<br>
+
+<p>来bili 看跳转~</p>
+<p><a href="https://www.bilibili.com/video/BV1Q54y1b74n">https://www.bilibili.com/video/BV1Q54y1b74n</a></p>
+<h4 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h4><p>相关编译、过程中error issue、cmake、bazel以及用c++ api构建线上服务</p>
+<p><a href="https://github.com/tensorflow/tensorflow/issues/43654">https://github.com/tensorflow/tensorflow/issues/43654</a></p>
+<p><a href="https://xugaoxiang.com/2020/05/22/compile-tensorflow2-with-gpu/">https://xugaoxiang.com/2020/05/22/compile-tensorflow2-with-gpu/</a></p>
+<p><a href="https://www.tensorflow.org/install/errors">https://www.tensorflow.org/install/errors</a></p>
+<p><a href="https://www.javatt.com/p/43568">https://www.javatt.com/p/43568</a></p>
+<p><a href="https://www.jianshu.com/p/72b228223804">https://www.jianshu.com/p/72b228223804</a></p>
+<p><a href="http://sixerwang.github.io/2018/12/24/cpp-call-tf/">http://sixerwang.github.io/2018/12/24/cpp-call-tf/</a></p>
+<p><a href="https://github.com/hemajun815/tutorial/blob/master/tensorflow/compilling-tensorflow-source-code-into-C%2B%2B-library-file.md">https://github.com/hemajun815/tutorial/blob/master/tensorflow/compilling-tensorflow-source-code-into-C%2B%2B-library-file.md</a></p>
+<p><a href="https://cmake.org/cmake/help/latest/guide/tutorial/index.html">https://cmake.org/cmake/help/latest/guide/tutorial/index.html</a></p>
+]]></content>
+      <categories>
+        <category>tensorflow源码</category>
+      </categories>
+      <tags>
+        <tag>tensorflow源码</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>编辑距离</title>
+    <url>/2021/03/11/%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BB/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+<h2 id="编辑距离"><a href="#编辑距离" class="headerlink" title="编辑距离"></a>编辑距离</h2><span id="more"></span>
+
+<br>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static int editDist(String str1 , String str2 , int m ,int n)&#123;</span><br><span class="line"></span><br><span class="line">    if (str1.charAt(m-1) &#x3D;&#x3D; str2.charAt(n-1))</span><br><span class="line">        return editDist(str1, str2, m-1, n-1);</span><br><span class="line"></span><br><span class="line">    return 1 + min ( editDist(str1,  str2, m, n-1),    &#x2F;&#x2F; Insert</span><br><span class="line">                     editDist(str1,  str2, m-1, n),   &#x2F;&#x2F; Remove</span><br><span class="line">                     editDist(str1,  str2, m-1, n-1) &#x2F;&#x2F; Replace                     </span><br><span class="line">                   ); &#x2F;&#x2F;三个子问题</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;s: beforeediting,length&#x3D;n  t: afterediting,length&#x3D;m</span><br><span class="line">&#x2F;&#x2F;d: recording the distance</span><br><span class="line">        d &#x3D; new int[n + 1][m + 1];  </span><br><span class="line">              </span><br><span class="line">        for (i &#x3D; 0; i &lt;&#x3D; n; i++) &#123;  </span><br><span class="line">            d[i][0] &#x3D; i;  </span><br><span class="line">        &#125;  </span><br><span class="line">        for (j &#x3D; 0; j &lt;&#x3D; m; j++) &#123;  </span><br><span class="line">            d[0][j] &#x3D; j;  </span><br><span class="line">        &#125;  </span><br><span class="line">          </span><br><span class="line">         </span><br><span class="line">        for (i &#x3D; 1; i &lt;&#x3D; n; i++) &#123;  </span><br><span class="line">            s_i &#x3D; s.charAt(i - 1);  </span><br><span class="line">              </span><br><span class="line">            for (j &#x3D; 1; j &lt;&#x3D; m; j++) &#123;  </span><br><span class="line">                t_j &#x3D; t.charAt(j - 1);  </span><br><span class="line">                 </span><br><span class="line">                cost &#x3D; (s_i &#x3D;&#x3D; t_j) ? 0 : 1;  </span><br><span class="line">                 </span><br><span class="line">                d[i][j] &#x3D; min(d[i - 1][j] + 1, d[i][j - 1] + 1,  </span><br><span class="line">                        d[i - 1][j - 1] + cost);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if x &#x3D;&#x3D; y, then d[i][j] &#x3D;&#x3D; d[i-1][j-1]</span><br><span class="line">if x !&#x3D; y, 插入y则 d[i][j] &#x3D; d[i][j-1] + 1</span><br><span class="line">if x !&#x3D; y, 删除x则 d[i][j] &#x3D; d[i-1][j] + 1</span><br><span class="line">if x !&#x3D; y, x改变为y则 d[i][j] &#x3D; d[i-1][j-1] + 1</span><br><span class="line">When x!&#x3D;y, d[i][j] 取三中编辑方式最小代价。</span><br><span class="line">初始化条件 ： d[i][0] &#x3D; i, d[0][j] &#x3D; j</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>为什么不同操作就是对应与d的左移上移或左上移？<br>这个问题递归角度较易理解。<br>DP角度，d记录的是目前最小编辑距离。左、上、左上为子问题，即儿子。若为插入，则j需+1得到t的下一个字符，而x继续与此字符比较，i不变。</p>
+</li>
+<li><p>由递归到DP，实质就是找到递归中子问题。<br>找到后，将子问题结果记录在数组即可。</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>leetcode</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>缠解读后感</title>
     <url>/2021/06/01/%E7%BC%A0%E8%A7%A3%E8%AF%BB%E5%90%8E%E6%84%9F/</url>
     <content><![CDATA[<br>
@@ -4412,6 +4897,7 @@
 <h4 id="练脑子"><a href="#练脑子" class="headerlink" title="练脑子"></a>练脑子</h4><span id="more"></span>
 
 <p>还是得读个自圆其说。如能完满不矛盾地解释，并且释义能够高于一般理解。已然是高一层的解读了。没有思考，便自相矛盾。过段时间再看，又会更透彻些。其中缺陷也会自然显露。于是乎，记下当即的想法。</p>
+<hr>
 <br>
 
 <p>整体理解是，”当下“、”现实“为最鲜活有生命之物，所有”君子“皆于当下成就。那么，当下又何以把握？即”行“、”一以贯之“。”一“是现实，”之“是”圣人之道“。再白话，就是在当下、现实之中，能够时刻地闻见学行君子之道，能够躬身力行。重点落在行上。如”性相与习相“。孔子要求是改变世界。</p>
@@ -4419,6 +4905,7 @@
 <p>这和”道德“到底有什么相干。孔子不尊崇道德，不尊崇忠孝。尊崇”当下“、”行“、”乐“和”说“、”不相“，”好学“。尊崇富而好礼，贫而得乐。不是勤奋，不是说要遵守纪律，要守“礼”。而是说，要“不相” “当下” 之相。不受当下所困，而能超拔，有自己所乐。总体是自由的，而不是伦理条条框框。小人不过就是选择了小的视野，汲汲于利，忘乎自己是“人”，而天地人之心的人，岂能为利字所困？而不得得乐呢。岂不是“小”了太多。</p>
 <p>进一步，也不能将现实作为本位、先验。因为现实是可改变的。改变现实，与天其时的君子，才是闻见学行对照、调整的对象。”见机而作、明时通变。“</p>
 <p>因为当下去实践，才能够保持道的鲜活和生命力。</p>
+<hr>
 <br>
 
 <p>文中，勾连着马克思、海德格尔、康德，易经。大体结论是，孔子和马克思遥相呼应，不同于康德（列宁是康德的延伸，因其都是必然如何走向自由，而与孔子无关，孔子并不假设从必然到自由有一条路，孔子认为人本是自由，他更强调自由意志在现实中的实践，孔子认为实践才是皈依 ），高明于海德格尔(因为海纠结于无为什么不存在，而孔子直接认为，有因无才成为有，”不患，无位”。无位次不意味”不存在“。也即存在与否不重要，重要的是无位次与位次)，符合易经(如艮卦)。</p>
@@ -4433,21 +4920,34 @@
 <p>”患与不患“，”人不知与不己知“，”不在其位不谋其政“等，都是在说无位次与位次的问题，无和有的问题。无是没有位次的，算是先验吧，有因为无的无位次而有位次。就像，有些必然的、其他因其必然而有关联，而产生程度和范围，而有了自己一定的概率，虽然不至于必然的1，但有了概率，有了位次。永远无法改造人，无法达到己知，那只能从不知不愠出发，而达到君子世界。因不在其位，无法达到，有现实的局限和鲜活性，即”知新“，所以应当不谋其政。也是顺应天时。与天其时。</p>
 <br>
 
+
+
+<hr>
 <p>道家要无为，因其立论在有天道，有一，而人因返璞归真，回到自然状态，撇除人为达到无为、无人为。但孔子是有为的，”认识从实践中来，再指导实践，实践是认识的根本来源，从来达到螺旋上升“。和马克思的理论接近。</p>
 <br>
 
+
+
+<hr>
 <p>关于学，”多闻“而”识“。左媒和党媒的天下，不是多闻，难以多闻，而不多闻，如何择善而从呢，如何能识呢。不能识，如何能知。当下入世磨炼，才能多识而有知啊。”犹恐失之“，陷于一些无用的情绪中，就会失去承担。差异多样的学、多闻，要和同一的思相结合，多样性要有、理论性高度要有。</p>
 <p>不效仿人，而效仿道，见解，识辨。</p>
 <br>
 
+
+
+<hr>
 <p>关于小人。不能依附也不能违背，”小人难养“。要受其历练，才能成就。”学而优则仕“也是”小人儒”。君子是”周而不比“、”喻于义“的，小人就….不要以”相“，看君子小人。</p>
 <br>
 
+
+
+<hr>
 <p>很多是一意多词：”位次 先验“、”不相“、”同、和“；“承担”、“固守 不舍昼夜”；”闻 识 思 学”…</p>
 <p>之间的关系：</p>
 <p>以”不知不愠“为目的。要在每一个”当下“”固守“”不相、与天其时天与其时、无有位次、和而不同“，在当下”习相“以保持道的鲜活。</p>
 <p>步骤：</p>
 <p>按照”学、立、不惑、知天命、耳顺、从心所欲不逾矩“，先多闻多见，学而思，并在现实中多识，明时通变，积累一段时间则能知道事物的位次，客观关系、万事万相等，即看山是山，再然后，由位次上升到无位次，无位次即无相，即看山不是山，在后来，能明白天机天时，能明时，六十，闻见的道理，明白的天时，能落实实践。七十，君子之道的规矩方圆，大体已经融入习惯，游刃有余，能够顺人心同时不违背道。</p>
+<hr>
 <h4 id="辟谣"><a href="#辟谣" class="headerlink" title="辟谣"></a>辟谣</h4><br>
 
 <p>我一直认为自己的理性和客观规律是最高权威了。然而规律是要”利用“的。人要练。脑子要练。心要练。观念要刷洗。</p>
@@ -4460,6 +4960,7 @@
 
 
 
+<hr>
 <h4 id="逻辑"><a href="#逻辑" class="headerlink" title="逻辑"></a>逻辑</h4><p>整体也算融汇起来。也是有中心，然后顺着去注解。</p>
 <p>大体是怎样的世界，怎样去做的第一原则。然后顺着这个第一原则，展开注解。</p>
 <p>一意多词太常见了。</p>
@@ -4471,6 +4972,353 @@
       <tags>
         <tag>读后感</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>股市基础</title>
+    <url>/2021/06/20/%E8%82%A1%E5%B8%82%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<br>
+<br>
+
+<p><strong>委比&amp;委差</strong></p>
+<span id="more"></span>
+
+<p>就是委托买入卖出的一个差值，但是很多软件只是显示了5档，所以只是这5挡的一个差异。</p>
+<p><strong>量比</strong></p>
+<p>当天成交量和最近5日平均成交量的比值</p>
+<p><strong>换手率</strong></p>
+<p>成交数量和流通股的一个比率，换手率高就代表成交活跃，换手率低代表成交不活跃。</p>
+<p><strong>外盘&amp;内盘</strong></p>
+<p>外盘是以卖出下单成交的交易，内盘是以买入下单成交的交易</p>
+<p>外盘+内盘=成交量</p>
+<br>
+
+
+
+<p>左侧交易</p>
+<p>最大回撤</p>
+<p>挂单</p>
+<p>老鼠仓</p>
+<p>封板</p>
+<p>扫货</p>
+<p>敲单员</p>
+<p>集合竞价</p>
+<p>摆单、吃单、补单</p>
+<p>2013光大证券 乌龙指</p>
+<p>18线家电太次了</p>
+<p>某个价位突然地补单</p>
+<p>落袋为安和降低持仓成本</p>
+<p>资金动向和主力手法</p>
+<p>杀某行的多头头寸把原油价格打到负数</p>
+<p>盘口 市场深度</p>
+<p>资金流入：</p>
+<p>主动性买盘 是资金流入；现价买入，计入资金流入</p>
+<p>买一到买四的都被击穿。股价下跌</p>
+<p>并购换股为什么不稀释股权</p>
+<p>预增</p>
+<p>中概股</p>
+<p>KDJ、MACD、WMS、布林线、RSV、RSI、PSY、OBV、OBOS、乖离率、资金流入流出、ADL……</p>
+<hr>
+<h3 id="游资逻辑"><a href="#游资逻辑" class="headerlink" title="游资逻辑"></a>游资逻辑</h3><p>1、</p>
+<p>开盘价不高。因为开盘价不高，有些人会纪律止盈，然后早上分时就有个下探。下探后是正常的，能不能被拉起来，就得继续观察了。这还得看资金活跃度，还有分时是否稳定。</p>
+<p>盘子相对比较大的票，而且关注度很高，成交量很大，分时也相对稳定，这种情况可信度就会高一些。所以就可以追高。但<strong>这个手法的特点是，位置越低越安全</strong>。做一进二的时候成功率会高点。但是下午就被砸了。这个原因就是市场有记忆效应，可能认为小康会重复昨天的走法。然后就会有些赌徒因为错过了昨天的小康，开始手痒，于是就介入了。</p>
+<br>
+
+<p>2、</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>能源</title>
+    <url>/2021/06/08/%E8%83%BD%E6%BA%90/</url>
+    <content><![CDATA[<br>
+
+<p>1、提升非化石能源在一次性能源消费比重 、电能在终端能源消费比重</p>
+<span id="more"></span>
+
+<p>2、</p>
+<table>
+<thead>
+<tr>
+<th>目标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>60亿吨标准煤</td>
+</tr>
+<tr>
+<td>化石能源20%</td>
+</tr>
+<tr>
+<td>非化石发电50%</td>
+</tr>
+<tr>
+<td>全社会用电7万亿千瓦时</td>
+</tr>
+</tbody></table>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>行为分析</title>
+    <url>/2021/06/01/%E8%A1%8C%E4%B8%BA%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h4 id="言行之蠢"><a href="#言行之蠢" class="headerlink" title="言行之蠢"></a>言行之蠢</h4><span id="more"></span>
+
+<p>1、”只此一次，以后不再。不用担心***“  –&gt; 自欺欺人，借口</p>
+<p>2、”我先去**，就很好了。“ – 环境不行。”再去那里吧，万一被占了呢，嗯不会的。“ –被占了。”太烧钱，不去了，不想回去“ –来回走。 –&gt;“钱” 和 犹豫</p>
+<p>3、“我再看会。看这个有什么用呢，做这个没用啊。”  –&gt;消极</p>
+<p>4、“唉，不过是总结，又会忘，有什么意义呢。”  –&gt;消极</p>
+<p>5、“算了，退掉吧。我担心*** ”  –&gt;犹豫</p>
+<p>6、“我就是想舒服下。看看书，想想事，享受美… 能大量消化知识”  –&gt;自欺欺人 ，不计后果，不考虑代价</p>
+<p>7、”我可以控制，这样才合理…“ </p>
+<p>8、”没意义，一直在浪费时间做没意义的事情“</p>
+<p>9、”又耽误了… “</p>
+<p>10、“嗯，是的… 嗯嗯”</p>
+<p>11、小表情，反驳</p>
+<p>12、“明天少点…现在不想控制” –&gt;接口，重复，没有真的要做事，就像”施“</p>
+<p>13、“这个是你的代码啊，我不知道recall逻辑，我怎么测。” “那你那个…给我吧，行吧，这个可以吧” “好” –&gt; 安静。 “第一，我是会造数据。现在的问题是，比如，我把出的商品 mock到活动队列，逻辑是什么。“</p>
+<p>14、</p>
+<br>
+
+<p>会重复一遍又一遍。太阳升起又是一天，就又来一遍。</p>
+<hr>
+<h4 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h4><p>1、找到“疏漏”，精准，而不是东榔头西棒槌地尝试。精准需要背后有思量。</p>
+<p>2、找到症药，“ trick”，解决问题。</p>
+<p>3、“缺乏信心，才导致去寻求其他欲望满足，而不选择固守。” </p>
+<p>4、更多情况，只是想“拥有”外物，而并非真的“需求”，而当你真的想在解决问题时，其他是没有什么多余欲望的。</p>
+<p>5、只有不断地突破，反抗自己已认知的。才能慢慢再次形成新的认知。</p>
+<br>
+
+
+
+<hr>
+<h4 id="大嫂"><a href="#大嫂" class="headerlink" title="大嫂"></a>大嫂</h4><br>
+
+<br>
+
+<p>和大嫂聊天的时候，没有勇气反驳，没能马上反应出来问题。</p>
+<p>一个是谈的具体东西体味不深刻，二是，自己不够放松。总是限制在她的话语里，而不能足够自信去拆解。</p>
+<p>这个可以解决。反驳是不好的，克制反驳是对的，但是不同观点的理性表达是应该的。不要觉得自己的提问愚蠢，也不要认为沉默是糟糕的。即使问题比较愚蠢，但是不同的表达方式会产生不同的效果。</p>
+<p>so，表达和提问都是必要的。大可随意些，但是用词需要考虑。考虑到用词的效果后表达，并且尽量让大脑放松，即可。问题的关键是什么，他们陷入什么思维里，边角的问题是什么。</p>
+<p>1随意自信些 2表达不同意见，注意用词效果 3提问和思考  4顺着直接感受的表露就是小表情，等待下、放下</p>
+<p>其实都是各种经验的交流，以及想法的表达。各自对某一方面的理解。对“打比方”的攻克是什么。我是不是只是想在语言上战胜？</p>
+<p>“打比方”的方式，为了抽象，不谈具体而谈模式和思路。概括全貌和思路。</p>
+<br>
+
+<p>讨论的话题：大哥这个人、他们的历史-唐伟和他老婆、管理人的问题-小五-(人和思路、模式、技巧)、创业的策划思路、她见过的“人”以及“生意”以及“模式”、物流的问题和她的见解、房子的贷款问题、婚姻(平衡、空间)等等。</p>
+<p>我思考过生意？她见过的那些我是否有自己的交叉部分？她的思路是否可行和落地？我对这个是否有自己的想法？大哥对她的影响、她目前的局限和需要？</p>
+<p>对这些我没有更进一步的思考。也没有意识到能够如何给我带来什么。没有利用起来。我觉得这个是需要思考和讨论的。并且是真的用心去思考。因为这个是我的现实和我的当下。</p>
+<p>可做的事情非常多。只是是否选择去真的在当下里去取舍和判断。怎样的当下。如何能更好利用当下。</p>
+<br>
+
+
+
+<hr>
+<br>
+
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>1、行为考虑因素太多，也意味着受制于太多，显得没有生机。比如，去干啥干啥，又会犹豫，觉得耽误，没有意义。然后手里正在做的事情，不过更缺乏意义。并且还是减少能量消耗的一种方式。人应该勇敢果决地选择多去消耗能量。并且努力地去想办法补充能量，从而形成正向的循环。</p>
+<p>2、lazy，用时加载。按点满足。欲望，总是延迟也是问题。需要安排适当。才是正道。</p>
+<p>3、效率低。没有计划。软绵绵的。周日只看了四课。我不知道这个理论是否有用。以我的智商，完全无法判断。但是我知道，他们都看过。比如谷。那么他们都看过的，我必须看过。但是我效率低很多。是我自己还是没有全身心地放在这里。</p>
+<p>4、中午又40min买吃的。大部分时间，不是买东西，就是在聊天。当然我觉得聊天是好的。买东西需要减少。我想减少。包括各方面的需求。从什么时候开始，我越来越多的需求呢。并且还想着要花费更少。如果我突破不了，静不下来，没有办法真的从其中去悟，那么我始终被自己打败。还是我的脑里在逃避问题。逃避去看。我每天给自己的计划，反馈力度不够。</p>
+<p>– 受制于太多而选择节约热量而不是去补充和消耗，生命在于消耗、快速反应</p>
+<p>–逃避计划中的事情，总是在意于效果和变化，而不把脑子放在问题本身上。缺少反馈和调节，比较僵硬。也没有调动好积极–</p>
+<br>
+
+]]></content>
+      <categories>
+        <category>读后感</category>
+      </categories>
+      <tags>
+        <tag>读后感</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>计算机网络</title>
+    <url>/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h4 id="要刷的几个题目"><a href="#要刷的几个题目" class="headerlink" title="要刷的几个题目"></a>要刷的几个题目</h4><span id="more"></span>
+
+<ol>
+<li>海明码、crc</li>
+<li>信道利用率=（帧长/发送速率） / [（帧长/发送速率） +  rtt]   – 衡量发送方是不是在等待信道而空闲</li>
+<li> 信道吞吐率 = 信道利用率 *  发送速率</li>
+<li>二进制指数退避重传算法，k=min{k,10} [0,2^k-1]</li>
+<li>PPP/HDLC的帧格式、区别</li>
+<li>以太网相关记忆</li>
+<li>停等、GBN、SR、ALOHA、CSMA、CSMACA、CSMACD、令牌环 (随机访问介质访问控制才有冲突)</li>
+<li>ip数据报的分片过程，及其中某些首部字段含义</li>
+<li>子网掩码</li>
+<li>CIDR、最长匹配前缀、CIDR和子网掩码</li>
+<li>ipv4和ipv6的报文格式，以及区别</li>
+</ol>
+<br>
+
+<br>
+
+
+
+<h4 id="层次"><a href="#层次" class="headerlink" title="层次"></a>层次</h4><ol>
+<li>TCP/IP协议栈：从下到上：物理层、数据链路层、[ARP] IP [ICMP/IGMP]、TCP/UDP、HTTP/FTP/DNS</li>
+</ol>
+<br>
+
+<br>
+
+
+
+<h4 id="物理层"><a href="#物理层" class="headerlink" title="物理层"></a>物理层</h4><br>
+
+<br>
+
+
+
+<h4 id="数据链路"><a href="#数据链路" class="headerlink" title="数据链路"></a>数据链路</h4><ol>
+<li><p>功能</p>
+<p>保证数据无差错地传输到相邻节点，实现透明传输。进行： 组帧、差错控制–校验码、流量控制、链路管理(有连接的链路进行连接维持和释放)。从而为网络层提供服务(有连接有确认，无连接无确认，无连接有确认)。</p>
+</li>
+<li><p>封装成帧</p>
+<p>4种方法。一般用比特填充和违规编码。</p>
+</li>
+<li><p>差错类型，位错和帧错。帧错：重复、失序、丢失。纠错 - 海明、检错 - 奇偶 crc(填上n-1个0 除以生成多项式,加上余数 又叫冗余码 FCS帧检验序列。除法是异或)。</p>
+</li>
+<li><p>有线传输一般，无确认无连接，保证交给上层-网络层。无线传输一般是有确认的(不一定有连接)，尽量避免差错。</p>
+</li>
+<li><p>流量控制，收不下就不去确认。包括，停止等待协议、滑动窗口。</p>
+<p>传输层的流量控制是公告窗口。</p>
+</li>
+<li><p>GBN：累积确认(捎带)；接收方只按序接收、否则丢弃，并确认帧催更；发送发确认序列号最大的、按序号达到的；超时重传；发送窗口2^n-1，接收窗口1(n为帧序号长度)；</p>
+</li>
+<li><p>SR：选择重传协议。只重传出错的；接收方有缓存的窗口；对数据逐一确认，收到一个确认一个；最大接收和最大发送窗口大小：2^(n-1)</p>
+</li>
+<li><p>点对点链路，广播链路。信道访问介质控制：静态、动态划分信道。动态分为 轮询和随机访问。随机访问介质控制：aloha、csma、csmacd、csmaca。</p>
+</li>
+<li><p>ALOHA ，纯aloha 和 时隙aloha。吞吐是一段时间的发送成功的帧数。一个想发就发，一个在时间片开始发送和重传。</p>
+</li>
+<li><p>CSMA：载波监听、多点接入(逻辑总)，分为1坚持，非坚持，p坚持。1坚持是忙了还在监听，空了就发。非坚持是忙了随机等会监听，空了就发。p坚持是忙了随机等会再监听，空了p概率发送。</p>
+</li>
+<li><p>轮询：轮流(3个缺点)，令牌传递协议。令牌：1过程 2缺陷 令牌开销；等待；单点故障 3应用 令牌环网-逻辑环，物理星；负载重和通信大的。节点在令牌后加上数据，修改令牌为忙，每个节点看到接收方不是自己则传给下一个，直到回到发送方，发送方发现数据正确，则说明发送成功。</p>
+</li>
+<li><p>CSMACD：总线型的以太网 有线。半双工网络。边发送边监听，电压检测。但是由于传播时延还是会冲突。争用期2*传播时延τ。重传：二进制指数退避重传算法(重传上限16次)。最小帧长：为了碰撞及时地被叫停–帧 的 传输时延至少2τ–以太网64B。</p>
+</li>
+<li><p>CSMACA：无线。先听后发，载波能量以及混合检测。无线局域网中无法全方位检测、隐蔽站问题，我发给b的时候不知道c发不发给b。– 检测空闲，a先发rts(包括接收方、发送方地址以及下一份数据持续发送的时间)，b接收端收到返回cts。c收不到b的cts，则不发了。a收到cts后，开始发送数据并预约信道(告诉其他人我要发送多久)，b收到数据后crc检验然后再发ack给a。a收到ack继续发下一帧，没有则重传(二进制指数退避)。</p>
+</li>
+<li><p>局域网：网络拓扑(星、总线、环、树) 以太网则是逻辑上总线型 ；传输介质：有线无线；根据介质访问控制，分为以太网(802.3 将数据链路分为了LLC和MAC两个子层，LLC主要为上面的网络层服务 比如建立确认连接的等，MAC主要帧同步之类)、令牌环网、FDDI、ATM、无线局域网(WLAN 802.11)。wifi是WLAN的一种应用。802.5令牌环、802.8光纤…</p>
+</li>
+<li><p>以太网：CSMACD，基带总线，无连接不确认(以太网提供的服务是不可靠的交付，即尽最大努力的交付。当目的站收到有差错的数据帧时就丢弃此帧，其他什么也不做。差错的纠正和重传由高层来决定。)，无差错接收，但不可靠，物理星逻辑总，</p>
+</li>
+<li><p>10baseT：基带、双绞线UTP、10Mb/s、物理星逻辑总、每段双绞线最长100m、csmacd有冲突、曼切斯特编码</p>
+</li>
+<li><p>适配器–网卡，每个网卡有mac地址，全球唯一，48位 – 前24位代表厂家 ieee确定 6个16进制数表示，在网卡的rom上有</p>
+</li>
+<li><p>以太网的MAC帧：前同步码7B + 帧定界符1B + <strong>以太网MAC帧 （源地址6B + 目的地址6B + 类型2B + 数据 + FCS4B）–这个是mac层</strong> = 物理层  数据46B-1500B</p>
+</li>
+<li><p>高速以太网：大于100M就是高速。全双工时候，用的是交换机，隔离了冲突域，无冲突。光纤上1g or  10g。</p>
+</li>
+<li><p>无线局域网：802.11、MAC帧头格式：分为四种(to ap–BSSID SA DA,from ap–DA BSSID SA,wds–RA TA DA SA,ibss–DA SA BSSID) 、每个ap站点相连的为一个基本服务集BSS,多个BSS构成ESS，需要一个分配系统DS–将所有的ap接入到有线的线缆中，将有线和无线结合。自组织的网络即把所有的主机安排在同一个网段….所有主机之间直接通信，无固定基础设施(DS或者有线)</p>
+</li>
+<li><p>广域网：分组交换技术，多个局域网组件而成，链路层设备交换机互联，(局域网只覆盖物理层和链路层，广域网还有网络层–路由器)，广域网强调资源共享</p>
+</li>
+<li><p>ppp：只支持全双工，封装帧、透明传输(字符填充法 转义字符)但是不需要序号纠错、不需要流量控制，简单差错检测，支持多种ip网络层协议，数据部分最大长度MTU，压缩，IP地址协商… 三个部分：1LCP身份验证2 NCP建立逻辑连接以支持各种网络层协议 3将ip数据报封装到串行链路。面向字节</p>
+</li>
+<li><p>HDLC：只支持全双工，不属于tcpip，面相比特，0比特插入法(51插入0)的透明传输，crc，有编号有确认 可靠，不纠错，主站、从站、复合站，三种数据操作方式：正常响应(主站同意从才能发)、异步平衡(每个复合站都可以发 地位平等)、异步响应(从站无需同意)，三种帧类型：无监息 帧</p>
+</li>
+<li><p>链路层设备：物理层：集线器(集线器相连的任何两个设备之间有通信、其他都不能通信)、主干集线器(冲突域)、光纤调制器(距离)，链路层：网桥or交换机(将以太网连接并根据mac地址进行过滤 分隔冲突域)。物理层虽然解决了距离问题，但是导致冲突域扩大。</p>
+</li>
+<li><p>网桥：透明网桥和源路由网桥。透明网桥通过自学习算法来填网桥的转发表，转发表即为主机和网桥接口之间的对应。源路由则是，发送方在帧首部加入 路由最少/时间最少 的 详细路由信息。交换机分为：直通式(查完6B的mac目的地址就直接转发)和存储转发式交换机(高速缓存中存放帧并检查是否正确，错误则丢弃)。交换机就是多接口的网桥。</p>
+</li>
+<li><p>冲突域和广播域：冲突域中同一时间只有一台设备才能发送数据。广播域是，网络中能接收到广播帧的所有设备集合。网络层设备都可以隔离，链路只能隔离冲突。</p>
+</li>
+</ol>
+<br>
+
+<br>
+
+<h4 id="网络层"><a href="#网络层" class="headerlink" title="网络层"></a>网络层</h4><ol>
+<li><p>功能 ： 把分组从源传到目的，单位是数据报。1路由和分组转发2异构网络互联3拥塞控制(闭环和开环两种控制方式)</p>
+</li>
+<li><p>数据交换方式：首先，为什么需要数据交换？(为了各个节点之间的通信，建立的链路不能过于复杂也需要远距离，就需要交换网络里的交换设备完成交换)。类别：电路交换、报文交换、数据报交换(分组交换)。电路：建立连接后通信。报文：先存储，等链路空闲后转发。分组交换：将报文分组。传送数据大且传送时间远远大于呼叫则选择电路交换。后两者都有存储转发技术。</p>
+</li>
+<li><p>数据报和虚电路：虚电路号，路由器记录虚电路号的转发接口，过程：建立连接、发数据、释放，保证有序到达。</p>
+</li>
+<li><p>路由算法：路由表(目的网络ip地址、子网掩码、下一跳ip地址、接口)。为了找到最佳路由而使用的算法，有两种分类：静态路由算法(非自适应，手动配置路由信息)、动态算法(路由器间彼此交换信息)。动态分为：全局性(链路状态路由算法–掌握完整的网络拓扑和链路费用信息)和分散性(距离向量算法–只掌握物理相邻的邻居以及链路费用)。OSPF 、RIP</p>
+</li>
+<li><p>分层次的路由选择协议：AS自治系统内的路由协议在其他AS是透明的。只要AS内的路由器都用本AS内的路由协议，并确定好和其他AS之间的路由方式。分为两类：内部网关协议IGP(AS内，OSPF / RIP)以及外部网关协议EGP(AS间，BGP-4)。</p>
+</li>
+<li><p>ip数据报格式</p>
+<p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/ip%E6%95%B0%E6%8D%AE%E6%8A%A5.png" alt="ip数据报"></p>
+<p>ip数据报分为首部和数据部分(TCP/UDP段)。首部又分为固定部分和可变部分。固定<strong>20B</strong>。首部长度最小为0101(5)，单位是4B。总长度是包含<strong>数据部分的总长，单位1B，即总长度最大2^16-1</strong>，一般不会这么大，一般满足MTU。用于<strong>分组的”标识、标志、片偏移“</strong>。生存时间是ip分组在网络中的寿命，防止无限制地兜圈子。协议指数据部分所使用的协议，(即上层的协议)，如<strong>TCP – 6 ,UDP – 17</strong>。首部检验和–质检验首部。源地址、目的地址都是32bit。可变部分为：可选字段、填充字段。</p>
+</li>
+<li><p>ip数据报分片：以太网中MTU是1500B，其中至少20B为首部。首部：同一个报文的分片都有同样的标识；标志DF有0或者1，0是允许分片；最低位MF，0是最后一片/无分片；片偏移能够确定分组在整个数据报的哪个位置开始的，单位为8B。</p>
+</li>
+<li><p>一种八片首饰，总长度是1B，片偏移是8B，首部长度单位是4B。</p>
+</li>
+<li><p>ipv4地址</p>
+<ol>
+<li><p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E5%88%86%E7%B1%BBip%E5%9C%B0%E5%9D%80.png" alt="分类ip地址"></p>
+<p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%89%B9%E6%AE%8Aip%E5%9C%B0%E5%9D%80.png" alt="特殊ip地址"></p>
+</li>
+</ol>
+</li>
+<li><p>网络地址转换NAT：私有ip地址(A：10.0.0.0-10.255.255.255;B：172.16.0.0-172.31.255.255;C：192.168.0.0-192.168.255.255)网段个数分别为1 16 256个。如何实现私有ip地址和外部互联网主机的通信？安装NAT软件，NAT路由器会为本地网各个主机生成一个全球的地址代表，然后再分发给具体主机，转换表里表明外部的主机以及端口（这里的外部主机就是那个生成的代表地址），LAN表示本地网段里的主机ip和端口号。也就是在外部，各个内部网段的主机只是一个地址的不同端口。</p>
+</li>
+<li><p>子网划分，子网掩码</p>
+</li>
+<li><p>ARP：数据经过传输层分组以及网络层分片、加ip首部后，在数链层加上mac地址首部。每个主机有自己的ARP缓存，缓存本局域网中的ip对应的mac。如果ip不在本局域网中，则填入目的网关的mac地址。如果此时不知道目的ip的对应mac地址，则需要发一个广播ARP请求(包括源ip、目的ip、源mac地址)，目的ip主机收到后则 返回(本ip、本mac地址)。数链层加上mac后，加上FCS等，传给物理层，进行传输。ARP协议是自动进行的</p>
+</li>
+<li><p>DHCP：1主机广播DHCP发现报文(找到网络中的DHCP) 2DHCP服务器广播提供报文 3主机广播DHCP请求报文 4DHCP服务器返回广播DHCP确认报文。</p>
+</li>
+<li><p>ICMP：差错报告报文，几种类型：终点不可达、源点抑制、ttl=0、首部字段错误(参数问题)、重定向(让源主机知道下次更好的路由)。ICMP的前8个字节+IP数据报首部+IP数据报数据部分前8B = ICMP差错报告报文。再加上IP数据报的首部，构成一个ICMP报文的IP数据报。不发送ICMP：ICMP出错不发ICMP；第一个分片的数据报后的所有数据报片都不发ICMP；组播(1对多)地址的不发；特殊地址(环回等)不发。应用：比如ping（用了ICMP询问报文），用于回送请求和回答报文；时间戳请求和回答报文等。Traceroute(用了ICMP时间超过差错报文)，来跟踪一个分组从源到终点的路径(方法是将ttl设为不同的值，那么到了中间的路由器，就会返回ttl=0的差错报告报文，就能知道路由过程)。</p>
+</li>
+<li><p>ipv6数据报格式</p>
+<p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/ipv6%E6%95%B0%E6%8D%AE%E6%8A%A5.png" alt="ipv6数据报"></p>
+<p>流是用于确定一些数据报是同一个流的。下一个首部：下一个扩展首部或者上层协议首部。有效载荷：扩展首部+数据。跳数限制：ttl。源地址和目的地址都是128bit。v6的首部是固定的40B。可变的放在扩展里。</p>
+</li>
+<li><p>ipv4和ipv6的区别：地址位数的扩展；没有了首部校验；将可选移到扩展首部里；ipv6首部长度是8B倍数，而v4是4B的整数倍；v6即插即用，不需要DHCP协议；v6只能在主机分片，如果在后面的链路层有MTU的限制，路由器只能将此v6报文丢弃，并且发送一个ICMPv6的分组过大报文；v6有资源的预分配；没有了协议和总长度字段，多了下一个首部和有效载荷长度字段；v6没有了服务类型字段。</p>
+</li>
+<li><p>ipv6表示：一般冒号十六进制，压缩：删除0，每一组至少有一个数字表示；或者一连串的0用冒号取代 – 只能出现一次两个冒号。</p>
+</li>
+<li><p>ipv6的类型： 单播–目的or源、多播–目的地址、任播 – 目的(对多台主机里最近的一台主机通信)。</p>
+</li>
+<li><p>如何从ipv4迁移到ipv6：双栈协议(同时启用)、隧道协议(重新封装)。</p>
+</li>
+<li><p>RIP协议：适用于小互联网，16表示网络不可达，最多包含15个路由器。每30s，只和相邻 路由器交换自己的路由表。180s，没有信息来则更新自己路由表：这个邻居死了。在拥有所有信息后，用距离向量算法得到 距离和下一跳。</p>
+</li>
+<li><p>RIP报文</p>
+<p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/RIP%E6%8A%A5%E6%96%87.png" alt="RIP报文"></p>
+<p>是应用层协议，使用UDP传输数据。将RIP的首部和路由部分作为UDP的数据，加上UDP的首部，再加上IP首部，构成ip数据报。其中，路由部分最多包含25个路由信息，所以更多路由需要多发几个报文。</p>
+</li>
+<li></li>
+<li></li>
+<li></li>
+</ol>
+]]></content>
+      <categories>
+        <category>计算机</category>
+      </categories>
+      <tags>
+        <tag>计算机</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>说服的技巧</title>
+    <url>/2021/05/25/%E8%AF%B4%E6%9C%8D%E7%9A%84%E6%8A%80%E5%B7%A7/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>贝叶斯网络</title>
@@ -4578,11 +5426,72 @@
       </tags>
   </entry>
   <entry>
+    <title>通货膨胀-下</title>
+    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
+    <content><![CDATA[<p><strong>摘要</strong></p>
+<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
+<p><br> <br></p>
+<h1 id="谨记"><a href="#谨记" class="headerlink" title="谨记"></a>谨记</h1><p><strong>只是看了一本书，必然受作者局限。作者有误，不要认为天经地义。勿从众。勿从威。</strong></p>
+<p><br> <br></p>
+<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><span id="more"></span>
+<ul>
+<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
+</li>
+<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
+</li>
+<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
+</li>
+<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
+</li>
+</ul>
+<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
+<li>微观</li>
+</ul>
+<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
+<ul>
+<li>宏观<br>  1、对于产出的影响<ul>
+<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
+<li>促退论:通胀造成微观效率损失;</li>
+<li>中性论:“二分法”</li>
+</ul>
+</li>
+</ul>
+<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
+<p>3、对利率、汇率等重要经济变量的影响</p>
+<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
+<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
+<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
+<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
+<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
+</ul>
+<br>
+而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
+
+
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
+<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
+<p>3、价格的绝对值无意义，房价回不到过去。</p>
+<p>4、一般来说，批发价上涨幅度高于零售。</p>
+]]></content>
+      <categories>
+        <category>货银</category>
+        <category>货币政策</category>
+      </categories>
+      <tags>
+        <tag>货银</tag>
+        <tag>货币政策</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>通货膨胀</title>
     <url>/2021/02/17/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80/</url>
     <content><![CDATA[<p><br> <br></p>
 <p><strong>摘要</strong></p>
 <p>通胀的基础知识、历史</p>
+<p><br> <br></p>
+<h1 id="谨记"><a href="#谨记" class="headerlink" title="谨记"></a>谨记</h1><p><strong>只是看了一本书，必然受作者局限。作者有误，不要认为天经地义。勿从众。勿从威。</strong></p>
+<p><br> <br></p>
 <h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><h4 id="古罗马的铸币成色下降"><a href="#古罗马的铸币成色下降" class="headerlink" title="古罗马的铸币成色下降"></a>古罗马的铸币成色下降</h4><p>当铸币被减少成色时，首先感知的是发行者，最终才是到物价上。最终感知的人的财富被转移到发行者手里。在刚减少、甚至未减少前感知到时，购入资产–窖藏黄金。此时流通的多为劣币。随着铸币数量增多，价值越跌。而执政者采取的冻结物价的措施，结果却是，规则越来越细、维护规则而设立的官员数量越来越多，触犯规则而死亡的人越来越多，市场越发萧条、充斥恐惧。</p>
 <span id="more"></span>
 <p>=&gt;<br>无法用立法(价格控制)取代经济规律。通胀是更深问题的表象。</p>
@@ -4670,87 +5579,7 @@
 </ul>
 <p>=&gt;<br>惊人的数字让人记忆犹新。德国现在仍会谨慎。</p>
 <h4 id="俄国计划经济"><a href="#俄国计划经济" class="headerlink" title="俄国计划经济"></a>俄国计划经济</h4><p>todo                    </p>
-<br>
-]]></content>
-      <categories>
-        <category>货银</category>
-        <category>货币政策</category>
-      </categories>
-      <tags>
-        <tag>货银</tag>
-        <tag>货币政策</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>笛卡尔积</title>
-    <url>/2021/03/11/%E9%9B%86%E5%90%88%E7%9A%84%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF/</url>
-    <content><![CDATA[<br>
-<br>
-
-
-<h2 id="笛卡尔积"><a href="#笛卡尔积" class="headerlink" title="笛卡尔积"></a>笛卡尔积</h2><span id="more"></span>
-
-<br>
-
-
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static String cartesianProduct(final String[][] inputs) &#123;</span><br><span class="line">        if (inputs &#x3D;&#x3D; null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        final StringBuilder sb &#x3D; new StringBuilder();</span><br><span class="line">        </span><br><span class="line">        product(&quot;&quot;, 0, inputs, sb);</span><br><span class="line">        </span><br><span class="line">        return sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">public void product(String prefix,int index, String[][] input,StringBuilder sb)&#123;</span><br><span class="line">        for (int i &#x3D; 0; i &lt; input[index].length; i++) &#123;</span><br><span class="line">            if (index &gt;&#x3D; input.length - 1) &#123;</span><br><span class="line">                sb.append(prefix + input[index][i]);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                product(prefix + input[index][i], index + 1, input, sb);</span><br><span class="line">            &#125;</span><br><span class="line">            if (i &lt; input[index].length - 1) &#123;</span><br><span class="line">                sb.append(&quot;, &quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>两个变量关键prefix和index，作为递归方法的参数时进行变化<code>prefix + input[index][i]</code>和<code>index+1</code>。</p>
-<p>从数列角度看，sb(j) = sb(j-1) + charAt(i) ,charAt(i)需要一个for循环即<code>for (int i = 0; i &lt; input[index].length; i++)</code>。sb(j-1)为<code>prefix</code>，下一步需要<code>prefix + input[index][i]</code>；其中<code>j-1</code>为<code>index</code>，进入下一步需要<code>index+1</code>。</p>
-]]></content>
-      <categories>
-        <category>leetcode</category>
-      </categories>
-      <tags>
-        <tag>leetcode</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>通货膨胀-下</title>
-    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
-    <content><![CDATA[<p><strong>摘要</strong></p>
-<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
-<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><span id="more"></span>
-<ul>
-<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
-</li>
-<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
-</li>
-<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
-</li>
-<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
-</li>
-</ul>
-<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
-<li>微观</li>
-</ul>
-<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
-<ul>
-<li>宏观<br>1、对于产出的影响<ul>
-<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
-<li>促退论:通胀造成微观效率损失;</li>
-<li>中性论:“二分法”</li>
-</ul>
-</li>
-</ul>
-<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
-<p>3、对利率、汇率等重要经济变量的影响</p>
-<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
-<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
-<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
-<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
-<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
-</ul>
-<br>
-而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
-
-
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
-<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
-<p>3、价格的绝对值无意义，房价回不到过去。</p>
-<p>4、一般来说，批发价上涨幅度高于零售。</p>
-]]></content>
+<br>]]></content>
       <categories>
         <category>货银</category>
         <category>货币政策</category>
@@ -4786,73 +5615,58 @@
       </tags>
   </entry>
   <entry>
-    <title>零散问题repo</title>
-    <url>/2021/04/05/%E9%9B%B6%E6%95%A3%E9%97%AE%E9%A2%98repo/</url>
-    <content><![CDATA[<p><br> <br></p>
-<p><strong>无中心、碎片知识点</strong></p>
-<span id="more"></span>
-
-
-<ul>
-<li><p>get post</p>
-<ul>
-<li>GET请求是通过URL直接请求数据，而POST请求是放在请求头中</li>
-<li>GET提交有数据大小的限制，POST请求在HTTP协议中也没有做说明，一般来说是没有设置限制的，但是实际上浏览器也有默认值</li>
-<li>登录操作的时候，尽量使用HTTPS请求，安全性更好</li>
-</ul>
-</li>
-<li><p>gmv gtv</p>
-<ul>
-<li>总销售额，总交易额</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li><p>感受野<br>如果两个3<em>3和一个5</em>5对原始输入后卷积都得到了1<em>1的输出<br>那么哪个filter好呢？<br>从计算量和参数个数来看，选择多层卷积，而每个卷积为3</em>3的更好。</p>
-</li>
-<li></li>
-</ul>
-]]></content>
-      <categories>
-        <category>零散知识点</category>
-      </categories>
-      <tags>
-        <tag>零散知识点</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>行为分析</title>
-    <url>/2021/06/01/%E8%A1%8C%E4%B8%BA%E5%88%86%E6%9E%90/</url>
+    <title>长期价值</title>
+    <url>/2021/06/25/%E9%95%BF%E6%9C%9F%E4%BB%B7%E5%80%BC/</url>
     <content><![CDATA[<br>
 
 <br>
 
-<p>言行之蠢</p>
+<p>如果以供需平衡来看待现象，很多时候更容易看到本质。</p>
 <span id="more"></span>
 
-<p>1、”只此一次，以后不再。不用担心***“  –&gt; 自欺欺人，借口</p>
-<p>2、”我先去**，就很好了。“ – 环境不行。”再去那里吧，万一被占了呢，嗯不会的。“ –被占了。”太烧钱，不去了，不想回去“ –来回走。 –&gt;“钱” 和 矛盾</p>
-<p>3、“我再看会。看这个有什么用呢，做这个没用啊。”  –&gt;消极</p>
-<p>4、“唉，不过是总结，又会忘，有什么意义呢。”  –&gt;消极</p>
-<p>5、“算了，退掉吧。我担心*** ”  –&gt;矛盾</p>
-<p>6、“我就是想舒服下。看看书，想想事，享受美… 能大量消化知识”  –&gt;自欺欺人 ，不计后果，不考虑代价</p>
-<p>7、”我可以控制，这样才合理…“</p>
-<p>8、”没意义，一直在浪费时间做没意义的事情“</p>
-<p>9、”又耽误了… “</p>
+<p>比如，为什么越贪婪，在当今这个市场中更受追捧。即所谓强势文化。本质是，贪婪是用来抵抗非理性的。因为恐惧的人多，大多人在追随，所以贪婪更稀缺。</p>
+<p>这里隐藏的逻辑是，理性是最终目的。这是当然。</p>
+<p>理性的本质是避免受干扰。我们每个人都是有限理性，并且由于惯性，很容易受他人、他事干扰，甚至于会受”情商“干扰。有些人的惯性就是不受干扰。他们属于幸运的。</p>
 <br>
 
-<p>会重复一遍又一遍。太阳升起又是一天，就又来一遍。</p>
-<hr>
-<p>1、找到“疏漏”，精准，而不是东榔头西棒槌地尝试。精准需要背后有思量。</p>
-<p>2、找到症药，“ trick”，解决问题。</p>
-<p>3、“缺乏信心，才导致去寻求其他欲望满足，而不选择固守。” </p>
-<p>4、更多情况，只是想“拥有”外物，而并非真的“需求”，而当你真的想在解决问题时，其他是没有什么多余欲望的。</p>
+<p>避免干扰的有效途径，即信念。对自己认知的高度清醒地自信和坚持。遵循自己的认知，继而调整。做到有序，而非一口一个胖子，各种角度都要兼得，只会显得为人冗长。</p>
+<p>信念塑造行为模式。而行为模式最终导向各种生态，自我的生态和自我与他者形成的生态。人的心理组成，无非贪婪和恐惧的平衡。越受恐惧支配，则越发减少能量消耗，信念度也随之降低。</p>
+<p>那些硬刚的人，失败也刚的人，只要不是愚蠢，那便是有大智慧的人。</p>
+<p>理性和信念，这便构成一个良性循环。一般有了这个循环，就可以持续。</p>
+<br>
+
+<p>基本概念和初心一样，是需要不断被重复，才能形成惯性的。这就启迪在实践上，程序性上，要做的则是重复和提醒。结合判断。这种理论到实干的沟壑不给打通，永远只是酒囊饭袋。人就是在干。</p>
+<p>不要以为批判看待事物就是最佳的。既然你是批判的，那你就应该批判地看待批判。达到一个新的自我认知，并且认可自由。认可自由的人，也是有责任意识的人。否则就是在要求兼得。批判不是要求兼得。</p>
+<br>
+
+<p>理性、信念或者说初心，都是自我表达。有的人的表达就是感性。</p>
+<p>每个人都在学习自我表达。大多数人凭着惯性展示自己。戒掉不好的惯性，第一要就是，慢。然后再快。不慢，永远快不起来。</p>
+<p>追求价值的第一要，就是放弃眼前利得，因为价值的属性本来就是长期。价值就是要经得起沉淀。</p>
+<br>
+
+<p>着眼于长期价值，即找到不患而无位次之处。考虑长远的事情，更容易得到合理的、可预期的结果。确定性远远比更大更快重要。</p>
+<br>
+
+<p>整体的逻辑是：</p>
+<p>首先要有责任感，对认知有自信，这样才会坚定，然后宁慢勿急，保证理性的环境，在理性的状态下，考虑长期，根据知识，做出相对合理的判断，每一个小判断构成一各个上上下下的波动轨迹，日久，就拉开了趋势性的倍数差距。细节里都需要对此初心进行秉持。</p>
+<p>这个是大范围的。</p>
+<br>
+
+<p>小范围的，则是，具体的长期价值，如何着眼的？</p>
+<p>搞清楚你背后的逻辑、看好你自己的那个篮子，严格要求逻辑清楚、并且能够确定边界和异常。</p>
+<br>
+
+<p>和几十年前所不同的在于，之前拉开差距的只是有无，而现在，信息便捷，摩擦成本小，套利机会少，更多拉开差距的是深刻和广泛性。以及性格。</p>
+<br>
+
+<p>长期思维是很大的区别之处。包括对基本概念的理解。</p>
+<p>抓住了长远，就能立足，而获得长久的不败，而非短期的冲高。</p>
 ]]></content>
       <categories>
-        <category>读后感</category>
+        <category>随笔</category>
       </categories>
       <tags>
-        <tag>读后感</tag>
+        <tag>随笔</tag>
       </tags>
   </entry>
   <entry>
@@ -4887,6 +5701,7 @@
 <p>!信号。而不是具体内容更关键</p>
 <p>!大多抄来抄去</p>
 <p>!写时思考</p>
+<hr>
 <br>
 
 <p>2、零碎</p>
@@ -4905,14 +5720,24 @@
 <p>测试框架、过程监控</p>
 <br>
 
-
-
+<hr>
 <p>3、tips</p>
 <p>理性 信心 深度– 体现在细节 谦卑 精炼。慢慢地锤炼。</p>
 <p>先预演、设计、想象、框架性、多角度、多方案，再行动（思考后看代码看资料等）。即计划（保证专注）与纪律（保证发力）。有所放弃。</p>
 <p>方法论：拆解、温故、问题盘旋推敲 – 追求本质 、流畅地本质 口述逻辑链条、悬空观察、一次性高质量-不要修补、琐碎收束到体系中、陷入practice–case study、框架性思维问题、好工具事半功倍、语言或者事件背后的信号。</p>
 <p>思考的角度可以带来很多不一样的感受。关注在运营、产品、变现、技术、手段、模式… …</p>
-<p>进一步：<br>复盘细节与case、框架性与角度 –( 细节的上升 问题的抽象)、三思而行、悬空与慢、质量与效率、工具与程序与规范的重要性。</p>
+<hr>
+<p>进一步：</p>
+<br>
+
+<p><strong>复盘细节与case、框架性与角度 –( 细节的上升 问题的抽象)、三思而行、悬空与慢、质量与效率、工具与程序与规范的重要性。</strong></p>
+<br>
+
+<blockquote>
+<p>Case\ trick \ abstract \ detached \ one-time success\ tools \ steps \ time \  …</p>
+</blockquote>
+<br>
+
 <p>记忆：</p>
 <p>为了本质和质量，可以牺牲效率。但不能无节制。</p>
 <p>本质即抽象、维度角度、细节等的层次。</p>
@@ -4920,12 +5745,162 @@
 <p>金融的10年后，会更加精彩。算法就没有10年后了么。需要对金融、互联网、产品、运营以及技术都有一定自己的理解和框架。世界是丰富的。如果是金融，从事研究、交易，一样的学习路线，一样去体悟。有一定的胜率。能够把握住精髓么。金融科班的含金量和算法，都高。都有价值和背书。都可以生成价值。</p>
 <p>国家国际都缺乏天才。天才尚且无法解决一些问题。理论的局限性，还需要时间发展。</p>
 <p>落脚到现实。还是不要选择从头开始。时间来不及。有余力，再去做吧。</p>
+<br>
+
+
+
+<h3 id="0625"><a href="#0625" class="headerlink" title="0625"></a>0625</h3><p>初心：</p>
+<p>1、和别人沟通，考虑这几点：逻辑是否清晰、表达是否扼要、是否本质。</p>
+<p>2、开始一件事情：短期目的是、长期目的是</p>
+<p>3、别人无法帮你决断。相信自己。并且看明白别人的优劣。</p>
+<p>我能做的，更深刻提升我的处境的，有哪些。1搞清楚几个项目的结构和代码、努力去重构；2考研的事情；3投资回报–书</p>
+<p>而我更多的时间花费在消费、琐事。我没有找到自己的重心。受”恐惧“桎梏。本质上，对金钱和地位的渴望，都来自于恐惧和贪婪。而对问题的解决、业务的精进、真理的探求、原因本质的追思，却都是过程里，需要去享受的。</p>
+<br>
+
+<p>核心在我如何找到自己更惬意轻松的思考状态。书写是的。但是与人沟通无法进行书写。</p>
+<br>
+
+<h4 id="0630"><a href="#0630" class="headerlink" title="0630"></a>0630</h4><p>1、价值的识别</p>
+<p>2、对记忆的提取，才能强化</p>
+<p>3、我能感受到爷爷还是有感觉和思维的，只是开始对身体没有了控制能力。即使生活在一个屋檐下，也难以产生强烈的感情。爱。因爱而生的动力，才会让你一直想去床边陪伴。而我只是逃避。谁真的爱谁。是爱恐惧的抚慰还是爱那个人。</p>
+<p>4、对言辞激动的最大化解，就是不要陷入，高一个阶级的胸怀和礼貌来对待，客观地描述和解释问题。不要遮掩。同样，最坏的情况，就是自己被带入。而情绪和思绪是别人供给的情况下，就陷入了很大程度的被动。</p>
+<p>5、你不懂电动车，买什么byd</p>
+<p>6、风口、创新和品味、开放、表达、长期主义、品牌</p>
+<p>雷军(人情味 文化 低调 顺势而为 风口)、乔布斯(品味 抓住机会 坚持做 产品的文化 品牌)、段永平(有想法讨论的时候 他很直接，并且很接地气，没有空的 考虑价值的部分 和雷军不太一样的风格 )、曹德旺(很实在 ，出轨也坦然地讲，毕竟的确是人生感受，没有什么可忌讳的)、巴菲特(沟通 – 把你的想法都表达出来，不必要留着 ； 对身体和大脑 物尽其用；选择优秀的人结婚 – 都很现实的价值观，爱优秀的人总是更好的； 从小公司入手、没人能够告诉你)、张磊(重仓中国 长期主义理念–初心的坚持(王兴)即足够专注、持续学习)</p>
+<p>7、发现巴菲特非常能够了解死人的思维。</p>
+<p>8、穷人，输的都是心态</p>
+<p>9、每年10%，持续10年，不容易。但是一次2倍，持续2次，就 远 高于10年的。勤奋固然重要，但是功夫都在之外。风口和顺势的眼光，更加重要。</p>
+<p>10、李永乐的小知识课堂</p>
+<ol>
+<li><p>地球半径测量：关键在于引力常数 – 实验</p>
+</li>
+<li><p>基尼系数：对角线和曲线面积 比上 洛伦兹曲线下的面积。香港&gt;大陆&gt;台湾，台湾最低，相对公平 。这个可以和ck的1% 的 1%联系。100w美金的已经是世界的1%。要知道1%并不是尖子生，是近7000w人。其中，高于500w美金的，就是70w人。</p>
+</li>
+<li><p>北京摇号：数学上算政策给的几率。</p>
+</li>
+<li><p>买股票的为什么总是输：</p>
+<ol>
+<li><p>可以出正面和反面，各自采取策略。概率上看正+正，反+反和正+反的概率是一样的。但是给的效果不一样，即正正3，反反1，正反-2，这样的话，就可以控制期望了。所以期望比概率更重要。</p>
+</li>
+<li><p>这个和赔率的概念是相近的，即高盈亏比、低胜率，收益会高的，可以接收盈亏各半，但是只要控制回撤即可。这是有数学逻辑的：信仰价格投机+截断亏损+让利润奔跑。</p>
+</li>
+<li><p>那么庄家是可以拉升和压低的，即正或者反，而散户可以买多也可以卖空(相当于空仓吧)，即正和反。拉升和做多，则散户收益为3，拉低和做空则收益为1，反之则输-2。立论是，庄家可以控制期望。</p>
+</li>
+<li><p>这个是博弈论。首先散户是不知道具体数值的，就很难猜测到庄家的策略。</p>
+</li>
+<li><p>没有期望大于0的理论上证明么？ – 这个分析技巧还是应该具体分析的。有漏洞…</p>
+</li>
+</ol>
+</li>
+<li><p>贫穷的本质：”下班了就想着满足下疲惫的自己“，就是穷人思维了。毕竟富人都是享受工作的。</p>
+</li>
+<li><p>虎门大桥的抖动：物理上解释。</p>
+</li>
+<li><p>退税：数学上算政策给的几率。</p>
+</li>
+<li><p>最有钱的公司 以及泡沫：最高都是7w亿级别的。全民财富都在这里吧。当时人们不懂。多了几次，到现代互联网普及就懂了。但是这些概念 比如国债转股、股价上升到泡沫破裂，又被包装起来，重新售卖。都是从被收割到收割。</p>
+</li>
+<li><p>切尔诺贝利:</p>
+</li>
+<li><p>宇称不守恒：实验挺有意思的。但是没深究。</p>
+</li>
+<li><p>墨菲定律:</p>
+</li>
+<li><p>粒子对撞机:</p>
+</li>
+</ol>
+<p>11、youtube</p>
+<p>基本锁定在 文昭、破空、ck go、缠变、chemath？、天狗、温相…也是头部。</p>
+<p>一些历史的、投资的、政治的。</p>
+<p>12、b的季度会</p>
+<p>13、不同博客，不同文章，不同的人的断片，或者只言片语的，或者十几秒的视频，或者几个问答的采访。都可以给以灵感和启发。生活处处是启发。无字之书，时刻在无言地谆谆教诲你。这些散落的发光点和思路，难以被收纳，难以形成记忆和直觉，没有能够及时地被提取。无字之书需要梳理，但是如果大部分都沉浸在对此的分析之中，难免纷杂。因为没有框架。并且各自不够有逻辑地被融合。</p>
+<p>如果能将这些点点滴滴融入到已有的框架里，更能够被提取。</p>
+<p>14、林园</p>
+<p>15、张磊、段永平</p>
+<p>16、马男</p>
+<p>​    影视行业：PE PB ，增长预期、周期性、技术壁垒、优质公司韧性、类刚需产品的长期复苏逻辑、</p>
+<p>17、招财大牛猫</p>
+<p>18、清华游资女</p>
+<br>
+
+
+
+<h4 id="0708"><a href="#0708" class="headerlink" title="0708"></a>0708</h4><p>爷爷离开了。最后的阶段我也没有做点什么。没有陪伴，甚至没有电话，总觉得还有机会。</p>
+<p>我以为自己会悲痛。然而没有。还是在追寻快乐。没有什么阻挡对快感的追求。有种抓紧时间的感觉。抓紧时间感受和热爱。</p>
+<p>想离婚了。初心是什么呢。我贪恋的是陪伴和港湾，而不是这个人么。我心疼他累，心疼他在张总面前的委屈，心疼他为我做的一切。但是我还是不满足。不满足于他认知的一些空白，不满足于他不能再带给我见识和思想的冲击。不满足于，他对我而言似乎只是为了避免孤独。不满足于他时常只考虑我，而不够果断。不满足于激情的程度。我想要更多。</p>
+<p>比如，他能够更自信，更聪明，更直接。更有魅力。</p>
+<p>然而的确，我没有缺点么。为什么他能够包容。</p>
+<p>爷爷和我说的最多就是好好工作。我不记得更多教诲了。死亡的肉身，只是皮包骨，枯瘦地。</p>
+<p>大姑说爷爷前几个晚上，自己玩被子，玩很久，像个孩子。抓着大姑的手臂，把腿跷在大姑腿上。</p>
+<p>回家那天晚上还和大姑吵了起来。一句没有过脑子的话脱口而出。这是我的毛病。但是我道歉了，也是我没想到的，也是我自己的确做的太少了。爷爷为我做的，远远多于我为他所做的。大姑会在背后说不好听的话，但是我也能接受，毕竟我和那些人的交集几乎为零，而大姑在意她的形象也是好的。没什么坏处。</p>
+<p>是我太谦让了还是我没认识到利害。怪在没过脑子。</p>
+<p>时间过得太快了。而根本记不住什么，也没能滚雪球地让时间给自己带来沉淀。似乎是这样的。感知不到早上和明天，后天的变化。</p>
+<p>不要再继续这样消极没有激情的自己。</p>
 ]]></content>
       <categories>
-        <category>金融经济</category>
+        <category>随笔</category>
       </categories>
       <tags>
-        <tag>金融经济</tag>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>笛卡尔积</title>
+    <url>/2021/03/11/%E9%9B%86%E5%90%88%E7%9A%84%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+<h2 id="笛卡尔积"><a href="#笛卡尔积" class="headerlink" title="笛卡尔积"></a>笛卡尔积</h2><span id="more"></span>
+
+<br>
+
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static String cartesianProduct(final String[][] inputs) &#123;</span><br><span class="line">        if (inputs &#x3D;&#x3D; null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        final StringBuilder sb &#x3D; new StringBuilder();</span><br><span class="line">        </span><br><span class="line">        product(&quot;&quot;, 0, inputs, sb);</span><br><span class="line">        </span><br><span class="line">        return sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">public void product(String prefix,int index, String[][] input,StringBuilder sb)&#123;</span><br><span class="line">        for (int i &#x3D; 0; i &lt; input[index].length; i++) &#123;</span><br><span class="line">            if (index &gt;&#x3D; input.length - 1) &#123;</span><br><span class="line">                sb.append(prefix + input[index][i]);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                product(prefix + input[index][i], index + 1, input, sb);</span><br><span class="line">            &#125;</span><br><span class="line">            if (i &lt; input[index].length - 1) &#123;</span><br><span class="line">                sb.append(&quot;, &quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>两个变量关键prefix和index，作为递归方法的参数时进行变化<code>prefix + input[index][i]</code>和<code>index+1</code>。</p>
+<p>从数列角度看，sb(j) = sb(j-1) + charAt(i) ,charAt(i)需要一个for循环即<code>for (int i = 0; i &lt; input[index].length; i++)</code>。sb(j-1)为<code>prefix</code>，下一步需要<code>prefix + input[index][i]</code>；其中<code>j-1</code>为<code>index</code>，进入下一步需要<code>index+1</code>。</p>
+]]></content>
+      <categories>
+        <category>leetcode</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>零散问题repo</title>
+    <url>/2021/04/05/%E9%9B%B6%E6%95%A3%E9%97%AE%E9%A2%98repo/</url>
+    <content><![CDATA[<p><br> <br></p>
+<p><strong>无中心、碎片知识点</strong></p>
+<span id="more"></span>
+
+
+<ul>
+<li><p>get post</p>
+<ul>
+<li>GET请求是通过URL直接请求数据，而POST请求是放在请求头中</li>
+<li>GET提交有数据大小的限制，POST请求在HTTP协议中也没有做说明，一般来说是没有设置限制的，但是实际上浏览器也有默认值</li>
+<li>登录操作的时候，尽量使用HTTPS请求，安全性更好</li>
+</ul>
+</li>
+<li><p>gmv gtv</p>
+<ul>
+<li>总销售额，总交易额</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>感受野<br>如果两个3<em>3和一个5</em>5对原始输入后卷积都得到了1<em>1的输出<br>那么哪个filter好呢？<br>从计算量和参数个数来看，选择多层卷积，而每个卷积为3</em>3的更好。</li>
+<li></li>
+</ul>
+<p>更倾向于给你一个场景看你的思路，场景里你怎么分析<br>怎么挑出来好的样本、选择什么样子的模型<br>特征工程的做法–<br>ab背后的正交<br>特征管理的方案<br>知识图谱好的应用方式<br>模型选型，为啥用图模型<br>一维的卷积的加速<br>模型 的可解释性、业务上解释<br>长尾item<br>采样方式–正负样本的做法<br>实时模型<br>实时特征落地<br>adam优化器背后的优化，解决了什么问题<br>sgd有什么问题<br>你是如何调参的<br>图模型有什么弊端<br>xgb的特征重要性怎么算出来的<br>ab正交机制<br>gnn的输入 gnn的思路是？<br>文本的情感类别，比如 美食领域的正向还是负向 怎么判断<br>Self attention和普通attention的区别<br>多种transformer的架构、对比<br>cnn输入的如果是长文本 怎么处理<br>各种loss<br>图模型还有哪些<br>同构图和异构图的区别<br>vae的loss<br>分裂加速<br>Mmoe<br>Highway network<br>Bidaf<br>Elmo<br>esmm<br>逻辑回归的时候问一下odds的概念，<br>贝叶斯线性回归要是需要强制系数非负该怎么办，<br>核函数，relu函数是什么意思。<br>半监督学习或者时间序列<br>lasso，逻辑回归，非负矩阵分解，svm的目标函数<br>什么叫显著，什么叫p值，<br>rerank阶段的强化学习、多目标任务<br>tf-serving的搭建<br>推荐中多样性、头部问题<br>其他的排序模型、召回框架<br>召回更好的做法，优化思路<br>计算量（样本量、分类效果or打分效果、epoch、时间，在线学习设计）<br>各个场景推荐策略的区别<br>目的是什么。<br>CET<br>概率图的条件独立？<br>spark解决数据倾斜<br>widedeep，为什么需要wide+deep好处的解释<br>如何避免落入局部最优<br>约束方程怎么解 – y&gt;=0的条件下……<br>hmm具体内容<br>attention bert transformer<br>pytorch的常用函数整理<br>全连接层有什么作用？做一个图像识别的网络，可以不要全连接层吗？<br>机器学习训练误差由哪些构成；<br>BN层加在激活函数前与后效果有何不同；<br>如何判断异常点；<br>逻辑回归的分布函数；<br>逻辑回归的参数求解在优化方面属于什么类型；<br>seq-seq有哪些结构形式；<br>soft-attention与hard-attention的区别；<br>数据分类不均匀的话，要做哪些处理；<br>手写逻辑回归极大似然函数的数学推导；<br>Glove与word2vec的比较；<br>PageRank是怎么回事；<br>在resnet中，什么是残差，有何意义？<br>在GEMM中，如何优化缓存？<br>在ARM平台上，SIMD(单指令多数据)介绍一下大概？<br>是否了解其他平台的SIMD指令？intel的AVX和ARM NEON有何不同？<br>在实现一个SIMD程序时，应该注意哪些方面？如何判断一个算法适不适合SIMD加速？<br>如何证明，SIMD已经达到了最优化性能？<br>在大量的SIMD指令中，如何选择性能最佳的指令？<br>实现memcpy.<br>如何在main函数之外之行一个函数。<br>这样声明变量有没有问题：int a[10000000].<br>static修饰符有什么用？如果不加会出现什么后果？<br>常见的语言模型；<br>文本表达方法；<br>新词如何发现；<br>句子中关键词如何提取（tfidf，textrank）；<br>如何计算两个句子相似度；<br>讲一下Bert；讲一下fastText；<br>文本处理常用步骤；<br>分词分得不准确的话，该如何处理。<br>DenseNet的网络结构？与全连接有何不同？<br>简历项目中网络用了多少层FeatureMap，每层面积？<br>FeatureMap提取了哪些特征？<br>词向量怎么训练的？<br>word2vec两种常用模式？<br>词向量后面的Softmax如何优化？<br>CBOW和Skipgram哪个更适合采用？（大规模训练的话Skipgram要更好）<br>Glove的原理？（简历上有体现）<br>讲一下fastText（简历上有体现），说一下与word2vec的联系；<br>Huffman树；<br>如果用seq-seq进行embedding，做相似度计算，会如何（替代Glove的话）；<br>Glove如何训练的，用的多少维；<br>解释下TextRank（简历有体现）；<br>为什么数据量越大SVM训练越慢；<br>分词是如何处理的；<br>语料中遇到新词如何处理；<br>决策树和SVM在数据预处理上有何不同（缺失值）；SVM对文本要先做什么处理；<br>fastText最初先对文本如何处理（固定格式）；<br>词性标注比较好的方法是哪些，有没有最新的模型。<br>手推SVM；LSTM的结构，优势在哪里。<br>生成模型主流就那几个<br>VAE系列<br>Glow系列<br>GAN系列<br>思考，VAE的优缺点有哪些，为什么VAE的结果通常是比较模糊的？VQVAE的提出是希望解决什么问题，他存在VAE类似的问题吗？如果存在，那是为什么。<br>Glow的优缺点？为什么用Glow？Glow的分布会对结果产生什么影响？<br>GAN的稳定训练措施有哪些？各个稳定方法的优缺点比较？pair与非pair数据对GAN的训练影响？<br>从生成模型的角度来看，当我们希望对生成内容的属性进行控制的时候，你会选哪些方法，为什么？<br>进一步地，从模型训练的角度。参数初始化，激活函数选择，数据的均值方差，正则化，归一化，优化器（adam以及变种），自回归与非自回归的选择。<br>最后的最后，从训练数据而言。因为我接触信号比较多，那么，这段信号有什么特点，怎么提取feature输入网络？干净的数据怎么做，带噪的数据怎么做，数据的干净程度对结果的影响，一定要用深度学习吗，传统的信号分析能作为辅助loss吗？怎么衡量你的模型效果？<br>最最后的深坑，这个东西可以用强化学习做吗</p>
+]]></content>
+      <categories>
+        <category>零散知识点</category>
+      </categories>
+      <tags>
+        <tag>零散知识点</tag>
       </tags>
   </entry>
   <entry>
@@ -5164,6 +6139,449 @@
       </categories>
       <tags>
         <tag>股市理论</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>投资逻辑</title>
+    <url>/2021/06/10/%E6%8A%95%E8%B5%84%E9%80%BB%E8%BE%91/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+
+<h3 id="逻辑"><a href="#逻辑" class="headerlink" title="逻辑"></a>逻辑</h3><p>1、2005年6月最暴跌时，一旦人民币升值、国有股流通，股市将大涨。</p>
+<span id="more"></span>
+
+<h3 id="108"><a href="#108" class="headerlink" title="108"></a>108</h3><p>1、12课：</p>
+<p>由5日均线与10日均线构成的买卖系统，首先，两者的体位构成一个完全分类，女上位是牛，男上位是熊，还有一种是互相缠绕的情况，这种情况最终都要演化成女上位或男上位，只有两种性质：中继或转折。对多头来说，值得介入的只有两种情况：<strong>男上位转折，女上位中继</strong>，空头反之。</p>
+<p> 例如，<strong>女上位趋势出现的第一次缠绕是中继的可能性极大</strong>，如果是<strong>第三、四次出现，这个缠绕是转折的可能性就会加大</strong>；还有，出现<strong>第一次缠绕前，5日线的走势必须是十分有力的，这样缠绕极大可能是中继，其后至少会有一次上升的过程出现</strong>；第三，缠绕出现前的<strong>成交量不能放得过大，一旦过大，骗线出现的几率就会大大增加</strong>，如果量突然放太大而又萎缩过快，<strong>一般即使没有骗线，缠绕的时间也会增加</strong>，而且成交量也会现在两次收缩的情况。</p>
+<p>  <strong>女上位选择第一次出现缠绕的中继情况，而男上位的就相反，要寻找最后一次缠绕的转折情况</strong>，其后如果出现急跌却背弛，那是最佳的买入时机。抄底不是不可以，但只能选择这种情况。</p>
+<p>没有人百分百确认那是最后一次缠绕，一般，<strong>男上位后的第一次缠绕肯定不是，从第二次开始都有可能</strong>，如何判断，最有力的就是利用好<strong>背弛制造的空头陷阱。</strong></p>
+<p><br><br></p>
+<p><strong>利用均线构成的买卖系统，首先要利用男上位最后一次缠绕后背弛构成的空头陷阱抄底进入，这是第一个值得买入的位置，而第二个值得买入或加码的位置，就是女上位后第一次缠绕形成的低位。</strong></p>
+<p>即，男上转折、女上中继。即男上最后一缠后背驰、女上第一缠后低点。</p>
+<p>卖点，即女上转折–女上位缠绕后出现背弛、男上中继–男上后第一次缠绕后的高点。</p>
+<p><br><br></p>
+<p>2、从来不觉得自己手里的股票有什么好，只知道他们能搞。但其实他是看基本面的。比如考虑人民币升值和股权分置。所以并不是无用，只是不能信“消息”。</p>
+<p><br><br></p>
+<p>3、</p>
+<p><br><br></p>
+<p>4、均线系统：</p>
+<p>飞吻：短期均线略略走平后继续按原来趋势进行下去。</p>
+<p>唇吻：短期均线靠近长期均线但不跌破或升破，然后按原来趋势继续下去。</p>
+<p>湿吻：短期均线跌破或升破长期均线甚至出现反复缠绕，如胶似漆。 </p>
+<blockquote>
+<p>短期向长期靠拢，但是不破，进入缠绕或者按照原来的趋势继续(空头市场中说明反弹结束，多头则调整结束)。短期稍微平了继续原来的短期趋势(几率少、火爆后震荡)。短期向长期但是跌破或者升破。短期和长期反复缠绕(趋势转折，空转多)。</p>
+<p>任何行情的转折大概率是突破引起。可能先突破然后拉升，然后陷阱诱再转折。还可能是转折箱型，拉高，然后转折。</p>
+<p>第一次突破可能不一定真的转折。但突破之后必然有空多势能的转换。即使当时没有拉升很猛，但是势能变化了。</p>
+<p>理解： 5上10下 女上位，10上5下，5 10缠绕。但最终都会是第一或者第二种。缠绕时等待转折。因此在缠绕末端介入，并且需要判断“转折为5上”或者“5上继续”的风险。</p>
+<p>1、如果5上，且强势，且第一次产生缠绕，且缠绕前的成交不能过大(防止骗线)，则极可能是延续原来的趋势，还有一波。如果是第三四次则极可能是转折。</p>
+<p>2、如果成交在缠绕前，突然放大又快速萎缩，则即使没有骗线，缠绕时间也会增加。成交可能再次收缩。</p>
+<p>3、如果10上，且不是第一次缠绕，第二次开始往后、当然最好是最后一次缠绕转折，如果转折后还出现急跌并背驰，则为空头陷阱，为最佳的抄底买入。</p>
+<p>(万达，我觉得后面疫情复苏有更高的可能。又是一次追。大部分只是压在这个逻辑。结果，没有任何好消息。也没有任何青睐。也没有势头。继续等待看看。）</p>
+<p>4、第一个卖点，也就是<strong>女上位缠绕后出现背弛</strong>以及第二个卖点也就是<strong>变成男上位的第一个缠绕高点</strong>把东西卖了，这样就完成一个完整的操作。</p>
+<p>5、买尽量买男上的转折，卖尽量卖女上的缠绕背驰。  </p>
+</blockquote>
+<br>
+
+<br>
+
+<p>5、实践理性</p>
+<p>任何技术指标、系统，本质上都是一个评价系统，也就是告诉你在这个系统的标准下，评价对象的强弱</p>
+<p>设置一套分类评价系统，然后根据该系统，对所有可能的情况都设置一套相应的应对程序，这样，一切的风险都以一种可操作的方式被操作了。</p>
+<p>股票，主要有从0开始建立起来的系统。然后把技术和基本勾连起来，进行填充。心理面的建设，只有在实践里面练习吧。把操作融化为子程序。设计筛查均线上下关系以及缠绕关系的股票，由程序进行预警。然后在每个里面去看交易的起伏和势能。这个能够有评估系统进行对势能的筛查等。最后进入到图像上的走势关系。</p>
+<p>比如，强势女上的时候，第一个缠绕后无放量的诱空，为买点。但如果是转折呢，转折的话，那么一定在短缠绕或者缠绕前就已经出货了。能够在前面看出出货的迹象吗。大笔出货还是小单多笔呢 – 这个从哪里看出来？todo</p>
+<p>大量信息需要去噪和保持新鲜的及时反馈。分类考虑清楚了，全局和框架大体就出来了。实践需要一个评估系统和反馈系统。评估指标的数据化比较难，实时地记录也比较困难，</p>
+<br>
+
+<p>均线程序系统：</p>
+<p>1、一个时间段，拉出来所有的k图，以及均线图</p>
+<p>2、一个时间段，成交图，横轴为单价，纵轴为手。</p>
+<p>3、筛选：均线女上到第一次缠绕。男上到第一次缠绕的股票。（判断是否是最后一次缠绕、以及是否继续还是转折）</p>
+<br>
+
+<p>迹象系统：</p>
+<p>1、出货迹象：</p>
+<p>2、主力迹象：</p>
+<br>
+
+<p>概率系统：</p>
+<br>
+
+
+
+<p>6、15课：“吻“的分类是基于对原趋势的反抗程度：</p>
+<p>男上(均线为长期在上短期在下)转为女上时，连短线均线都不能突破，那期间出现的高、低点，肯定只是低级别图表上的，在本级别图表上没有意义 – 看不出和均线的关系，只能降低图标级别再看关系。</p>
+<p>当走势突破短期均线却不能突破长期均线，就会形成“飞吻”–突破短期则短期均线会显示走平但是没有继续突破，则不会改变短期的趋势；</p>
+<p>当走势突破长期均线马上形成陷阱，就会形成“唇吻”–靠近而不破，还按照原来的趋势，即是“诱惑转折”；</p>
+<p>当走势突破长期均线出现一定的反复，就会形成“湿吻” – 有可能转折。</p>
+<br>
+
+<br>
+
+
+
+<p>7、15课：转折</p>
+<p>一般只有两种：一、“湿吻”后继续原趋势形成陷阱后回头制造出转折 – 最大的标志就是所谓的“背驰”了；二、出现盘整，以时间换空间地形成转折。：：：：这里的所有判断都只关系到两条均线与走势，和任何技术指标都无关。</p>
+<p>理解：一个是最后一个湿吻之后的背驰之后转折，一个是盘整后转折。</p>
+<p>看图上的话，没有吻也转折了 – 看的级别高了。</p>
+<br>
+
+<br>
+
+
+
+<p>8、15课：背驰todo</p>
+<p>在盘整中是无所谓“背驰”的</p>
+<p>背驰是一个趋势中，趋势的力度，对应的现象。</p>
+<p>量化：前一“吻”的结束与后一“吻”开始由短线均线与长期均线相交所形成的面积。（两条均线）同向趋势，但是面积变小，力度变弱，则形成了背驰。：：：：必须等再次接吻后才能判断，这时候，走势离真正的转折点会已经有一点距离了。解决：看低一级别的图，从中按该种办法找出相应的转折点。这样和真正的低点基本没有太大的距离。</p>
+<p> 趋势平均力度：当下与前一“吻”的结束时 短线均线 与 长期均线形成的面积 除以 时间。一旦这次比上次弱，就可以判断“背驰”即将形成，然后再根据短线均线与长期均线的距离，一旦延伸长度缩短，就意味着真正的底部马上形成。</p>
+<p><br><br></p>
+<p>9、15课：第一个买点买入的基础在于男上位最后一个缠绕后出现背驰(往下跌，短线与长线均线面积比之前的小 ？)，而现在又出现男上位的缠绕，意味着前面引导买入程序启动的缠绕并不是最后一个缠绕，也就是程序判断上出现问题，因此必须退出。</p>
+<p>第二个买点，一旦该缠绕中出现跌破前面男上位的最低位，就意味着买入程序出现问题。</p>
+<p><br><br></p>
+<p>10、16课：第一类买点且之前走势是“下跌+盘整+下跌”类型</p>
+<p>**陷阱式：上涨+下跌；下跌+上涨。反转式：上涨+盘整+下跌；下跌+盘整+上涨。中继式：上涨+盘整+上涨；下跌+盘整+下跌。 **</p>
+<p>在下跌时买入，唯一需要躲避的风险有两个：<strong>一、该段跌势未尽；二、该段跌势虽尽，但盘整后出现下一轮跌势。</strong></p>
+<p>下跌走势用背驰来找第一类买点，就是要避开上面的第一个风险。而当买入后，将面对的是第二个风险。解决：就是<strong>其后一旦出现盘整走势，必须先减仓退出。</strong></p>
+<p><strong>盘整也会耗费时间，对于中小资金来说，完全没必要。</strong>特别对于不想坐庄的大资金来说，这是一个最重要的问题，因为<strong>不想坐庄的大资金的安全建仓在六种走势中只可能在下跌+盘整+上涨这一种</strong>，其他都不适用。至于<strong>坐庄的建仓方法，和这些都不同。</strong></p>
+<p>买卖入方法：在<strong>第一类买点买入后，一旦出现盘整走势，无论后面如何，都马上退出</strong>。这种买卖方法的实质，即只参与唯一的一种：<strong>下跌+上涨</strong>。对于资金量不大的，这是最有效的一种买卖方法。因为：<strong>对于下跌+上涨来说，连接下跌前面的可能走势只会有两种：上涨和盘整</strong>。</p>
+<p><strong>如果是上涨+下跌+上涨，那意味着这种走势在上一级别的图形中是一个盘整</strong>，因此这种走势可以归纳在盘整的操作中，这在以后对盘整的专门分析里研究。对于“下跌+上涨”买卖方法方法来说，必须是这样一种情况：就是<strong>一个前面是“盘整+下跌”型的走势后出现第一类买点</strong>。显然，这个下跌是<strong>跌破前面盘整</strong>的，否则就不会构成“盘整+下跌”型，只会仍是盘整。</p>
+<p>那么在该盘整前的走势，也只有两种：上涨、下跌。<strong>对于“上涨+盘整+下跌”的，也实质上构成高一级别的盘整</strong></p>
+<p>=&gt;<strong>出现第一类买点且之前走势是“下跌+盘整+下跌”类型。</strong></p>
+<p>标准程序=&gt; 一、首先只选择出现“下跌+盘整+下跌”走势的。二、在该走势的<strong>第二段下跌出现第一类买点时</strong>介入。三、介入后，<strong>一旦出现盘整走势，坚决退出</strong>。注意，这个退出肯定不会亏钱的，因为可以利用<strong>低一级别的第一类卖点</strong>(第一个卖点是女上最后一缠的背驰，第二个卖点是男下第一缠的)退出，是肯定要赢利的</p>
+<p><strong>前面出现“上涨+盘整+上涨”走势的，一旦第二段升势出现第一类卖点</strong>，一定要走，因为后面很可能就是“上涨+下跌”的典型走势。</p>
+<p>这种方法，无论买卖，都极为适用于中小资金，如果把握得好，是十分高效的。</p>
+<p><br><br></p>
+<p>11、17课：</p>
+<p>  把实践中总结出来的、很难实用的、静态的“所有级别的走势都能分解成趋势与盘整”，转化成动态的、可以实用的“走势类型终要完成”。<strong>任何走势，无论是趋势还是盘整，在图形上最终都要完成</strong>。另一方面，一旦某种类型的走势完成以后，<strong>就会转化为其他类型的走势</strong>，这就是“不患”而有其位次。</p>
+<p><span style="color:red"><strong>某级别走势类型中，被至少三个连续次级别走势类型所重叠的部分，称为缠中说禅走势中枢</strong></span>一般来说，对实际操作，都把这最低的不可分解级别设定为<strong>1分钟或5分钟线</strong>，当然，也可以设定为1秒种线，但这都没有太大区别。</p>
+<p><span style="color:red">盘整：在任何级别的任何走势中，<strong>某完成的走势类型只包含一个缠中说禅走势中枢</strong>，就称为该级别的缠中说禅盘整。</span></p>
+<p><span style="color:red">趋势：在任何级别的任何走势中，<strong>某完成的走势类型至少包含两个以上依次同向的缠中说禅走势中枢</strong>，就称为该级别的缠中说禅趋势。该方向向上就称为上涨，向下就称为下跌。</span></p>
+<p><strong><span style="color:red">任何级别任何完成的走势类型，必然包含一个以上的缠中说禅走势中枢。</span></strong></p>
+<p>  由原理一、二以及缠中说禅走势中枢的定义，就可以严格证明：</p>
+<p><span style="color:red">“缠中说禅走势分解定理一”：任何级别的任何走势，都<strong>可以分解成同级别“盘整”、“下跌”与“上涨”三种走势类型的连接</strong>。</span></p>
+<p><span style="color:red">“缠中说禅走势分解定理二“：任何级别的任何走势类型，都<strong>至少由三段以上次级别走势类型构成</strong>。</span></p>
+<p><br><br></p>
+<p>12、17课：</p>
+<p><strong>在第一类买点出现后第一次次级别回调制造的低点，是市场中第二有利的位置</strong>，为什么？因为上涨和盘整必然要在图形上完成，而上涨和盘整在图形上的要求，是必须包含三个以上的次级别运动，因此后面必须还至少有一个向上的次级别运动，这样的买点是绝对安全的。</p>
+<p>“缠中说禅买卖点定律一”：<strong>任何级别的第二类买卖点都由次级别相应走势的第一类买点构成。</strong>这样，就像前面曾说过的，任何由第一、二类买卖点构成的缠中说禅买卖点，都可以归结到不同级别的第一类买卖点。由此得到“缠中说禅趋势转折定律”：<strong>任何级别的上涨转折都是由某级别的第一类卖点构成的；任何的下跌转折都是由某级别的第一类买点构成的。</strong></p>
+<p>  <strong>注意，这某级别不一定是次级别，因为次级别里可以是第二类买卖点</strong>，而且还有这种情况，就是不同级别同时出现第一类买卖点，也就是出现不同级别的同步共振，所以这里只说是某级别。</p>
+<p><br><br></p>
+<p>13、17课：</p>
+<p>1、 连接两相邻同级别缠中说禅走势中枢的一定是趋势吗？一定是次级别的趋势吗？    </p>
+<p>解：也可以是中枢吧。</p>
+<p>但是中枢或者趋势都一定是次级别的趋势。    </p>
+<p>正答：也不一定是次级别的，<strong>只要是次级别以下，例如跳空缺口，就属于最低级别，如果图上是日线、周线，就不会是次级别了；最后，往往相连走势类型的级别越低，表示其力度越大，这也就是为什么缺口在分析中有比较强技术含义的理论依据所在。</strong></p>
+<p>2、 背驰是两相邻同向趋势间，后者比前者的走势力度减弱所造成的，如果用均线或MACD等判断其力度，一定要在同级别的图上吗？同级别的MACD红绿柱子背驰一定反映某级别趋势间出现背驰吗？是相应级别的趋势出现背驰吗？</p>
+<p>本质是，判断力度能不能用次级别的MACD或者均线来判断。当然可以。因为本级别的背驰趋势是由次级别的走势形成的。</p>
+<p>同级别的MACD红绿柱子指什么？反映什么级别的趋势间背驰？本级别还是？还是不反应？</p>
+<p>​        </p>
+<p>3、 盘整的高低点是如何造成的。（这个问题有点难度，提示，用缠中说禅走势中枢以及级别等进行分析。）</p>
+<p>次级别的三个趋势构成本级别的盘整。多个次级别的趋势高低点构成本级别盘整的高低点。</p>
+<p><br><br></p>
+<p>14、18课：</p>
+<p><strong>次级别的前三个走势类型都是完成的</strong>才构成该级别的缠中说禅走势中枢，完成的走势类型，在次级别图上是很明显的，根本就不用着再看次级别下面级别的图了。</p>
+<p>缠中说禅盘整：在任何级别的任何走势中，某完成的走势类型只包含一个缠中说禅走势中枢，就称为该级别的缠中说禅盘整。</p>
+<p>缠中说禅趋势：在任何级别的任何走势中，某完成的走势类型至少包含两个以上依次同向的缠中说禅走势中枢，就称为该级别的缠中说禅趋势。该方向向上就称为上涨，向下就称为下跌。注意，趋势中的缠中说禅走势中枢之间必须绝对不存在重叠。</p>
+<p>“缠中说禅技术分析基本原理一”：任何级别的任何走势类型终要完成。</p>
+<p>“缠中说禅技术分析基本原理二”：任何级别任何完成的走势类型，必然包含一个以上的缠中说禅走势中枢。</p>
+<p>“缠中说禅走势分解定理一”：任何级别的任何走势，都可以分解成同级别“盘整”、“下跌”与“上涨”三种走势类型的连接。</p>
+<p>“缠中说禅走势分解定理二“：任何级别的任何走势类型，都至少由三段以上次级别走势类型构成。</p>
+<p><br><br></p>
+<p>15、18课：</p>
+<ol>
+<li><p>走势的完成是必然的，但是如何判断走势的完成。即什么时候盘整结束之类的问题。</p>
+</li>
+<li><p>一个盘整，三个重叠的连续次级别走势类型后，盘整就可以随时完成，也就是说，只要三个重叠的连续次级别走势类型走出来后，盘整随时结束都是完美的，但这可以不结束，可以不断延伸下去，不断围绕这缠中说禅中枢上上下下地延伸下去直到无穷都是可以的。</p>
+</li>
+<li><p>所以，核心在于，走势何时停止延伸？</p>
+</li>
+<li><p>判断不清，则会在趋势中中间的中枢时候被震出去，而无法坚持到卖点</p>
+</li>
+<li><p>对于趋势来说，其“延伸”就在于同级别的同向“缠中说禅走势中枢”不断产生；而对于盘整来说，其“延伸”就在于不能产生新的“缠中说禅走势中枢”。</p>
+</li>
+<li><p>“走势类型延伸”是否结束的判断关键就在于<strong>是否产生新的“缠中说禅走势中枢”。</strong></p>
+</li>
+<li><p>“缠中说禅走势中枢定理一”：在趋势中，连接两个同级别“缠中说禅走势中枢”的必然是次级别以下级别的走势类型。</p>
+</li>
+<li><p>用反证法，该定理的证明是很简单的，而这也回答了上一章中的作业一“<strong>连接两相邻同级别缠中说禅走势中枢的一定是趋势吗</strong>？一定是次级别的趋势吗？”</p>
+</li>
+<li><p>首先，这不必然是趋势，任何走势类型都可能，最极端的就是跳空缺口后形成新的“缠中说禅走势中枢”；其次，也不一定是次级别的，<strong>只要是次级别以下，例如跳空缺口，就属于最低级别，如果图上是日线、周线，就不会是次级别了；最后，往往相连走势类型的级别越低，表示其力度越大，这也就是为什么缺口在分析中有比较强技术含义的理论依据所在。</strong></p>
+</li>
+<li><p>维持“缠中说禅走势中枢”的一个充分必要条件就是任何一个离开该中枢的走势类型都必须是次级别以下的并以次级别以下的走势类型返回，该问题很容易证明，因为无论是离开还是返回，只要是同级别的走势类型，就意味着形成新的“缠中说禅走势中枢”，这与原中枢的维持前提矛盾。该命题表述成如下定理：</p>
+</li>
+<li><p>“缠中说禅走势中枢定理二”：在盘整中，无论是离开还是返回“缠中说禅走势中枢”的走势类型必然是次级别以下的。</p>
+</li>
+<li><p>把1分钟图当成最低级别，那么最后<strong>连接离开与返回走势类型连接处的最低级别</strong>图，只能有两种可能：<strong>三根以上1分钟K线的来回重叠震荡后回头</strong>–比较少见；二、<strong>1分钟K线无三根以上K线重叠的V型走势</strong>–十分常见。</p>
+</li>
+<li><p>定理三：某级别“缠中说禅走势中枢”的破坏，当且仅当<strong>一个次级别走势离开该“缠中说禅走势中枢”后</strong>，其后的次级别<strong>回抽走势不重新回到该“缠中说禅走势中枢”内</strong>。</p>
+</li>
+<li><p>两个次级别走势的组合只有三种：趋势+盘整，趋势+反趋势，盘整+反趋势。其中的趋势分为上涨与下跌，分别代表从上方突破与下方跌破两种情况。</p>
+</li>
+<li><p>最用力的破坏，就是：趋势+盘整。例如在上涨中，如果一个次级别走势向上突破后以一个盘整走势进行整理回抽，那其后的上涨往往比较有力，特别这种突破是在底部区间。</p>
+</li>
+</ol>
+<p> <br><br></p>
+<p>16、21课： </p>
+<ol>
+<li>所有买卖点都必然对应着与该级别最靠近的一个中枢的关系。</li>
+<li>第三买点：即 在中枢向上突破中枢高点后，回抽不跌破此高点，形成第三买点。</li>
+<li>中枢有三种情况：延续、扩张与新生。延续，则是高低点没有被突破，扩张或新生则突破高点，形成一个新的趋势，要么是新的中枢要么是上涨趋势。延续则买点只能在中枢下。第三类买点，在中枢上，并且，这个中枢是扩张的。</li>
+<li>所以中枢上的买点，只要避免延续情况即可。</li>
+<li>对于中枢下形成的买点，但如果该中枢是在上涨之中的，在中枢之下并不能必然形成买点，中枢下的买点，只可能存在于下跌与盘整的走势类型中。</li>
+<li>对于盘整的情况，其中枢的扩张与新生，都不能必然保证该买点出现后能产生向上的转折，因为其扩张与新生完全可以是向下发展的，而对于中枢延续的情况，中枢形成后随时都可以打破而结束延续，也不必然有向上的转折，所以盘整的情况下，中枢下也不必然产生买点。因此，只有在下跌确立后的中枢下方才可能出现买点。这就是第一类买点。</li>
+<li>一个上涨趋势确定后，不可能再有第一类与第二类买点，只可能有第三类买点。</li>
+<li>第一买点出现后的第二段次级别走势低点就构成第二类买点。即次级别出现的第一类买点则为本级别的第二买点。</li>
+<li>⭐️⭐️⭐️⭐️⭐️<strong>第二类买点，不必然出现在中枢的上或下，可以在任何位置出现，中枢下出现的，其后的力度就值得怀疑了，出现扩张性中枢的可能性极大，在中枢中出现的，出现中枢扩张与新生的机会对半，在中枢上出现，中枢新生的机会就很大了。但无论哪种情况，赢利是必然的。</strong></li>
+<li>第一类与第三类买点，一个在中枢之下、一个在中枢之上，也不可能产生重合。</li>
+<li>只有第二类买点与第三类买点是可能产生重合的，这种情况就是：但第一类买点出现后，一个次级别的走势凌厉地直接上破前面下跌的最后一个中枢，然后在其上产生一个次级别的回抽不触及该中枢，这时候，就会出现第二类买点与第三类买点重合的情况，也只有这种情况才会出现两者的重合。</li>
+<li>当然，在理论上没有任何必然的理由确定第二、三类买点重合后一定不会只构成一个更大级别的中枢扩张，但实际上，一旦出现这种情况，一个大级别的上涨往往就会出现。</li>
+<li>一个最典型的例子，就是大盘在94年7月底部跌到325点后，8月1日跳空高开，5分钟上形成单边上涨突破前面的30分钟中枢，第二天大幅上冲后突然大幅回洗形成5分钟的走势级别的回抽，那时候最高已经摸到快500点，一天半上涨50%，又半天回跌15%，这样的回抽，一般来说是很恐怖的，但如果明白第二类买点与第三类买点的重合道理，就知道这是最好的补进机会，结果第三天又开始单边上扬，第六天达到750点。这是指数上最典型的一个例子了。而且，<strong>325点留下的缺口至今未补</strong>，中国几十年的一个大牛市，从指数上看，这是一个最重要的缺口了，将支持中国股市几十年甚至上百年的大牛市。</li>
+<li>补充一句，站在特大型牛市的角度，中国就从来没出现过熊市，大家打开上海的年线图就可以看到，从1992年到2005年，一个完美的年级别缠中说禅中枢的三段次级别走势完成，时间刚好是13年，一个完美的时间之窗。站在年线的角度，中国股市的真正大牛市才真正开始，因为该中枢是中国股市的第一个年中枢，区间在998到1558点。站在年线级别，在下一个年线级别中枢确立之前，中国股市的调整只可能出现一个季级别的调整，而第一个出现的季级别的调整，只要不重新跌回1558点，就将构成中国股市年线级别上的第三类买点，其后至少出现如去年类型幅度的上涨。即使出现调整，最多就是季级别的，其后反而构成第三类买点。而且更重要的是，站在年线的级别看，目前还在第一段的次级别上扬中，要出现第二段的季级别调整，首先要出现月线级别的中枢，目前连这个中枢都没出现，换言之，年线级别的第一段走势还没有任何完成的迹象，这第一段，完全可以走到6000点才结束。</li>
+<li>对卖点的分析是一样的，归纳起来，就有缠中说禅买卖点的完备性定理：市场必然产生赢利的买卖点，只有第一、二、三类。</li>
+<li>市场中的任何向上与下跌，都必然从三类缠中说禅买卖点中的某一类开始以及结束。换言之，市场走势完全由这样的线段构成，线段的端点是某级别三类缠中说禅买卖点中的某一类。</li>
+<li>思考题：任何一个线段，其端点必然是一买点及一卖点，请完全列出各类买卖点之间可能的组合。如果一线段的端点是同级别的买卖点，有什么组合是绝对不可能出现的。</li>
+</ol>
+<p><br><br></p>
+<p>16、22课：</p>
+<p>本ID在下面放上一个9999的买单，本ID顺着着这身体的轨迹轻扫着，还真有点体液</p>
+<p>第二天，继续往下扭动身体，本ID的扫动越来越快，江浙派大概突然发现，这样继续下去，他就有被吸干的危险，尾市几笔就拉起来</p>
+<p>第三天开始，在不断的摩擦中，面首开始挺立，每天尾市的游戏继续。</p>
+<p>突然有一天，他也玩起打压恐吓的游戏。前两天，本ID就看热闹，不管他，第三天突然发狠，严重警告他，在乱恐吓就把他给杀了</p>
+<p>江浙派果然是胆小之人，要挺立。</p>
+<p>一定要在适当的时候突然狠狠一下，他就会惊吓得往相应方向惯性下去，一般来说，这种面首都是反应有点迟钝的，注定这种面首画出来的面相，总是反反复复，缠绵不断。</p>
+ <br>
+
+<p>真理是干出来的。</p>
+<p>第一天的体液就不少，浮码很多，10几个交易日前那两根大量暗示着，浮码多，水就混，藏点大米还不简单？</p>
+<p>周线图上的中枢强烈地勾引着走势往上，一般在一个组合里，一定要放一个这样老实巴交的面首，万一其他股票出现什么特殊的情况，马上变现这个去增援是能随时办到的，这样就一定不会出大乱子了。</p>
+<br> 
+
+<p>一般来说，这种阻击，<strong>在一个低位的大级别第三类买点进行是比较安全的</strong>，首先，第一类买点不适合，你先进去，大家都看着你，找机会吃你，你还找哪里潜伏下来？第二类买点是可以的，但一般都采取比较温柔的办法，慢慢来。第三类买点介入，有点硬来的感觉，这要求有一定的功力，否则给吃了都不知道怎么死的。但这样的安全性在于，第一，时间利用率高，第三类买点等于箭在弦上了，你这样突然进去横插一刀，除非是实力特别强，而且所用资金又没有什么期限，所弄的题材也没到迫在眉睫的地步，这样，他会留下来和你折腾。从而变成持久战。</p>
+<p>高手就是高在一定要对盘中庄家的脾性有充分的感觉，对症下药，而且对阻击的目标有充分的了解，这样就能避免陷入持久战，互相在那里干耗着。当然，干耗其实也不怕，就是不断弄短差，把成本降下来，熬都熬死对方。这样的前提是资金必须绝对自由、没有期限。一笔自有的，没有利息压力的资金，是阻击的一个最安全的保障。</p>
+<p>阻击一定要控制好量，最失败的阻击就是阻击成了庄家。为什么要在低位的第三类买点出手，这个位置，庄家已经货不少了，而成本还在附近，如果大力打压，你有实力在低位顶住，除非那面首钱出问题了，否则不可能亏钱把所有货倒给你，如果真是这样，就成全他算了。对于第三类买点的阻击，资金实力是很重要的，<strong>关键就是要顶住突然变向的打压，所以也要求一定只能在低位</strong>，不能与庄家的成本相差太远。</p>
+<p><br><br></p>
+<p>17、24课：</p>
+<ol>
+<li>任一背驰都必然制造某级别的买卖点，任一级别的买卖点都必然源自某级别走势的背驰。</li>
+<li>日线上向上的背驰制造一个卖点，回跌后，在5分钟或30分钟出现向下的背驰制造一个买点，然后由这买点开始，又可以重新上涨，甚至创新高，这是很正常的情况。</li>
+<li>用MACD判断背驰的前提是，A、B、C段在一个大的趋势里，其中A之前已经有一个中枢，而B是这个大趋势的另一个中枢，这个中枢一般会把MACD的黄白线（也就是DIFF和DEA）回拉到0轴附近。而C段的走势类型完成时对应的MACD柱子面积（向上的看红柱子，向下看绿柱子）比A段对应的面积要小，这时候就构成标准的背弛。</li>
+<li>注意，看MACD柱子的面积不需要全出来，一般柱子伸长的力度变慢时，把已经出现的面积乘2，就可以当成是该段的面积。所以，实际操作中根本不用回跌后才发现背驰，在上涨或下跌的最后阶段，判断就出来了，一般都可以抛到最高价位和买在最低价位附近。</li>
+<li>盘整中往上的情况，如果C段不破中枢，一旦出现MACD柱子的C段面积小于A段面积，其后必定有回跌。</li>
+<li>比较复杂的是如果C段上破中枢，但MACD柱子的面积小于A段的，这时候的原则是先出来，其后有两种情况，如果回跌不重新跌回，就在次级别的第一类买点回补，刚好这反而构成该级别的第三类买点，反之就继续该盘整。</li>
+</ol>
+<p><br><br></p>
+<p><img src="/Users/wyq/Downloads/satyrsBlog/source/_posts/%E6%8A%95%E8%B5%84%E9%80%BB%E8%BE%91/wddy.png" alt="wddy"></p>
+<p><br><br></p>
+<p> 18、25 26课：</p>
+<ol>
+<li><p>MACD的灵敏度，和参数有关，一般都取用12、26、9为参数，这对付一般的走势就可以了</p>
+</li>
+<li><p>但一个太快速的走势，1分钟图的反应也太慢了，如果弄超短线，那就要看实际的走势，即盘面和柱子。</p>
+</li>
+<li><p><strong>MACD的柱子伸长，和乖离有关</strong>，大致就是走势和均线的偏离度。</p>
+</li>
+<li><p>打开一个MACD图，首先应该很敏感地去发现该股票MACD伸长的一般高度，<strong>在盘整中，一般伸长到某个高度，就一定回去了，而在趋势中，这个高度一定高点，那也是有极限的，一般来说，一旦触及这个乖离的极限，特别是两次或三次上冲该极限，就会引发因为乖离而产生的回调</strong>。这种回调因为变动太快，在1分钟上都不能表现其背驰，所以必须用单纯的MACD柱子伸长来判断。即，冲击乖离而不能突破(虽然其形成的面积大于前面的，但两次柱子伸长都不能突破该高度)，意味着强暴的走势要歇，特别是两三次上冲，则大概率要回调。</p>
+</li>
+<li><p>不断一字涨停，不能用背弛来看，最简单，就是用1分钟的中枢来看，只要中枢不断上移，就可以不管。直到中枢上移结束，就意味着进入一个较大的调整，然后再根据大一点级别的走势来判断这种调整是否值得参与。</p>
+<p>​    如果用MACD配合判断，就<strong>用长一点时间的，例如看30分钟</strong>。一般来说，这种走势，其红柱子都会表现出这样一种情况，就是<strong>红柱子回跌的低点越来越低，最后触及0轴，甚至稍微跌破，然后再次放红伸长</strong>，这时候就是警告信号，如果这时候在大级别上<strong>刚好碰到阻力位，一但涨停封不住，出现大幅度的震荡就很自然了</strong>。</p>
+</li>
+<li><p>注意，如果这种连续涨停是出现在第一段的上涨中，即使打开涨停后，震荡结束，<strong>形成一定级别的中枢后，往往还有新一段的上涨</strong>，必须<strong>在大级别上形成背驰才会构成真正的调整</strong>，因此，站在中线的角度，上面所说的超短线，其实意义并不太大，有能力就玩，没能力就算了。关键是要抓住<strong>大级别的调整，不参与其中</strong>，这才是最关键的。即，一定要避免大级别的调整。能不能看出来是大级别上有调整呢，只要出现了调整开始的信号，并且没有结束的信号就是~</p>
+</li>
+<li><p>此外，一定要先分清楚趋势和盘整，然后再搞清楚背驰与盘整背驰。–todo 盘整背驰和趋势背驰的区别</p>
+</li>
+<li><p><strong>盘整背驰里的三种情况，特别是形成第三类买点的情况</strong>，一定要搞清楚。注意，<strong>盘整背驰出来，并不一定都要大幅下跌</strong>，否则怎么会有第三类买点构成的情况。而<strong>趋势中产生的背驰，一定至少回跌到B段中</strong>，这就可以预先知道至少的跌幅。–todo1盘整背驰的三种情况 2趋势背驰的跌幅判断</p>
+</li>
+<li><p>对<strong>背驰的回跌力度，和级别很有关系</strong>  ，如果日线上<strong>在上涨的中段刚开始的时候，MACD刚创新高，红柱子伸长力度强劲，这时候5分钟即使出现背驰，其下跌力度显然有限，所以只能打点短差，甚至可以不管</strong> 。而在<strong>日线走势的最后阶段，特别是上涨的延伸阶段，一个1分钟的背驰足以引发暴跌</strong>，所以这一点必须多级别地综合来考察，绝对不能一看背驰就抛等跌50%，世界上哪里有这样的事情。即：<strong>在大级别的走势的不同阶段，小级别的背驰力度是不同的。一般来说，越小的级别，背驰对大级别的影响力越小，但是在大级别的走势末期，即使是小级别的背驰，也会有大的影响力。</strong></p>
+</li>
+<li><p>一般来说，一个标准的两个中枢的上涨，在MACD上会表现出这样的形态，就是第一段，MACD的黄白线从0轴下面上穿上来(即近期12日均值上升高于26)，在0轴上方停留的同时，形成相应的第一个中枢(短期一直高于长期，并且有一段盘整时间)，同时形成第二类买点(有过上涨后的回抽)，<strong>其后突破该中枢，MACD的黄白线也快速拉起，这往往是最有力度的一段，一切的走势延伸等等</strong>，以及MACD绕来绕去的<strong>所谓指标钝化都经常出现在这一段，这段一般在一个次级别的背驰中结束</strong>，然后进入第二个中枢的形成过程中，同时MACD的黄白线会逐步回到0轴附近，最后，开始继续突破第二个中枢，MACD的黄白线以及柱子都再次重复前面的过程，但这次，<strong>黄白线不能创新高，或者柱子的面积或者伸长的高度能不能突破新高，出现背驰</strong>，这就结束了这一个两个中枢的上涨过程。明白这个道理，大多数股票的前生后世，一早就可以知道了。todo<strong>macd指标钝化、走势延伸</strong>即，次级别的背驰，带来更高级别的走势结束。</p>
+</li>
+<li><p>调整是日线级别还是周还是月？</p>
+</li>
+<li><p>⭐️⭐️⭐️⭐️⭐️MACD在0轴附近盘整以及回抽0轴所形成的中枢，不一定就是相应级别的中枢，而是至少是该级别的中枢。例如日线MACD的0轴盘整与回拉，至少构成日线的中枢，但也可以构成周线的中枢，这时候就意味着日线出现三段走势。</p>
+</li>
+<li><p>股票是无须选择的，唯一值得选择的，就是波动大的股票，而这个是不能完全预测的。对于资金量小的投资者，完全可以全仓进出，游走在不同的凭证之间。这样的效率当然是最高的，不过这不适用于大资金。</p>
+</li>
+<li><p>一般来说，本ID只在月线、最低是周线的买点位置进去，追高是不可能的，这样会让变负数的过程变得太长，而且都是在庄家吸得差不多时进去，一般都是二类或三类买点，这样可以骗庄家打压给点货，从散户手里买东西太累，一般不在月线的第一类买点进去，这样容易自己变庄家了。</p>
+</li>
+</ol>
+<p><br><br></p>
+<p>整理：</p>
+<p><br><br></p>
+<p>19、</p>
+<p>：消息，必有人知道，且是大资金知道，他们有实力利用消息，因此消息早已在盘面中。走势是钱堆的，那么走势是被知道消息的人、为了赚钱走出来的。只有钱是唯一值得信任的，而钱在市场上运动的轨迹，就是走势。这是唯一公开的可观察的东西。</p>
+<p>：市场先生是疯子。但最终会回归到内在价值。消息不过是会让你因小失大的无用信息。真正地影响价值的只有管理者以及公司业务和未来。</p>
+<p>两者的共性是都认为消息是无用的。前者希望在走势中分析出资金的意图。后者希望在公开年报以及行情研究中，分析出公司的内在价值。长期的确是后者均衡回归。而短期，走势如果的确有一定的规律和必然性在，那么也是更加反应资金情绪的最佳被观察客体。</p>
+<p>第一手的、有价值的资料永远不是消息或者内幕。内幕的真假不可靠。可靠的是现象，而现象到背后的意图，之间的差距需要全分类以及评价体系去给出反馈。两者没有矛盾。只是逻辑不一样。</p>
+<p>不同的逻辑，只要经得住推理，即使不同，也会获得各自</p>
+<p><br><br></p>
+<p>20、</p>
+<p>和算法的业务指标一样。数据纷杂。</p>
+<p>但是需要厘清重点和方向。</p>
+<p><br><br></p>
+<p>21、</p>
+<p>不要有依赖心理，只有自己在实践中成为自己一部分的，才是真实的。</p>
+<p>一个坏习惯足以毁掉一切，每次操作后一定要不断总结，逐步提高。</p>
+<p><br><br></p>
+<p>22、27课：</p>
+<ol>
+<li><p> 第二个中枢后就产生背驰的情况，一般占了绝大多数的情况，特别在日线以上的级别，这种就几乎达到90%以上，因此，如果一个日线以上级别的第二个中枢，就要密切注意背驰的出现。而在小级别中，例如1分钟的情况下，这种比例要小一点，但也是占大多数。一般4、5个中枢以后才出现背驰的，都相当罕见了。</p>
+</li>
+<li><p> 如果在第一个中枢就出现背驰，那不会是真正意义上的背驰，只能算是盘整背驰，其真正的技术含义，其实就是一个企图脱离中枢的运动，由于力度有限，被阻止而出现回到中枢里。</p>
+</li>
+<li><p> 一般来说，小级别的盘整背驰，意义都不太大，而且必须结合其位置，如果是高位，那风险就更大了，往往是刀口舔血的活动。但如果是低位，那意义就不同了，因为多数的第二、三类买点，其实都是由盘整背驰构成的，而第一类买点，多数由趋势的背驰构成。即：高位的小级别背驰往往是前驱信号–预警风险。为什么盘整背驰多构成第二三类买点？(第一缠上涨后的回抽、中枢上)。第一类买点是转折形成的，男上转女上，因此是趋势背驰。跌过了。</p>
+</li>
+<li><p> 一般来说，<strong>第二、三类的买点，都有一个三段的走势，第三段往往都破点第一段的极限位置，从而形成盘整背驰</strong>，注意，这里是把第一、三段看成两个走势类型之间的比较，这和趋势背驰里的情况有点不同，这两个走势类型是否一定是趋势，都问题不大，两个盘整在盘整背驰中也是可以比较力度的。</p>
+</li>
+<li><p>在某级别的某类型走势，如果构成背驰或盘整背驰，就把这段走势类型称为某级别的背驰段。</p>
+</li>
+<li><p>盘整背驰最有用的，就是用在大级别上，特别是至少周线级别以上的，这种盘整背驰所发现的，往往就是历史性的大底部。配合MACD，这种背驰是很容易判断的。这种例子太多，</p>
+</li>
+<li><p>例如000002，谁都知道该股是大牛股，但这牛股的底部，如果学了本ID的理论，是谁都可以发现的。请看该股的季线图，也就是三个月当成一个K线的图。1993年第一季度的36。7元下跌到1996年的第一季度的3。2元，构成第一段，刚好前后13季度，一个神奇数字；1996年的第一季度然后到2001年第三季度的15。99元，构成第二段，一个典型的三角形，中枢的第二段出现三角形的情况很常见，前后23季度，和21的神气数字相差不大；2001年第三季度下跌到2005年的第三季度的3。12元，前后刚好17周，神奇数字34的一半，也是一个重要的数字。第一段跌幅是33.5元，第三段是12.87元，分别与神奇数字34和13极为接近。因为13的下一个神气数字是21，加上前面说过的17，都不可能是第三段的跌幅，因此，站在这种角度，万科的2.99元附近就是铁底了。不过这种数字分析意义不大，最简单的判断还可以用MACD来，第三段跌破第一段的3.2元，但MACD明显出现标准的背弛形态：回抽0轴的黄白线再次下跌不创新低，而且柱子的面积是明显小于第1段的，一般来说，只要其中一个符合就可以是一个背弛的信号，两个都满足就更标准了。从季度图就可以看出，万科跌破3.2元就发出背弛的信号。而实际操作中，光看季度线是不可能找到精确的买点的，但对大资金，这已经足够了，因为大资金的建仓本来就是可以越跌越买，只要知道其后是一个季度级别的行情就可以了。而对于小资金来说，这太浪费时间，因此精确的买点可以继续从月线、周线、日线、甚至30分钟一直找下去，如果你的技术过关，你甚至可以现场指出，就在这1分钟，万科见到历史性大底部。因为季度线跌破3.2元后，这个背驰的成立已经是确认了，而第三段的走势，从月线、周线、日线等，可以一直分析下去，找到最精确的背驰点。</p>
+</li>
+<li><p>学过数学分析的，都应该对区间套定理有印象。这种从大级别往下精确找大级别买点的方法，和区间套是一个道理。以万科为例子，季度图上的第三段，在月线上，可以找到针对月线最后中枢的背驰段，而这背驰段，一定在季度线的背驰段里，而且区间比之小，把这个过程从月线延伸到周线、日线、30分钟、5分钟、1分钟，甚至是每笔成交，这区间不断缩小，在理论上，甚至可以达到这样一种情况，就是明确指出，就这一笔是万科历史底部的最后一笔成交，这成交完成意味着万科一个历史性底部的形成与时代的开始。当然，这只是最理想的情况，因为这些级别不是无限下去的，因此，理论上并不能去证明就是一个如极限一样的点状情况的出现，但用这种方法去确认一个十分精确的历史底部区间，是不难的。</p>
+</li>
+<li><p>推而广之，可以证明缠中说禅精确大转折点寻找程序定理：某大级别的转折点，可以通过不同级别背驰段的逐级收缩范围而确定。换言之，某大级别的转折点，先找到其背驰段，然后在次级别图里，找出相应背驰段在次级别里的背驰段，将该过程反复进行下去，直到最低级别，相应的转折点就在该级别背驰段确定的范围内。如果这个最低级别是可以达到每笔成交的，理论上，大级别的转折点，可以精确到笔的背驰上，甚至就是唯一的一笔。（不过这些其实都意义不大，1分钟的背驰段，一般就是以分钟计算的事情，对于大级别的转折点，已经足够精确了，对大资金，基本没什么用处。）</p>
+</li>
+<li><p>各位有时间可以参考一下，600640、000001、000006、000009、000012、600643的季度图，看看历史底部是怎么形成的。当然，只有特别老的股票才可以用季度图。而月线图的，看600663、一个标准的例子。</p>
+</li>
+<li><p>上面说的是背驰构成的买点，注意，<strong>第一类买点肯定是趋势背驰构成的，而盘整背驰构成的买点，在小级别中是意义不大的</strong>，所以以前也没专门当成一种买点，但在大级别里，这也构成一种类似第一类买点的买点，因为在<strong>超大级别里，往往不会形成一个明显的趋势</strong>，这也就是以前回帖曾说过的，站在<strong>最大的级别看，所有股票都只有一个中枢</strong>，因此，站在大级别里，绝大多数的股票都其实是一个盘整，<strong>这时候就要用到这因为盘整背驰而形成的类第一类买点</strong>了。这个级别，至少应该是周线以上。</p>
+</li>
+<li><p>类似的，在<strong>大级别里，如果不出现新低，但可以构成类似第二类买点的买点，在MACD上，显示出类似背驰时的表现</strong>，黄白线回拉0轴上下，而后一柱子面积小于前一柱子的。一个最典型的例子，就是季度图上的600685，2005年的第三季度的2.21元构成一个典型的类第二类买点。在实际操作中，2.21元的相应区间的寻找，也是按上面级别逐步往下找背驰段的方法实现。</p>
+</li>
+<li><p>如果按照周线级别，那不用等30年了。不过，周线找出来的，不一定是历史性大底，可能就是一个比较长线的底部。如果把这种方法用在日线上，也是可以的，但相应的可靠性就不是那么绝对了。</p>
+</li>
+<li><p>精通找出<strong>各级别中枢</strong>的，是幼儿圆毕业；精通分别<strong>中枢的新生、延伸、扩展</strong>的，是学前班毕业；精通分辨<strong>盘整背驰与背驰</strong>，躲过盘整背驰转化为第三类买卖点的，是小学毕业</p>
+</li>
+</ol>
+<p><br><br></p>
+<p>23、28课：</p>
+<ol>
+<li> 任何一个空壳公司，理论上，只要能合法地发行基金，然后用这传销得到的钱部分地投在该空壳公司的资产上，就可以在股票上赚取10倍以上的增殖</li>
+<li> 年线图就是最长线的图了，因为任何一个人大概也就能经历70、80根的年K线，一个年线的第一类买点加一个年线的第一类卖点，基本就没了。把握好这两点，比任何价值投资的人都要牛了，那些人，不过是在最多是年线的买点与卖点间上下享受了一番而已。</li>
+<li> 站在中国股市的现实中，这轮牛市的一个大的调整，必然会出现基金的某种程度的崩溃，上一次的牛市，让证券公司毁了不少，这一次牛市，毁的就是基金。</li>
+<li>投资的第一要点就是“你手中的钱，一定是能长期稳定地留在股市的，不能有任何的借贷之类的情况”。而基金，不过是所谓合法地借贷了很多钱而已，即使是没有利息的，性质一样。一旦行情严重走坏，基金必然面临巨大的风险，一次大的赎回潮就足以让很多基金永不超生。</li>
+<li> 传销，通常只有一个后果：归零。基金，至少对大多数来说，一样。这是基金一个最大、严重违反投资要点的命门：他的钱都不是他的。对于开放式基金，这点更严重，因为这种赎回是可以随时发生的。而中国的开放式基金就更可怕，中国人的行为趋同性极为可怕，国人一窝蜂去干一件事的后果是什么，大概也见过不少了，无论政治、经济、学术上，无一例外。</li>
+<li>基金经理必然要以净值为标准，一个基金拿某只股票是有一定比例限制的，也就是说，基金在这点上，连庄家都不如，一旦超配，唯一的办法就是找其他基金帮忙拉一把，几家基金一起持有，其实就是联合坐庄，万一都超配了，或者一时各基金都无暇他顾，那就构成了一个很好的阻击机会。</li>
+<li>短差又弄不来，又不能随时护盘砸盘，他持有的实际效果，就是让股票的盘子变小了。</li>
+<li>就算不用一些非市场的手段、一些在中国肯定效果一流的桌底游戏，一次设计合理的阻击足以让这基金，轻的，吃点哑巴亏，重的，让他清盘走人。</li>
+<li>如果他能熬得住，大不了就弄了一次出色的短差，等于傻大个持有的筹码人间蒸发了一段时期，投资中，唯一重要的其实就是成本，成本比傻大个低，再起来时，傻大个就更危险了，一次搞不死，还不能搞两次、三次，总有搞死的时候。一旦往下搞，基金的净值熬不住，那基金经理就可以走人了，然后，那些筹码就可以信达、东方一番了。</li>
+<li>如果在一个大级别的，例如月线中枢的调整中，一个集中的攻击，打破一个点，把一个基金公司集中搞跨，所有的基金公司都将面临严重的赎回潮，然后就整个市场都可以严重地信达、东方一番了。</li>
+<li>吃散户有什么意思呀，基金，就是散户打包，让人一口吃，少麻烦。</li>
+<li>最近，一个小的周线中枢震荡，就足以让本ID去试验一下。一个20%都不到的回调，一个就算跌停也就5%的股票，一个基本面面临严重好转的个股，已经让某些人坐不住了。某些傻大个超配了，找人护也没人有空了，看看上周基金的净值，这种局面再维持一周，估计就有人熬不住了。当然，现在的基金还有实力，一棍子肯定打不死的，这次只是闹着玩一次，感觉不错，最次就是权当洗了一次盘，弄了一个出色的短差。本ID可没在这次就把人击倒的想法，12元不行，难道不可以20元才搞死？只要短差出来了，死的一定是没弄短差的人！</li>
+<li>这个命门如何化解，如何不让这成为外国游资的重大突破目标</li>
+<li>市场打开，就必然要面对各种攻击，如果管理层的智力还达不到攻击者的千分之一，那只有瞎闹的份。下一个死的，一定是基金，在一个月线级别的调整中，这一幕必然上演，现在唯一有疑问的是，不会连一个周线级别的调整，都会有好戏提前上演吧？这个可能性是不大的，如果真出现，这基金也弱了。</li>
+</ol>
+<p><br><br></p>
+<p>24、</p>
+<p>“人口消费化”与“资产虚拟化”是资本主义社会经济发展的真正秘密，而在“人口消费化”与“资产虚拟化”的爆发期，这种流动性过剩就是最正常不过的事情，而中国目前正处在该爆发期的启始阶段。</p>
+<p>大国，首要的是成为资本大国，而只有成为资本大国，才有真正的大国可言。而资本大国的首要前提，就是一个巨大的资金大池子，全世界的资金都汇聚其中。</p>
+<p>而在这个池子逐步形成的过程里，流动性过剩就一定是常态。</p>
+<p>问题不是水太多，而是为什么池子的扩张速度如此慢</p>
+<p>资本市场，从来都是资金大池子一个最重要的部分，一个超常规的资本市场扩张就是这池子扩张中必然也是当然的事情，而且是最重要的事情。</p>
+<p>人民币放开以来资本市场的扩张以一种超常的速度出现，是最正常不过了。就算目前是全流通，按全部的市值算，也就GDP的一半上下，而美国这比例是多少？且不说GDP的中国速度依然惊人，按目前的速度，7、8年后又翻一翻，那么现在资本市场的扩张速度，只不过是一种补课而已，而且补得还不够好，还应该更好一点。</p>
+ <br>
+
+<p>“资产虚拟化”的大国溢价是一个最常见的现象。而资产的大国溢价，最终都会反映在资本市场之上。更重要的是，资本市场对资产的收纳范围必然急剧扩大，一切中国<strong>最优秀的资产</strong>，必然通过各种途径汇聚到中国的资本市场上，这是支持资本市场成为资金大池子最重要组成部分的最坚实基础，而这也是资本市场今后发展的最大动力。不理解这个，是无法理解目前中国资本市场发展的历史意义的。这不单单是一个量上的改变，而是一个根本性的结构改变，成为中国“资产虚拟化”历史进程的最重要标志。</p>
+<p>注： 什么是最优秀资产？todo</p>
+<br>
+
+<p>25、</p>
+<ol>
+<li><p>市场经济 = 资本主义 = 现代经济…</p>
+</li>
+<li><p><strong>原始社会模式的社会经济形态</strong>，如斯大林式的资本主义经济形态。欧美式的资本主义，其原始社会形态，是<strong>以封建到资本主义原始积累前的混沌过度</strong>为形态的。</p>
+</li>
+<li><p>市场经济原始社会破裂后，就进入人口消费化与资产虚拟化扩展的原始积累时期。人类开始资本主义以来，所有的经济大国崛起，都离不开这种形态。注意，大国与经济大国，有着一定的区别。像前苏联这种，站在经济的角度，从来算不了大国</p>
+</li>
+<li><p>18、19、20世纪，欧美的经济以及其后的军事扩张，都是以这种资本主义奴隶社会形态最强悍的扩张力为其根基。但，最终所有的军事殖民都几乎以失败告终，而经济、文化上，却是无比的成功，这也可以看出经济、文化的深刻腐蚀性。经济、文化上资本主义的军事奴隶制游牧民族般的强悍，是比纯粹的军事强悍更有力、更本质的东西，这也是为什么在自相似中，美国经济、文化对世界的征服比成吉思汗的铁蹄更有力。</p>
+</li>
+<li><p>由于市场经济在世界范围内的不平衡，必然导致当<strong>某些国家完成市场经济奴隶社会形态时，后来的国家才刚进入这种场经济奴隶社会形态</strong>，因此，一场如同历史上游牧与农耕民族的征服与被征服游戏就不断展开。 =&gt;一切都是征服和被征服。人之间的感情只是弱的时候，会受牵扯。</p>
+</li>
+<li><p>其实，在思想历史上，也有同样的情况出现。<strong>思想历史上的奴隶社会阶段，是所有文化形态中最有活力的时代，这个时代，也就是所谓思想历史上的轴心时代</strong>，人类其后的所有思想，从根本上，从来没有超越那个时代。</p>
+</li>
+<li><p>中国的崛起也离不开这如游牧对农耕的征服游戏。当中国制造、中国因数在全球涌动时，不过是市场经济自身演化法则的现实演示而已。</p>
+</li>
+<li><p>只要中国继续保持这种被汉奸主子称为野蛮的经济铁蹄的快速奔驰，成吉思汗席卷天下的一幕就会在经济领域再次上演。汉奸们叫床不爽，要怪，就怪那所谓的无形的手如此地辣手摧草。</p>
+</li>
+<li><p>所谓无形的手，实质就是人类欲望的肆意扩展进行有计划的调控。</p>
+</li>
+<li><p>游牧军事的强悍就在于，内在的欲望超越了现有的条件，在内部不能消耗这种能力，因此只能向外扩张去消耗，就如同那荷尔蒙所萌动的春情在夜色中无可阻挡地挥霍。</p>
+</li>
+<li><p>市场经济无形的手制造的动力，如同人的欲望制造的性能力。按道家的玩法，第一种方法就是肆意欲望，采阳补阴，广采面首而成就之。第二种就是控制转化欲望，采自身的大药而成就之。中国经济欲望萌动的性能量，如何通过内在的修炼而成就，就是第二种方法需要解决的问题。</p>
+</li>
+<li><p>中国今后的发展，最有现实意义的无非是两条路子： </p>
+</li>
+</ol>
+<p>一、让贪婪去扩张疆土，以前是殖民，现在是经济的占领。社会意识形态层面，让市场经济的逻辑无情地贯彻下去，让所有人的欲望无限地扩展，让整个国家的经济、政治、文化、军事等等按照市场经济的逻辑继续扩展下去，成为一个战车，捣毁一切阻隔，在最后的大决战中成就霸主地位。</p>
+<p>二、把人民币升值的压力转化为让中国最贫穷的1亿家庭成为10万元户。 </p>
+<hr>
+<br>
+
+<p>全是先下手为强的强势文化。</p>
+<p>好文章！把成吉思汗的蒙古王国力量也联系起来！一直到资本主义奴役和主导！就是和天狗不谋而合的么！除了这么透彻、这么能够串联本质，还有最关键的，长期价值思维，价值对比，经济与文化的力量远远大于军事！人与人，国与国，企业与企业，文化与文化，哪一样不是如此！</p>
+<p>市场经济，资本主义，那么多名词，所指不过一样！资本主义，的原始阶段，就是资本野蛮的积累，奴隶交易、战争横财、贵族遗产，到白手起家的商业帝国，垄断帝国，在加上一些初始的国家垄断，都不过是没有规则的混沌时期里掠财的方式。虽然都在要钱，但是原始阶段的游戏规则又不一样了。彼时是斯大林，白色红色恐怖，现在多了人道主义的限制，做法有些收敛，不过从压迫转为金融上。</p>
+<p>为什么人道主义上，不加上资本和权力的公平。利益集团的撼动太难了。科技革命让商业化有了更大的规模和空间，才足以让专制破产。=&gt;我们找到很多可能的思路和理由，但是没有框架。那么现在，去中心化的革命，更大程度的自由度和解放，才能够让资本这个庞然大物崩塌。=&gt;我们找到很多可能的思路和理由，都没有数学更清晰和确定。所以无法确定。谁能够量化呢。巴菲特只不过也只是在他已经熟悉的领域，并且能够接触到接近真实的情况，在其中去找确定性，找价值而已。</p>
+<p>但是你说管理层自身，比如张总，他对业务的发展前景有多少理解呢。没有宏观上对这个行业的理解。不过也是在自己的圈子里找自己的立足。没有战略。因为很难。几乎无法量化。也需要理解力。</p>
+<p>我们都没有超越。差劲和量上堆积的书，只是让思考的时间固定在那个维度和层级上。而更高质量，战略性和大局的思考力，还是缺乏的。一方面我们不够现实，一方面我们太缺乏创造和大局视野。悬浮着。逃不过是个创造的奴隶。</p>
+<p>我说的不是高优先级。完全不与我的现实有任何启发。我想磨镜也是。文昭是兴趣，其实也是现实。我知道我更应该做什么。</p>
+<p><br><br></p>
+<p>25、29课：</p>
+<p>总结：首先，中枢、盘整、趋势、背驰概念是确定的。再次基础上谈论转折。转折是趋势或盘整的转换，也需要考虑其级别属性。通俗地说背驰后的反弹有多种，我们从反弹的分类中发现转折。</p>
+<p>根据反弹的力度，分为最后中枢的扩展 – 没有突破最后一个中枢的最低点、更大级别的盘整 、更大级别的反趋势。</p>
+<br>
+
+<ol>
+<li>在某级别的盘整中，或者说<strong>围绕某级别中枢的震荡、延续中(盘整里面)，不存在转折的问题</strong>，除非站在次级别图形中，才有转折问题的探讨。</li>
+<li>对于上涨的转折，有两种情况：下跌与盘整；对于下跌的转折，也有两种情况：上涨与盘整。</li>
+<li>转折是有级别的，关于<strong>转折与背驰</strong>的关系，有如下定理：缠中说禅背驰-转折定理：<strong>某级别趋势的背驰</strong>将导致该趋势<strong>最后一个中枢的级别扩展、该级别更大级别的盘整或该级别以上级别的反趋势</strong>。例如，一个<strong>5分钟背驰段的下跌</strong>，最终通过<strong>1分钟以及1分钟以下级别的精确定位，最终可以找到背驰的精确点，其后就发生反弹</strong>。</li>
+<li>反弹会有一个很明确的界定，就是包括三种情况：<strong>一、该趋势最后一个中枢的级别扩展、二、该级别更大级别的盘整、三该级别以上级别的反趋势</strong>。</li>
+<li>一、该趋势最后一个中枢的级别扩展</li>
+<li>只触及最后一个中枢的DD=min(dn)的反弹，就是背弛后最弱的反弹，这种反弹，将把最后一个中枢变成一个级别上的扩展，例如，把5分钟的中枢扩展成30分钟甚至更大的中枢。</li>
+<li>第一类买点是绝对安全的，即使是这样一种最低级别的反弹，也有足够的空间让买入获利</li>
+<li>很特殊的情况，不幸碰到这种情况，在资金利用率的要求下，当然是要找机会马上退出，否则就会浪费时间了。</li>
+<li>注意，这种情况和盘整背驰中转化成第三类卖点的情况不同，那种情况下，反弹的级别一定比最后一个中枢低，而这种情况，反弹的级别一定等于或大于最后一个中枢的。因此，这两种情况，不难区分。</li>
+<li>二、该级别更大级别的盘整</li>
+<li>三、该级别以上级别的反趋势。</li>
+<li>这二种情况就是发生转折的两种情况，原理是一样的，只是相应的力度有区别。当反弹至少要重新触及最后一个中枢，这样，将发生转折，也就是出现盘整与上涨两种情况，</li>
+<li>对于上面5分钟下跌的例子，就意味着，将出现5分钟级别更大的盘整(背驰扩大了盘整，因为为更大)或5分钟级别以上的上涨，两段走势类型的连接，就有两种情况出现：下跌+盘整，或者下跌+上涨。</li>
+<li>注意，这里的盘整的中枢级别(30min)一定大于下跌中的中枢级别(5min)，<strong>否则就和下跌的延伸或第一种该趋势最后一个中枢的级别扩展搞混了</strong>。而上涨的中枢，不一定大于上跌中的中枢，例如，一个5分钟级别的下跌后反过来是一个5分钟级别的上涨，这是很正常的，但如果是盘整，那就至少是30分钟级别的。</li>
+<li>有人总是搞不明白为什么“下跌+盘整”中盘整的中枢级别一定大于下跌中的中枢，这里不妨用一个例子说明一下：例如，还是一个5分钟的下跌，那至少有两个中枢，整个下跌，最一般的情况就是a+A+b+B+c，其中的a\b\c，其级别最多就是1分钟级别的，甚至最极端的情况，可以就是一个缺口。而A、B，由于是5分钟级别的中枢，那至少由3段1分钟的走势类型构成，如果都按1分钟级别的走势类型来计量，而且不妨假设a\b\c都是1分钟的走势类型，那么a+A+b+B+c就有9个1分钟的走势类型。</li>
+<li>而一个30分钟的盘整，至少有3个5分钟的走势类型，而1个5分钟的走势类型，至少有3个1分钟的走势类型，也就是一个30分钟的盘整，就至少有9个1分钟的走势类型，这和上面a+A+b+B+c的数量是一致的。从这数量平衡的角度，就知道为什么“下跌+盘整”中盘整的级别一定比下跌的级别大了，如果级别一样，例如一个5分钟的盘整，只有3个1分钟的走势类型，那和9就差远了，也不匹配。</li>
+<li>当然，“下跌+盘整”中盘整的级别一定比下跌的级别大，最主要的原因还不是这个，而是上面说到的，如果该级别一样，那只有两种情况，下跌延伸或下跌最后一个中枢扩展，和“下跌+盘整”是不搭界的</li>
+<li>有人可能还有疑问，如果下跌最后一个中枢扩展，例如5分钟扩展成30分钟，那和5分钟级别下跌+30分钟级别盘整有什么区别？这区别大了，因为在“5分钟级别下跌+30分钟级别盘整”，也就是“下跌+盘整”中，下跌和盘整都是完成的走势类型，这意味着是两个走势类型的连接。而下跌最后一个中枢扩展，是一个未完成的走势类型的延续，还在一个走势类型里</li>
+<li>以上三种情况，就完全分类了某级别背驰后的级别与力度，也就是某级别的第一类买点后将发生怎么样的情况，而第一类卖点的情况是一样的，只是方向相反</li>
+<li>那么，怎么分别这几种情况，关键就是看反弹中第1个前趋势最后一个中枢级别的次级别走势（例如前面的下跌是5分钟级别，就看1分钟级别的第1次反弹），是否重新回抽最后一个中枢里，如果不能，那第一种情况的可能就很大了，而且也证明反弹的力度值得怀疑，当然这种判别不是绝对的，但有效性很大。</li>
+<li>这次20070206的反弹，用5分钟背驰段，然后考察1分钟以及1分钟以下级别的背驰进行精确定位，可以极为精确地把握这个底部，而且在实践中，很多人按照本ID的理论都把握住了，那么，其后的反弹，第一波是1分钟走势马上回到从2980开始的5分钟下跌的最后一个中枢里，这样就意味着第一种最弱的情况可能性可以完全排除了，其后，1分钟的走势继续完成，扩展成一个5分钟的上涨</li>
+<li>在20070207的11点前后，一个1分钟的背驰制造了上涨的结束，其后进入一个中枢的震荡中，这个中枢，按照本章的定理，就可以断言，至少是5分钟级别的，而实际上演化成一个30分钟级别的，这意味着，一个快速的5分钟上涨的可能就没有了，后面只有两种演化的可能，就是一个30分钟以上级别的盘整，或者是一个30分钟以上的上涨，至于哪种情况，就必须看后面走势的演化。</li>
+<li>而对于实际的操作，这两种情况并没有多大的区别，例如是盘整还是上涨，关键看突破第一个中枢后是否形成第三类买点，而<span style="color:red">操作中，是在第一、二类买点先买了，然后观察第三类买点是否出现，出现就继续持有，否则就可以抛出</span></li>
+<li>如果是资金量特别小，或者对本ID的理论达到小学毕业水平，那么完全可以在<strong>突破的次级别走势背驰时先出掉</strong>，<strong>然后看回试是否形成第三类买点</strong>，形成就回补，不形成就不回补，就这么简单。</li>
+<li>在第一次抄底时，最好就是买那些当下位置离最后一个中枢的DD=min(dn)幅度最大的，所谓的超跌，应该以此为标准。</li>
+<li>因为本章的定理保证了，反弹一定达到DD=min(dn)之上，然后在反弹的第1波次级别背驰后出掉，如果这个位置还不能达到最后一个中枢，那么这个股票可以基本不考虑，当然，这可能有例外，但可能性很小。</li>
+<li>然后在<strong>反弹的第一次次级别回试后买入那些反弹能达到最后一个中枢的股票而且最好是突破该中枢的而且回试后能站稳的</strong>，根据走势必完美，一定还有一个次级别的向上走势类型，如果这走势类型出现盘整背驰，那就要出掉，如果不出现，那就要恭喜你了，你买到了一个所谓V型反转的股票，其后的力度当然不会小。</li>
+</ol>
+<p><br><br></p>
+<p>26、30课：</p>
+<p>市场价格是否完全反映所有信息，可以随意假定，无论何种假定，都和实际的交易关系不大。交易中，你唯一需要明确的，就是无论市场价格是否完全反映信息，你都必须以市场的价格交易，而你的交易将构成市场的价格，对于交易来说，除了价格，一无所有（成交量可以看成是在一个最低的时间段内按该价格重复成交了成交数量个交易单位）。这一切，和市场价格是否反映所有信息毫无关系，因为所有价格都是当下的，如果当下的信息没被市场反映，那他就是没被市场当下反映的信息，至于会不会被另一个时间的价格反映是另外的事情。站在纯交易的角度，价格只有当下，当下只有价格，除了价格与依据时间延伸出来的走势，市场的任何其他东西都是可以忽略不计的。</p>
+<p>价格也和人是否理智无关，无论你是否理智，都以价格交易，而交易也被价格，这是无论任何理论都必须接受的事实：交易，只反映为价格，以某种价格某个时间的交易，这就是交易的全部。至于交易后面的任何因数，如果假定其中一种或几种决定了交易的价格，无论这种因数是基本面、心理面、技术面、政治面还是什么，都是典型的上帝式思维，都是无聊勾当。其实，对于价格来说，时间并不需要特别指出，因为价格轨迹中的前后，就意味着时间的因数，也就是说，交易是可以按时间排序的，这就是交易另一个最大的特征：交易是有时间性的，而这时间，不可逆。在物理还在探讨时间是否可逆时，对于交易空间的探讨，这最困难的时间问题，就已经有了最不可动摇的答案。而本ID的理论，当然也是以这交易时间的不可逆为前提，如果今天的交易可以变成昨天的或者干脆不算了，那本ID的理论马上土崩瓦解。</p>
+<p>交易，当然是有规律的，而且这规律是万古不变的，归纳上述就是：交易以时间的不可逆为前提完全等价地反映在价格轨迹上。当然，这万古不变也有其可变之处，例如交易突然因为某种原因可以随便更改，因此，在逻辑上更严谨的说法就是，把满足该条规律的市场称为价格充分有效市场，本ID的理论，就是针对这种价格充分有效市场的，而这种市场，至少对应了目前世界上所有正式的交易市场。那么，非价格充分有效市场是否存在？当然有。例如，你昨天一亿元钱买了一石头，今天卖石头的黑帮老大拿着枪顶着你说昨天的交易不算了，钱不给了，石头也收走了，这种存在类似交易的市场当然不可能是价格充分有效的。</p>
+<p>以前所有市场理论的误区都在于去探讨决定价格的交易后面的因数，交易是人类的行为，没什么可探讨的，人类就像疯子一样，其行为即使可探讨，在交易层面也变得没什么可探讨的。所有企图解释交易动机、行为的理论都是没有交易价值的，不管人类的交易有什么理由，只要交易就产生价格，就有价格的轨迹，这就足够了。站在纯交易的角度，唯一值得数学化探讨的就是这轨迹，其他的研究都是误区，对交易毫无意义。</p>
+<p>那么，价格是随机的吗？这又是一个上帝式的臆测。决定论和随机论，其背后的基础都是一个永恒因数论，一个永恒模式论，也就是，价格行为被某种神秘的理论所永恒模式化。无论这种模式是决定还是随机，这种假设的荒谬性是一样。交易，只来自现实，因此，价格是被现实的交易所决定的，相应，上面的顾虑就可以扩充为：交易是现实的行为，交易以时间的不可逆为前提完全等价地反映在价格轨迹上。</p>
+<p>交易的现实性是交易唯一可以依赖的基础，那么交易的现实性反映了什么，有什么可能的现实推论？首先，人的反应是需要时间的，就算是脑神经的传输，也是需要时间的；其次，社会结构的现实多层性以及个体的差异性决定了，任何的群体性交易都不具有同时性，也就是说，即使是相同原因造成的相同买卖，都不可能同时出现，必然有先后，也就是说，交易具有延异性，不会完全地趋同，这是交易能形成可分析走势的现实基础。</p>
+<p>由于交易具有延异性，没有绝对的同一性，那么即使对于严格一种因数决定交易行为的系统，也依然能产生可分析的价格轨迹。任何群体性的交易行为，不会出现完全的价格同一性，也就是说，不会永远出现所有人同一时刻的同一交易。而一个完全绝对趋同交易，就等价于一个赌博，所有的买卖和买大小没任何区别，这样的系统是否存在？当然，例如一个庄家百分百把所有股票都吃了，而且任何一笔的交易都只有他一个人参与，没有任何别的人参与，这时候，其走势等价于一个买大小的赌博。而只要有人买入或还持有这股票的1股，那么这个交易就可以用本ID的理论来描述，因为，一个不完全绝对趋同的交易就产生了，本ID理论的另一个界限就在此。</p>
+<p>本ID的理论只有这两个界限，只要是价格充分有效市场里的非完全绝对趋同交易，那本ID的理论就永远绝对有效，这种绝对性就如同压缩影射不动点的唯一性对完备的距离空间一样。至于有多少人学习，应用这个理论，对理论本身并没有任何实质的影响，因为，即使所有人都应用本ID的理论，由于社会结构以及个体差异，依然不会造成一个完全绝对趋同交易，这样，本ID的理论依然有效。而更重要的是，本ID的理论，并不是一个僵化的操作，都是永远建立在当下之上的。例如，一个日线级别被判断进入背弛段，由于某种当下的绝对突发事件，例如突然有人无意按错键又给日本捎去一千几百颗原子弹，使得小级别产生突发性结构破裂最终影响到大级别的结构，这时候，整个的判断，就建立在一个新的走势基础上了，而往往这时，实际的交易并没有发生，除非你运气忒好，你刚按买入，那原子弹就飞起来了。一般人，总习惯于一种目的性思维，往往忽视了走势是当下构成中的，而本ID的理论判断，同样是建筑在当下构成的判断中，这是本ID理论又一个关键的特征。关于这种理论的当下性，在以后的课程中会重点介绍，按学历，这是初中的课程。</p>
+<p>而本ID的理论，最终比的是人本身，就像乾坤大挪移的第八重肯定打不过第九重的，但任何非乾坤大挪移的，肯定打不过第八重一样，有一种武功是高出其它孤峰而上的，因为起点已经大大超越了，其他那些起点就错了，又怎么能比？显然，不可能所有人都相信应用本ID的理论，因此，那些不用本理论的人，就成了本ID理论吸血的对象，现实中，这种对象不是太少，而是太多了。其次，如果有庄家、基金偷学了这种方法，这就等于乾坤大挪移比第几重了，而且对于大资金来说，至少要比散户高出两重，才可能和散户打个平手，因为资金大，没有更高的功力，怎么能挪移起来？更重要的是，级别越大，企图控制干扰所需要的能量越大，对于周线级别以后，基本就没人能完全控制了，如果真是出现个个庄家、基金争学本ID理论的情况，那么除了在小级别比功力外，功力浅的完全可以把操作级别提高来加强安全性。更重要的是，应用相同的理论，在现实中也不会有相同的结果，现实就是一个典型的非完全绝对趋同系统，就像同样的核理论，并不会导致德国和美国同时造出原子弹，同样的理论，在不同的资金规模、资金管理水平，选股策略、基本面把握、交易者性格、气质等情况下，自然地呈现不同的面貌，这就保证了同一理论交易的非完全绝对趋同。</p>
+<p>对本ID的理论有一点是必须明确的，就是本ID的理论是对价格充分有效市场非完全绝对趋同交易的一个完全的数学公理化理论，唯一需要监控的就是价格充分有效市场与非完全绝对趋同交易这两个前提是否还存在，更重要的是，这归根结底是一套关系人的理论，只能不断在交易中修炼，最后比的可是功力。例如，就算是背驰这么简单的事情，就算是同一种方法，当成为群体性行为时，比的就是心态与功力，心态不好、出手早或出手迟的，就会在价格上留下痕迹，甚至当趋同性较强时，会使得级别的延伸不断出现，那就让功力深的人得到一个更好的买入或卖出价格，这些细微的差别积累下来，足以使得赢利水平天差地别。这也是为什么本ID可以把理论公开的一个深层原因，因为本ID的理论是对价格充分有效市场非完全绝对趋同交易的一个客观理论，即使公开了，也不会让这理论有任何改变，就像牛顿力学不会让万有引力改变一样，美国的原子弹爆炸了不会影响中国的原子弹按照同样的理论出现一样。至于理论可能造成的趋同交易加大，也早在本ID理论的计算中，这里比的是当下的功力。</p>
+<p>无论你用什么交易方法，只要是在价格充分有效市场非完全绝对趋同交易里，你就在本ID理论的计算中；而要在本ID的理论里功力日增，就首先要成为一个顶天立地的人，这也是本ID让各位多看本ID所解释论语的原因。交易，不过是人类行为的一种，要成为成功的交易者，首先要对人类的行为穷其源，得其智慧，否则，一个糊涂蛋，什么理论都是白搭。本ID理论的基础部分，只是把现实的真相解剖出来，但这远远不够，看明白与行得通，那是两回事情。当然，看都看不明白，是不可能真的行得通的。而行，就是修行，“见、闻、学、行”，缺一不可。本ID的理论如同大道，不需要私藏着，都可以学、都可以行，但能否行到不退转的位置，是否最终还是“学如不及，犹恐失之”，那就要靠每个人自身的修行了。</p>
+<p>理论，只是把现实解剖，但真正的功力，都在当下，不光要用理论的眼睛看清楚现实，更要逐步让自己和走势合一。而行的初步功力是什么？归根结底就是“恰好”，这个“恰好”是动态的，无论多少人，每个人的行为当成一个向量，所有人的行为最终构成走势的向量，而所谓的“恰好”，就是这个总向量本身。而如何才能永远和这总向量一致？就要首先把自己变成一个零向量，有也只有当一个零向量加入到任何一个向量叠加系统里，才不会影响到最终的总向量的。把自己的贪婪与恐惧去掉，让市场的走势如同自己的呼吸一般，看走势如同看自己的呼吸，慢慢就可以下单如有神了，你的交易，就是顺着市场的总向量的方向增加其力度而已，这才是真正的顺势而为。只有这样，才算初步入门，才能逐步摆脱被走势所转的可悲境地，才能让自己和走势合一，和那永远变动的总向量一致而行。至于走势分析的学习，只不过是门外的热身而已。</p>
+<p>有人可能要追问，如果所有人都变成零向量，那又如何？交易市场存在的基础，就是人的贪婪与恐惧，如果所有参与交易市场的人都没有贪婪与恐惧，那市场就没了，资本主义就没了，货币就被消灭了，那时候，本ID的理论自然就不存在了。只有对这个以人的贪婪、恐惧为基础的市场进行“不相”之，才能长期有效地吸取这市场的血。本ID理论的基础部分，在人类历史上第一次把交易市场建筑在严密的公理化体系上，就是要把市场的本来面目还原，让人的贪婪、恐惧无所遁形，只有明确地知道市场当下的行为，才可能逐步化解贪婪与恐惧，把交易行为建筑在一个坚实的现实基础上，而不是贪婪、恐惧所引发的臆测上。只有智慧才可以战胜贪婪、恐惧，而当所有的贪婪与恐惧被战胜后，贪婪与恐惧所物化的资本主义社会本身，也就丧钟敲响了。</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
