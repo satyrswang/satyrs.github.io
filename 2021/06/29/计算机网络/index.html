@@ -20,8 +20,10 @@
 <meta property="og:image" content="https://satyrswang.github.io/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%89%B9%E6%AE%8Aip%E5%9C%B0%E5%9D%80.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/ipv6%E6%95%B0%E6%8D%AE%E6%8A%A5.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/RIP%E6%8A%A5%E6%96%87.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%BD%91%E5%85%B3%E5%8D%8F%E8%AE%AE.png">
+<meta property="og:image" content="https://satyrswang.github.io/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%BD%91%E5%85%B3%E5%8D%8F%E8%AE%AE2.png">
 <meta property="article:published_time" content="2021-06-29T04:48:34.000Z">
-<meta property="article:modified_time" content="2021-07-16T11:58:51.235Z">
+<meta property="article:modified_time" content="2021-07-20T09:38:14.080Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="计算机">
 <meta name="twitter:card" content="summary">
@@ -92,7 +94,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">135k</span>
+    总字数 <span class="post-count">139.4k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -192,7 +194,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：4.1k字 | 预计阅读时长：14分钟
+    字数：5k字 | 预计阅读时长：17分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -220,6 +222,23 @@
 <br>
 
 
+
+
+
+<h4 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h4><ol>
+<li>计算机网络的功能：数据通信、资源共享、分布式处理、提高可靠性、负载均衡</li>
+<li>组成：硬件软件 及协议。工作方式：边缘部分(主机 p2p c/s方式)及核心部分(路由器及大量网络)</li>
+<li>功能组成：通信子网(实现数据通信 – 包括物理层、数链层以及网络层)和资源子网(实现资源共享和数据处理 – 包括会话、表示和应用层)，传输层属于两个子网的接口</li>
+<li>分类：按照分布范围：WAN MAN LAN PAN ；公用网、专用网；按交换方式分，电路交换、报文交换、分组交换；按拓扑结构分，网状(广域网)；按传输技术分，广播式、点对点</li>
+<li>RFC – 因特网标准形式</li>
+<li>组织：ISO ITU IEEE IETF</li>
+<li>性能指标：速率 带宽 吞吐量。带宽：带宽变大是发送变快，一定时间往链路注入的bit更多，而不是传播更快。吞吐量：单位时间通过某个网络(信道/接口)的数据量。</li>
+<li></li>
+<li></li>
+</ol>
+<br>
+
+<br>
 
 <h4 id="层次"><a href="#层次" class="headerlink" title="层次"></a>层次</h4><ol>
 <li>TCP/IP协议栈：从下到上：物理层、数据链路层、[ARP] IP [ICMP/IGMP]、TCP/UDP、HTTP/FTP/DNS</li>
@@ -319,7 +338,7 @@
 <li><p>ipv4地址</p>
 <ol>
 <li><p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E5%88%86%E7%B1%BBip%E5%9C%B0%E5%9D%80.png" alt="分类ip地址"></p>
-<p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%89%B9%E6%AE%8Aip%E5%9C%B0%E5%9D%80.png" alt="特殊ip地址"></p>
+<p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%89%B9%E6%AE%8Aip%E5%9C%B0%E5%9D%80.png" alt="特殊ip地址">    </p>
 </li>
 </ol>
 </li>
@@ -351,6 +370,25 @@
 <p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/RIP%E6%8A%A5%E6%96%87.png" alt="RIP报文"></p>
 <p>是应用层协议，使用UDP传输数据。将RIP的首部和路由部分作为UDP的数据，加上UDP的首部，再加上IP首部，构成ip数据报。其中，路由部分最多包含25个路由信息，所以更多路由需要多发几个报文。</p>
 </li>
+<li><p>RIP好消息传得快，坏消息传的慢：不断更新，直到距离更新到16，才直到这个是不可达的。</p>
+</li>
+<li><p>OSPF协议：适用于大型互联网，通过划分区域的方式，区别区域内部路由器和区域边界路由器以及主干路由器，以及自治系统边界路由器。开放最短路径优先协议。使用了分布式的链路状态协议。只有变化时候，洪泛向所有路由器发送 <strong>本路由器相邻的所有路由器的链路状态</strong>，如何哪些路由器相邻以及费用。=&gt;所有路由器都会有一个全网的拓扑图。OSPF分组：数据加首部最为ip数据报的数据部分。暂时理解为是网络层协议。</p>
+<p>TIPS:发送的信息是与本路由器相邻的所有路由器的链路状态 ,只涉及与相邻路由器的连通状态,与整个<em>互联网</em>的<em>规模无关</em></p>
+</li>
+<li><p>链路状态路由算法：1每个路由器发HELLO分组，发现邻居，并更新和邻居之间费用metric 2构造DD描述分组给邻站自己的数据库中链路状态信息的摘要 3DD信息我都有了，就不处理，否则发LSR链路状态请求分组来请求自己没有的信息 4收到LSR，发送LSU链路状态更新分组 5更新后返回LSAck链路状态确认分组   – 最后 用Dijkstra来计算最短路径。 (简单说，就是先hello找邻居，然后发摘要，然后看看别人的摘要再发请求，最后整理所有的信息)</p>
+</li>
+<li><p>BGP：网络较大，只要求到达其他AS的较好的路由。各个AS的BGP发言人，交换到达某个网络所经过的一系列AS，即交换的是一系列的路径(距离向量)。BGP的报文作为TCP的数据部分，为应用层协议，需要TCP传送，即首先要建立TCP连接，然后在此连接至上建立BGP会话，利用BGP会话交换BGP报文。支持CIDR，需要网络前缀。</p>
+</li>
+<li><p>最常用版本BGP-4的四种报文：OPEN报文(认证及发现邻居)，UPDATE(路径变更)，KEEPALIVE(邻居之间周期性连接，也可以作为OPEN确认)，NOTIFICATION（报告差错、关闭连接。）</p>
+</li>
+<li><p>RIP OSPF BGP区别：</p>
+<p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%BD%91%E5%85%B3%E5%8D%8F%E8%AE%AE.png" alt="网关协议"></p>
+<p><img src="/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%BD%91%E5%85%B3%E5%8D%8F%E8%AE%AE2.png" alt="网关协议2"></p>
+</li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
 <li></li>
 <li></li>
 <li></li>
@@ -501,11 +539,11 @@
   
 <nav id="article-nav">
   
-    <a href="/2021/06/29/%E4%B9%A6list/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2021/06/29/%E9%98%B6%E6%AE%B5%E6%80%A7%E6%80%BB%E7%BB%93/" id="article-nav-newer" class="article-nav-link-wrap">
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          书list
+          阶段性总结
         
       </div>
     </a>
@@ -641,6 +679,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">随笔</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">ml</a>
               </li>
              
@@ -689,11 +731,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">es</a>
+                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -706,6 +748,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">并发</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">英文积累</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -730,10 +776,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">随笔</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -765,11 +807,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">计算机</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">leetcode</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">计算机</a>
+                <a href="javascript:void(0)" class="js-tag color5">英文写作</a>
               </li>
              
               <li class="article-tag-list-item">
