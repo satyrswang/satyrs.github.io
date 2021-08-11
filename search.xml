@@ -85,58 +85,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apriori_fptree</title>
-    <url>/2021/03/11/Apriori-fptree/</url>
-    <content><![CDATA[<h2 id="Apriori"><a href="#Apriori" class="headerlink" title="Apriori"></a>Apriori</h2><ul>
-<li>input<br>{ID1:[item1,item2…],ID2:[item3,item2…],…}</li>
-</ul>
-<span id="more"></span>
-<ul>
-<li><p>output<br>item1-&gt;item2,item3…</p>
-</li>
-<li><p>math<br>频率及条件概率的简单应用<br>支持度: 频数/样本总量<br>置信度: 条件概率<br>如果子集不为频繁集则超集一定不为；反之如果超集是频繁集则子集均为频繁集。</p>
-</li>
-<li><p>parameters<br><code>minSupport</code><br><code>minConf</code></p>
-</li>
-<li><p>过程<br>1-4完成了频繁集的搜寻，5及之后产生规则。</p>
-</li>
-</ul>
-<p>1、<code>list</code>存放每个用户的  <code>itemset</code>，生成[[],[]]存放所有item并排序，<code>map(frozenset, C1)</code><br>2、第一轮遍历，生成一个<code>list</code>存放所有支持度大于<code>minSupport</code>，大于则<code>insert(0,key)</code>。遍历的函数<code>scanD</code>所生成<code>list</code>的元素是<code>frozenset</code>。如果<code>can.issubset(tid)</code>且<code>！ssCnt.has_key(can)</code>则加入到<code>supportData</code>。<br>3、list存放所有频繁物品集，<code>supportData</code>存放所有计算过的物品集的支持度，以<code>frozenset</code>作为<code>key</code>。两者更新的过程是在<code>apriori</code>中循环调用<code>aprioriGen</code>和<code>scanD </code>，再更新。直到<code>scanD</code>得到的频繁物品集为空。<br>4、<code>aprioriGen</code>的过程，两层循环，遍历上一个(即物品集中个数为目前需要产生的个数-1)频繁物品集，<code>L1 = list(Lk[i])[:k-2];L2 = list(Lk[j])[:k-2]</code>取前k-2项比较，若相同则<code>retList.append(Lk[i] | Lk[j])</code>将物品集union。是一个merging过程。</p>
-<p>5、如果频繁集<code>frozenset</code>中item多于2，先<code>rulesFromConseq</code>再<code>calcConf</code>。<code>rulesFromConseq</code>是个递归过程，</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        if (len(Hmp1) &gt; 1):   #至少需要两个元素才能够merge</span><br><span class="line">            rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
-<p>这里一个问题是，如果<code>len(Hmp1) =1</code>，但是<code>len(freqSet) &gt; (len(Hmp1[0]) + 1)</code>仍然成立，因此修改为：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        if(len(H) &gt; 1):</span><br><span class="line">            Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
-
-<br>
-
-
-<h2 id="fptree"><a href="#fptree" class="headerlink" title="fptree"></a>fptree</h2><ul>
-<li><p>概念<br>闭项：超集的支持度为s，子集的支持度都不超过s。<br>条件模式基： 即一个item追溯到root的所有路径<br>条件fp树 ： 即根据条件模式基创建的tree<br><code>myCondTree, myHead = createTree(condPattBases, minSup)</code></p>
-</li>
-<li><p>准备<br><code>headertable</code> : <code>dict</code>，<code>value</code>为<code>[count,treeNode]</code><br><code>treeNode</code> : <code>class</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def __init__(self, nameValue, numOccur, parentNode):</span><br><span class="line">     self.name &#x3D; nameValue</span><br><span class="line">     self.count &#x3D; numOccur</span><br><span class="line">     self.nodeLink &#x3D; None</span><br><span class="line">     self.parent &#x3D; parentNode      </span><br><span class="line">     self.children &#x3D; &#123;&#125; </span><br></pre></td></tr></table></figure>
-<p>主要方法：<code>createTree</code> <code>updateTree</code>  <code>mineTree</code><br>辅助方法：<code>updateHeader</code> <code>findPrefixPath</code> <code>ascendTree</code></p>
-</li>
-<li><p>过程</p>
-</li>
-</ul>
-<ol>
-<li><code>createTree</code>首先第一次遍历计算<code>count</code>，<code>headerTable[item] = headerTable.get(item, 0) + dataSet[trans]</code>将<code>count</code>简单赋值为1。注意到这里的dataSet类型。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def createInitSet(dataSet):</span><br><span class="line">    retDict &#x3D; &#123;&#125;</span><br><span class="line">    for trans in dataSet:</span><br><span class="line">        retDict[frozenset(trans)] &#x3D; 1</span><br><span class="line">    return retDict</span><br></pre></td></tr></table></figure>
-获得<code>freqItemSet = set(headerTable.keys())</code>后第二次遍历。先对item排序，<code>orderedItems = [v[0] for v in sorted(localD.items(), key=lambda p: p[1], reverse=True)] </code>，再<code>updateTree(orderedItems, retTree, headerTable, count)</code>。</li>
-<li><code>updateTree</code>，这里就是普通的对树的操作，也是递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if len(items) &gt; 1:#call updateTree() with remaining ordered items</span><br><span class="line">        updateTree(items[1::], inTree.children[items[0]], headerTable, count)</span><br></pre></td></tr></table></figure>
-唯一注意之处，需要<code>updateHeader</code>。</li>
-<li><code>mineTree</code>和<code>Apriori</code>中的<code>rulesFromConseq </code>一样较复杂，包含递归。先生成条件模式基，再生成conditional-fptree，再递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if myHead !&#x3D; None:                  </span><br><span class="line">   mineTree(myCondTree, myHead, minSup, newFreqSet, freqItemList)</span><br></pre></td></tr></table></figure>
-循环递归mineTree的过程即生成规则过程，直到频繁2项集都得到。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>2021.07</title>
     <url>/2021/07/28/2021-07/</url>
     <content><![CDATA[<br>
@@ -205,6 +153,137 @@
       </categories>
       <tags>
         <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2021.08</title>
+    <url>/2021/08/02/2021-08/</url>
+    <content><![CDATA[<br>
+
+
+
+<h4 id="0802"><a href="#0802" class="headerlink" title="0802"></a>0802</h4><span id="more"></span>
+
+<ol>
+<li>模型的很多问题还是需要思考的</li>
+<li>考研的东西还需要抓住</li>
+<li>工作要追求效率，抓紧时间，并且重视质量，各种细节需要严谨核实，避免无用功</li>
+<li>家庭琐事尽量缩小花费的时间。</li>
+</ol>
+<br>
+
+
+
+<h4 id="0806"><a href="#0806" class="headerlink" title="0806"></a>0806</h4><p>今天6号了。时间恍惚。</p>
+<p>现在每次他出去我还是会不开心。很不开心。我的怨恨在哪呢，我觉得他应该陪伴我们，这里做到的不好，那里做的不好， 但是他总是看都没看见。他不觉得不好。或者觉得了，也只是视而不见。总之路径依赖了。</p>
+<p>现在的想法就是他出门不顾家，我一样。有些任性吧，觉得不公平。我希望我做到的是，没有情绪，只是照着这个原则去做。</p>
+<p>但是我还是没想明白我这样做的好处坏处。我知道坏处是他会觉得不好。那我应该沟通。我告知，不搞有情绪的事情。第二坏处就是，我能否做到是真的在做事情，而不是耽误时间在情绪里。我不希望他给我带来什么负面情绪。更希望自己有更多内生的正向能量。</p>
+<p>我现在做的事情，大多还是想到啥就做点。</p>
+<p>如果心不在焉，不如不做。尽量努力减少情绪的负面干扰。我希望在35岁前能够达到对世界的理解有一个较为高度的输出。需要读书和总结。更多地训练理性。即使是宽松的，也只是一种形式而已，反而没有自律和原则来的无负于光阴。</p>
+<p>当然最终都是为了娱乐。我还是有些怀疑的。好像还是有缺点。虽然斯德哥尔摩状态的确是我想要的。但是那个天才说的 也对，并不是那样的状态就是全部的人生了。</p>
+<p>最好的状态，还是心在焉而有所思、不仁、自如地切换，追求自己想要的也不伤害别人。</p>
+<br>
+
+<br>
+
+<h4 id="0807"><a href="#0807" class="headerlink" title="0807"></a>0807</h4><p>来公司了。如果只是恐惧孤单或者未来的困难，而无法离开，那不如离开了。但是真的，我准备好了么。</p>
+<p>离开后，我需要独自面对工作和压力。我需要给自己更多的鼓励而不依赖一个港湾。我需要开始割舍。这些勇气和毅力，切换和减少自己的情绪化，我能做到么。但我知道，在他那里，我已经习惯，已经无法改变对他和对自己施加痛苦。</p>
+<p>我心里的结就一个，就是他孩子。我对阿豪有恐惧，有忍耐，有很多不快乐。积累起来。让我觉得他所有的做法，只是表面的手段而已。因为我的痛苦高过他，我的折磨也大，而他始终还是没有能力解决。我也没有能力。</p>
+<p>这不是我想快乐，就快乐的起来的。有时候我的快乐，来自对他的折磨，折磨中我感觉到被爱而快乐，而不是来自他快乐我快乐。我缺乏勇气，缺乏安全感。也缺乏宽容。我没办法做到简简单单生活。不如让他找个其他简简单单的女人，幸福地过。</p>
+<p>我一个人的时候，一个人的痛苦，都还是需要我自己偿。有才华的他，有抒发的地方。而我不过是普通的人。有些悲哀，无法抒发。悲哀来自欲望和情绪，来自索取和不安。人生找另一个人，如果是投资，至少他能让我开眼界。但是我没有能力一起去。我不习惯在那样的场合去逢迎。这样的眼界，似乎和我无关。</p>
+<p>或者找另一个人，他真的能够理解你的不安。他的理解表现在哪呢。你都不理解你自己呢。</p>
+<p>并且我们的交流模式也充满了距离。负面表达非常多。</p>
+<p>我没能力解决。我想离开。我不想面对，几十年后的难以融入，几十年后的被抛弃和忍耐。年纪大了还要忍耐，还无法从心所欲，实在是有些悲哀。</p>
+<p>1他孩子以后，他以后，我不信任。2我和他的相处模式出很大问题。我不喜欢直接表达情感。并且有痛苦，甚至莫名其妙。我一夜没睡，他倒好，这样的经历让我认清楚很多。还是要更爱自己。我痛苦而他快乐，让我更加感到冰冷。和倾向于折磨。而他是乐观派，偏向于无心肺。3我的初心。他的初心。4我一定可以考上研，一定可以更好。一定可以得到我想要的，成为我我想成为的。但是我要有相应的付出。</p>
+<p>1金钱上少很多。时间多了。2少了快乐也少了痛苦。但不要总往坏处想。3一个人，但是还是要有热爱和乐观。4对孩子要付出。</p>
+<br>
+
+<br>
+
+<h4 id="0808"><a href="#0808" class="headerlink" title="0808"></a>0808</h4><p>看下怎么搞模拟盘。以及代码买卖。以及模型。</p>
+<p>周日整一天待在公司。还是经济学人看了几篇。效率非常低。不是真的想做事。想了很多杂乱的。</p>
+<p>晚上回家了。</p>
+<p>周六晚上又熬了一夜。我还是一直在看已经了解的那些东西。还是在一个层次里反复挣扎。而且没有沉淀地去付出。也没有什么思考。希望以后能坚持输出干货。写在公众号里。</p>
+<p>概念很重要，定义很重要。但都是从无知到慢慢地体味出来的。</p>
+<br>
+
+<h4 id="0809"><a href="#0809" class="headerlink" title="0809"></a>0809</h4><p>一天忙工作。充实算不上。但是整理代码也非常繁杂，多个场景要测，于是就耗了很多时间。</p>
+<p>晚上回家了。路上看了一些文章。印象比较深的就是对时代的划分，农业到工业到信息化，到现在数据化的海量信息和自动化、ai。</p>
+<p>以及对于短视频业务的认可。</p>
+<p>还有一些创业的想法，都是从不会一步步走来的。</p>
+<p>还有达叔里一些小故事。做事情看重不重要。</p>
+<br>
+
+<h4 id="0810"><a href="#0810" class="headerlink" title="0810"></a>0810</h4><p>上班很累。看经济学人。</p>
+<p>晚上回来看了无穷级数的一些题目。</p>
+<p>发散地想了不少。回味了之前总结的技巧和写的一些日志。</p>
+<p>看是为了什么？</p>
+<br>
+
+<h4 id="0811"><a href="#0811" class="headerlink" title="0811"></a>0811</h4><p>一天都在补数据、起模型。重新补数、起模型。</p>
+<p>还是没能预先地思考可能错误的地方。所以就非常地耗费、手工。</p>
+<br>
+
+<h4 id="0812"><a href="#0812" class="headerlink" title="0812"></a>0812</h4>]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apriori_fptree</title>
+    <url>/2021/03/11/Apriori-fptree/</url>
+    <content><![CDATA[<h2 id="Apriori"><a href="#Apriori" class="headerlink" title="Apriori"></a>Apriori</h2><ul>
+<li>input<br>{ID1:[item1,item2…],ID2:[item3,item2…],…}</li>
+</ul>
+<span id="more"></span>
+<ul>
+<li><p>output<br>item1-&gt;item2,item3…</p>
+</li>
+<li><p>math<br>频率及条件概率的简单应用<br>支持度: 频数/样本总量<br>置信度: 条件概率<br>如果子集不为频繁集则超集一定不为；反之如果超集是频繁集则子集均为频繁集。</p>
+</li>
+<li><p>parameters<br><code>minSupport</code><br><code>minConf</code></p>
+</li>
+<li><p>过程<br>1-4完成了频繁集的搜寻，5及之后产生规则。</p>
+</li>
+</ul>
+<p>1、<code>list</code>存放每个用户的  <code>itemset</code>，生成[[],[]]存放所有item并排序，<code>map(frozenset, C1)</code><br>2、第一轮遍历，生成一个<code>list</code>存放所有支持度大于<code>minSupport</code>，大于则<code>insert(0,key)</code>。遍历的函数<code>scanD</code>所生成<code>list</code>的元素是<code>frozenset</code>。如果<code>can.issubset(tid)</code>且<code>！ssCnt.has_key(can)</code>则加入到<code>supportData</code>。<br>3、list存放所有频繁物品集，<code>supportData</code>存放所有计算过的物品集的支持度，以<code>frozenset</code>作为<code>key</code>。两者更新的过程是在<code>apriori</code>中循环调用<code>aprioriGen</code>和<code>scanD </code>，再更新。直到<code>scanD</code>得到的频繁物品集为空。<br>4、<code>aprioriGen</code>的过程，两层循环，遍历上一个(即物品集中个数为目前需要产生的个数-1)频繁物品集，<code>L1 = list(Lk[i])[:k-2];L2 = list(Lk[j])[:k-2]</code>取前k-2项比较，若相同则<code>retList.append(Lk[i] | Lk[j])</code>将物品集union。是一个merging过程。</p>
+<p>5、如果频繁集<code>frozenset</code>中item多于2，先<code>rulesFromConseq</code>再<code>calcConf</code>。<code>rulesFromConseq</code>是个递归过程，</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        if (len(Hmp1) &gt; 1):   #至少需要两个元素才能够merge</span><br><span class="line">            rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
+<p>这里一个问题是，如果<code>len(Hmp1) =1</code>，但是<code>len(freqSet) &gt; (len(Hmp1[0]) + 1)</code>仍然成立，因此修改为：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        if(len(H) &gt; 1):</span><br><span class="line">            Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
+
+<br>
+
+
+<h2 id="fptree"><a href="#fptree" class="headerlink" title="fptree"></a>fptree</h2><ul>
+<li><p>概念<br>闭项：超集的支持度为s，子集的支持度都不超过s。<br>条件模式基： 即一个item追溯到root的所有路径<br>条件fp树 ： 即根据条件模式基创建的tree<br><code>myCondTree, myHead = createTree(condPattBases, minSup)</code></p>
+</li>
+<li><p>准备<br><code>headertable</code> : <code>dict</code>，<code>value</code>为<code>[count,treeNode]</code><br><code>treeNode</code> : <code>class</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def __init__(self, nameValue, numOccur, parentNode):</span><br><span class="line">     self.name &#x3D; nameValue</span><br><span class="line">     self.count &#x3D; numOccur</span><br><span class="line">     self.nodeLink &#x3D; None</span><br><span class="line">     self.parent &#x3D; parentNode      </span><br><span class="line">     self.children &#x3D; &#123;&#125; </span><br></pre></td></tr></table></figure>
+<p>主要方法：<code>createTree</code> <code>updateTree</code>  <code>mineTree</code><br>辅助方法：<code>updateHeader</code> <code>findPrefixPath</code> <code>ascendTree</code></p>
+</li>
+<li><p>过程</p>
+</li>
+</ul>
+<ol>
+<li><code>createTree</code>首先第一次遍历计算<code>count</code>，<code>headerTable[item] = headerTable.get(item, 0) + dataSet[trans]</code>将<code>count</code>简单赋值为1。注意到这里的dataSet类型。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def createInitSet(dataSet):</span><br><span class="line">    retDict &#x3D; &#123;&#125;</span><br><span class="line">    for trans in dataSet:</span><br><span class="line">        retDict[frozenset(trans)] &#x3D; 1</span><br><span class="line">    return retDict</span><br></pre></td></tr></table></figure>
+获得<code>freqItemSet = set(headerTable.keys())</code>后第二次遍历。先对item排序，<code>orderedItems = [v[0] for v in sorted(localD.items(), key=lambda p: p[1], reverse=True)] </code>，再<code>updateTree(orderedItems, retTree, headerTable, count)</code>。</li>
+<li><code>updateTree</code>，这里就是普通的对树的操作，也是递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if len(items) &gt; 1:#call updateTree() with remaining ordered items</span><br><span class="line">        updateTree(items[1::], inTree.children[items[0]], headerTable, count)</span><br></pre></td></tr></table></figure>
+唯一注意之处，需要<code>updateHeader</code>。</li>
+<li><code>mineTree</code>和<code>Apriori</code>中的<code>rulesFromConseq </code>一样较复杂，包含递归。先生成条件模式基，再生成conditional-fptree，再递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if myHead !&#x3D; None:                  </span><br><span class="line">   mineTree(myCondTree, myHead, minSup, newFreqSet, freqItemList)</span><br></pre></td></tr></table></figure>
+循环递归mineTree的过程即生成规则过程，直到频繁2项集都得到。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>算法</category>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -333,9 +412,11 @@
 <p><a href="https://blog.csdn.net/aws3217150/article/details/68935789">https://blog.csdn.net/aws3217150/article/details/68935789</a></p>
 ]]></content>
       <categories>
+        <category>算法</category>
         <category>ml</category>
       </categories>
       <tags>
+        <tag>算法</tag>
         <tag>ml</tag>
       </tags>
   </entry>
@@ -443,9 +524,11 @@
 <p><a href="https://www.bilibili.com/video/BV19t411R7QU?p=3">https://www.bilibili.com/video/BV19t411R7QU?p=3</a></p>
 ]]></content>
       <categories>
+        <category>算法</category>
         <category>ml</category>
       </categories>
       <tags>
+        <tag>算法</tag>
         <tag>ml</tag>
       </tags>
   </entry>
@@ -475,9 +558,11 @@
 <p>3、</p>
 ]]></content>
       <categories>
+        <category>算法</category>
         <category>ml</category>
       </categories>
       <tags>
+        <tag>算法</tag>
         <tag>ml</tag>
       </tags>
   </entry>
@@ -1055,9 +1140,11 @@
 </ul>
 ]]></content>
       <categories>
+        <category>算法</category>
         <category>dl</category>
       </categories>
       <tags>
+        <tag>算法</tag>
         <tag>dl</tag>
       </tags>
   </entry>
@@ -1081,9 +1168,11 @@
 <p>S4<code>注册</code></p>
 ]]></content>
       <categories>
+        <category>工程</category>
         <category>spring</category>
       </categories>
       <tags>
+        <tag>工程</tag>
         <tag>spring</tag>
       </tags>
   </entry>
@@ -1214,9 +1303,11 @@
 <p>reference：<br><a href="https://blog.csdn.net/myan/article/details/5928531">https://blog.csdn.net/myan/article/details/5928531</a></p>
 ]]></content>
       <categories>
+        <category>工程</category>
         <category>c++</category>
       </categories>
       <tags>
+        <tag>工程</tag>
         <tag>c++</tag>
       </tags>
   </entry>
@@ -1240,16 +1331,13 @@
 <p>2、</p>
 ]]></content>
       <categories>
+        <category>工程</category>
         <category>c++</category>
       </categories>
       <tags>
+        <tag>工程</tag>
         <tag>c++</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>cmake</title>
-    <url>/2021/04/13/cmake/</url>
-    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>cuda编程</title>
@@ -1309,11 +1397,50 @@
 </ul>
 ]]></content>
       <categories>
+        <category>工程</category>
         <category>gpu</category>
       </categories>
       <tags>
+        <tag>工程</tag>
         <tag>gpu</tag>
         <tag>cuda</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ctr的负样本</title>
+    <url>/2021/08/02/ctr%E7%9A%84%E8%B4%9F%E6%A0%B7%E6%9C%AC/</url>
+    <content><![CDATA[<br>
+
+
+
+<h3 id="样本"><a href="#样本" class="headerlink" title="样本"></a>样本</h3><span id="more"></span>
+
+<ul>
+<li>RLNF: Reinforcement Learning based Noise Filtering for Click-Through Rate Prediction</li>
+<li><ol>
+<li>几种提升ctr模型的思路<ol>
+<li>新的模型结构</li>
+<li>incorporating feature interactions</li>
+<li>可解释性</li>
+<li>数据和行为的稀疏性问题</li>
+<li>用户兴趣爱好随时间变迁(时间 维度)</li>
+<li>样本不平衡性</li>
+</ol>
+</li>
+<li>RLNF的步骤<ol>
+<li>s1根据特征向量生成action a(是否选择)；s2根据很多的a生成reward；s3根据reward生成；s4所有负样本中选择部分a为选择的N，用N和正样本来训练ctr模型==&gt;这样交替地进行noise filter和ctr model的训练</li>
+</ol>
+</li>
+<li></li>
+</ol>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>论文</category>
+      </categories>
+      <tags>
+        <tag>论文</tag>
       </tags>
   </entry>
   <entry>
@@ -1321,9 +1448,11 @@
     <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/</url>
     <content><![CDATA[]]></content>
       <categories>
+        <category>工程</category>
         <category>gpu</category>
       </categories>
       <tags>
+        <tag>工程</tag>
         <tag>gpu</tag>
         <tag>cuda</tag>
       </tags>
@@ -1349,40 +1478,12 @@
 <p>10、更多时间消耗在：定位，不仔细地排查到，而是根据感觉、设想找到错误的地方然后改动，结果又需要进一步排查。这个使得时间成倍地被消耗。</p>
 ]]></content>
       <categories>
+        <category>工程</category>
         <category>训诫</category>
       </categories>
       <tags>
+        <tag>工程</tag>
         <tag>训诫</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<span id="more"></span>
-
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
-<p>todo</p>
-]]></content>
-      <categories>
-        <category>dubbo</category>
-      </categories>
-      <tags>
-        <tag>dubbo</tag>
       </tags>
   </entry>
   <entry>
@@ -1423,6 +1524,36 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<span id="more"></span>
+
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+<p>todo</p>
+]]></content>
+      <categories>
+        <category>dubbo</category>
+      </categories>
+      <tags>
+        <tag>dubbo</tag>
       </tags>
   </entry>
   <entry>
@@ -1512,6 +1643,30 @@
       </categories>
       <tags>
         <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>elasticsearch</title>
+    <url>/2021/04/27/elasticsearch/</url>
+    <content><![CDATA[<br>
+
+<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、搜索引擎或者elk(es、logstash、kibana)系统，都是根据内容中的关键字建立倒排索引即反向索引，便于搜索。</p>
+<span id="more"></span>
+
+
+
+<p>2、 在 Lucene 的基础上进行封装，实现了分布式搜索引擎。</p>
+<p>3、es的索引、类型和文档的概念比较重要，类似于 MySQL 中的数据库、表和行。</p>
+<p>4、Elasticsearch 也是 Master-slave 架构，也实现了数据的分片和备份。写入index和type时是和master打交道，然后同步到slave，但是写入doc数据，不需要如此。为了提高性能，写数据是采取routing，将写入压力分散。</p>
+<p>5、</p>
+<p>Reference:</p>
+<p><a href="https://zhuanlan.zhihu.com/p/62892586">https://zhuanlan.zhihu.com/p/62892586</a></p>
+]]></content>
+      <categories>
+        <category>es</category>
+      </categories>
+      <tags>
+        <tag>es</tag>
       </tags>
   </entry>
   <entry>
@@ -1708,30 +1863,6 @@
       </tags>
   </entry>
   <entry>
-    <title>elasticsearch</title>
-    <url>/2021/04/27/elasticsearch/</url>
-    <content><![CDATA[<br>
-
-<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、搜索引擎或者elk(es、logstash、kibana)系统，都是根据内容中的关键字建立倒排索引即反向索引，便于搜索。</p>
-<span id="more"></span>
-
-
-
-<p>2、 在 Lucene 的基础上进行封装，实现了分布式搜索引擎。</p>
-<p>3、es的索引、类型和文档的概念比较重要，类似于 MySQL 中的数据库、表和行。</p>
-<p>4、Elasticsearch 也是 Master-slave 架构，也实现了数据的分片和备份。写入index和type时是和master打交道，然后同步到slave，但是写入doc数据，不需要如此。为了提高性能，写数据是采取routing，将写入压力分散。</p>
-<p>5、</p>
-<p>Reference:</p>
-<p><a href="https://zhuanlan.zhihu.com/p/62892586">https://zhuanlan.zhihu.com/p/62892586</a></p>
-]]></content>
-      <categories>
-        <category>es</category>
-      </categories>
-      <tags>
-        <tag>es</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>graphsage</title>
     <url>/2021/03/08/graphsage/</url>
     <content><![CDATA[<h4 id="GCN"><a href="#GCN" class="headerlink" title="GCN"></a>GCN</h4><ul>
@@ -1779,6 +1910,10 @@
 </li>
 </ul>
 <p>todo</p>
+<hr>
+<ul>
+<li>gcn聚合时，如果考虑邻居信息和自身信息的占比，用attention呢。但是attention的问题是，fitting训练集，对测试集效果不佳。</li>
+</ul>
 <h4 id="graphsage"><a href="#graphsage" class="headerlink" title="graphsage"></a>graphsage</h4><p>1、比GCN进步之处<br>GCN的训练方式需要将邻接矩阵和特征矩阵一起放到内存或者显存里，在大规模图数据上是不可取的。其次，GCN在训练时需要知道整个图的结构信息(包括待预测的节点), 这在现实某些任务中也不能实现(比如用今天训练的图模型预测明天的数据，那么明天的节点是拿不到的)。GraphSAGE的出现就是为了解决这样的问题。</p>
 <p>GraphSAGE采用了采样的机制，使得图模型可以应用到大规模的图结构数据中，是目前几乎所有工业上图模型的雏形。<br>进一步：每个节点这么多邻居，采样能否考虑到邻居的相对重要性呢，或者我们在聚合计算中能否考虑到邻居的相对重要性? </p>
 <p>2、inductive 还是 transductive<br>如果训练时用到了测试集或验证集样本的信息(或者说，测试集和验证集在训练的时候是可见的), 我们把这种学习方式叫做transductive learning, 反之，称为inductive learning. 显然，我们所处理的大多数机器学习问题都是inductive learning, 因为我们刻意的将样本集分为训练/验证/测试，并且训练的时候只用训练样本。然而，在GCN中，训练节点收集邻居信息的时候，用到了测试或者验证样本，所以它是transductive的。</p>
@@ -1983,6 +2118,25 @@
 <p>The comments sit awkwardly with China’s existing diplomatic disputes</p>
 <p>State Department 国务院</p>
 <p>span from</p>
+<p> after a volatile session that saw it swing between gains and losses </p>
+<p>put it on course for a bear market</p>
+<p>talk up the market 讨论/哄抬市场</p>
+<p>in the crosshairs of Beijing’s sweeping regulatory crackdowns 全面监管镇压的焦点</p>
+<p>venting of sentiment </p>
+<p>jawboning 嘘声</p>
+<p>regulatory onslaught 监管冲击</p>
+<p>property sectors房地产行业</p>
+<p> tighten its grip on </p>
+<p>exacerbate</p>
+<p>a pillar of support that</p>
+<p> anti-trust</p>
+<p>bailed out</p>
+<p>once priced in</p>
+<p> scrutiny</p>
+<p>sweep up</p>
+<p>a slew of </p>
+<p>auto-hailing</p>
+<p>the gauge slumped 8.2% </p>
 ]]></content>
       <categories>
         <category>英文积累</category>
@@ -3066,29 +3220,6 @@
       </tags>
   </entry>
   <entry>
-    <title>《做生意的艺术》读后感</title>
-    <url>/2021/05/23/%E3%80%8A%E5%81%9A%E7%94%9F%E6%84%8F%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E8%AF%BB%E5%90%8E%E6%84%9F/</url>
-    <content><![CDATA[<p>1、夸张大胆，想象力</p>
-<span id="more"></span>
-
-<p>2、专注而游戏，能够悬空</p>
-<p>3、重视宣传</p>
-<p>4、对拒绝和批评，不太过放在心上</p>
-<p>5、直觉判断。非常强悍的判断力</p>
-<p>有了一个眼光后，认识到宝地。就开始找人商议，筹划合作。肯定是顶着压力的。但是大方向没有错。</p>
-<p>6、手段</p>
-<p>7、道德 ？ 生意？</p>
-<p>很大程度是演戏和忽悠。但是有一定的真实度。演戏和演说的说服力，是一种能力。和道德无关。</p>
-]]></content>
-      <categories>
-        <category>读后感</category>
-        <category>金融经济</category>
-      </categories>
-      <tags>
-        <tag>读后感</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>xgboost</title>
     <url>/2021/03/11/xgboost/</url>
     <content><![CDATA[<br>
@@ -3171,6 +3302,30 @@
       </tags>
   </entry>
   <entry>
+    <title>《做生意的艺术》读后感</title>
+    <url>/2021/05/23/%E3%80%8A%E5%81%9A%E7%94%9F%E6%84%8F%E7%9A%84%E8%89%BA%E6%9C%AF%E3%80%8B%E8%AF%BB%E5%90%8E%E6%84%9F/</url>
+    <content><![CDATA[<p>1、夸张大胆，想象力</p>
+<span id="more"></span>
+
+<p>2、专注而游戏，能够悬空</p>
+<p>3、重视宣传</p>
+<p>4、对拒绝和批评，不太过放在心上</p>
+<p>5、直觉判断。非常强悍的判断力</p>
+<p>有了一个眼光后，认识到宝地。就开始找人商议，筹划合作。肯定是顶着压力的。但是大方向没有错。</p>
+<p>6、手段</p>
+<p>7、道德 ？ 生意？</p>
+<p>很大程度是演戏和忽悠。但是有一定的真实度。演戏和演说的说服力，是一种能力。和道德无关。</p>
+]]></content>
+      <categories>
+        <category>金融</category>
+        <category>读后感</category>
+      </categories>
+      <tags>
+        <tag>金融</tag>
+        <tag>读后感</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>书list</title>
     <url>/2021/06/29/%E4%B9%A6list/</url>
     <content><![CDATA[<br>
@@ -3187,12 +3342,13 @@
 <ol start="2">
 <li>BrianW.Kernighan ,Dennjs M Ritchie的c语言</li>
 <li>Principles of Compiler Design</li>
-</ol>
-<ol>
-<li>《三一恨别长沙–梁稳根 的内心独白》和《恨别长沙谎言曝光》。中联重科和三一的斗争，有国资、非法手段。</li>
-<li>到了后来，爷爷只有背影和沉默。只有零星几张吃饭的照片，很少娱乐，很少活动。人离世之时都是落寞的。万物带不走，唯一能缓解死亡降临恐怖的，只有爱和陪伴。相视无言。却留不住。只能想，都是要走的，我也是要走的，才能通透些继续这生活。和你面对死亡的，能有谁？父母来不及，孩子已出门，唯有伴侣。走时若是充实无遗憾的，心里也坦然。不枉岁月。</li>
-<li>让子弹飞： 站着还把钱赚了。</li>
-<li>中国知识分子招聘会</li>
+<li>最醒目的是《可可·香奈儿的传奇一生》，以及压在一摞书底下、凯文·凯利写的《失控》</li>
+<li>生活之道，威廉奥斯勒</li>
+<li>Structure and Interpretation of Computer Programs   Harold Abelson/ Gerald Jay Sussman。<a href="https://book.douban.com/review/4559081/">https://book.douban.com/review/4559081/</a></li>
+<li>肖星的财务思维课</li>
+<li>secrets of tomb</li>
+<li>三边委员会，毛泽东和耶鲁大学Johnathan Spence</li>
+<li>Technical analysis of the futures markets JOHN J .MURPHY</li>
 <li></li>
 </ol>
 ]]></content>
@@ -4087,6 +4243,70 @@
       </tags>
   </entry>
   <entry>
+    <title>彩妆</title>
+    <url>/2021/07/28/%E5%BD%A9%E5%A6%86/</url>
+    <content><![CDATA[<br>
+
+<h4 id="彩妆"><a href="#彩妆" class="headerlink" title="彩妆"></a>彩妆</h4><ol>
+<li>Kevyn Aucoin的修容<span id="more"></span></li>
+<li>硅E乳 北京协和</li>
+<li>Free plus 洁面 才木始洁面 至本洁面 … 及爽肤水</li>
+<li>华熙生物？山东福瑞达？</li>
+<li>菜鸟和配方师姜黄素精华液</li>
+<li>snowberry超胜肽抗老精华</li>
+<li>Charlotte tilbury唇线笔 pillow talk 3 intense</li>
+<li>Pat mcgrath shade</li>
+<li>essence高光 20</li>
+<li>kiko遮瑕 02色号</li>
+<li>kiko修容棒 201</li>
+<li>漫野眉笔</li>
+<li>MAC omega</li>
+<li>ABH的Norvina</li>
+<li>dw粉底液，3c2</li>
+<li>LAGirl</li>
+<li>e.l.f</li>
+<li>wet n wild</li>
+<li>huda beauty</li>
+<li>fenty beauty 双色高光</li>
+<li>zoeba</li>
+<li>LB奶油眼线笔</li>
+<li>兰芝唇膜</li>
+<li>安的玫瑰庄园</li>
+<li>橘朵香水</li>
+<li>无敏氏神经酰胺修复原液+修红乳</li>
+<li>Kiss自动卷发棒</li>
+<li>TT梳</li>
+<li>摩洛哥护发精油</li>
+<li>Skin boutique鱼子酱发膜</li>
+<li>美白：olay光感小白瓶，olay亮洁皙颜祛斑精华液</li>
+<li>面霜：薇诺娜，cpb，娇韵诗，雨泽，珂润，资生堂百优，兰蔻菁纯</li>
+<li>芦荟胶：寻荟记，爱露玛德</li>
+<li>防晒：薇诺娜，碧柔 防晒放水：芳珂，TIZ02</li>
+<li>身体乳：标婷维E，薇诺娜，适乐肤c乳，茱莉蔻</li>
+<li>卸妆：花印，碧柔，芙丽芳丝</li>
+<li>棉柔巾：棉森、babycare、名创优品、屈臣氏</li>
+<li>洗发水：紫吕、施华蔻、植观</li>
+<li>防晒伞：蕉下五折，天堂三折，安晴五折</li>
+<li>防晒衣：网页严选，优衣库</li>
+<li>加湿器：戴森，智米，小熊，德尔玛，美菱，格力，斯泰得乐</li>
+<li>维多利亚的秘密，身体乳</li>
+<li>benefit 5色修容腮红盘</li>
+<li>KALEIDOS小三角唇釉 TM03</li>
+<li>Anastiasia眉膏 EBONY</li>
+<li>dolly wink、eye love magic 66/1、dup 807、luminous change05</li>
+<li>OLAY烟酰胺身体乳</li>
+<li>korres野玫瑰</li>
+<li></li>
+</ol>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>庄家</title>
     <url>/2021/02/22/%E5%BA%84%E5%AE%B6/</url>
     <content><![CDATA[<br>
@@ -4109,24 +4329,6 @@
       </categories>
       <tags>
         <tag>股市理论</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>彩妆</title>
-    <url>/2021/07/28/%E5%BD%A9%E5%A6%86/</url>
-    <content><![CDATA[<br>
-
-<h4 id="彩妆"><a href="#彩妆" class="headerlink" title="彩妆"></a>彩妆</h4><ol>
-<li>Kevyn Aucoin的修容<span id="more"></span></li>
-<li>硅E乳 北京协和</li>
-<li></li>
-</ol>
-]]></content>
-      <categories>
-        <category>随笔</category>
-      </categories>
-      <tags>
-        <tag>随笔</tag>
       </tags>
   </entry>
   <entry>
@@ -4246,6 +4448,15 @@
 
 <br>
 
+
+
+<h3 id="网站、资源"><a href="#网站、资源" class="headerlink" title="网站、资源"></a>网站、资源</h3><ol>
+<li>reuters</li>
+<li>中国基金报</li>
+<li></li>
+</ol>
+<br>
+
 <h3 id="人物和组织"><a href="#人物和组织" class="headerlink" title="人物和组织"></a>人物和组织</h3><br>
 
 <span id="more"></span>
@@ -4275,6 +4486,7 @@
 <li>investment group</li>
 <li><ol>
 <li>Bespoke Investment Group </li>
+<li>Oanda Asia Pacific Pte.</li>
 <li></li>
 </ol>
 </li>
@@ -4283,6 +4495,9 @@
 <li>famous investors</li>
 <li><ol>
 <li>Kelvin Tay of UBS Global Wealth Management</li>
+<li>Lorraine Tan , Morningstar’s director of equity research for Asia</li>
+<li>Du Kejun,  fund manager at Beijing Gelei Asset Management Center LP</li>
+<li>Dai Ming, a Shanghai-based fund manager at Huichen Asset Management</li>
 <li></li>
 </ol>
 </li>
@@ -4658,6 +4873,38 @@
       </tags>
   </entry>
   <entry>
+    <title>方便的工具</title>
+    <url>/2021/08/02/%E6%96%B9%E4%BE%BF%E7%9A%84%E5%B7%A5%E5%85%B7/</url>
+    <content><![CDATA[<br>
+
+<h4 id="平板"><a href="#平板" class="headerlink" title="平板"></a>平板<span id="more"></span></h4><ol>
+<li>画图：sketch 、krita、 ArtFlow</li>
+</ol>
+<br>
+
+<h4 id="学习"><a href="#学习" class="headerlink" title="学习"></a>学习</h4><ol>
+<li>CAMBLY英语口语 aze2021</li>
+</ol>
+ <br>
+
+
+
+<h4 id="笔记"><a href="#笔记" class="headerlink" title="笔记"></a>笔记</h4><ol>
+<li>process on</li>
+</ol>
+<h4 id="搜索"><a href="#搜索" class="headerlink" title="搜索"></a>搜索</h4><ol>
+<li>虫部落 – 英文电子书</li>
+<li></li>
+</ol>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>机器</title>
     <url>/2021/04/05/%E6%9C%BA%E5%99%A8/</url>
     <content><![CDATA[<p>物理cpu、逻辑cpu、内存、硬盘、gpu</p>
@@ -5002,6 +5249,84 @@
       <tags>
         <tag>金融经济</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>牛猫2108</title>
+    <url>/2021/08/05/%E7%89%9B%E7%8C%AB2108/</url>
+    <content><![CDATA[<h4 id="日子"><a href="#日子" class="headerlink" title="日子"></a>日子<span id="more"></span></h4><br>
+
+<br>
+
+
+
+<br>
+
+<h5 id="0801"><a href="#0801" class="headerlink" title="0801"></a>0801</h5><ol>
+<li>白马：<strong>1死扛，2回避，3选择性参与。</strong></li>
+<li>无论行情风格怎么转换，都不应该切回到炒垃圾股、高频投机的那条烂路上去</li>
+<li>**茅台半年报，营收+11.68%，归母利润+12.5%**。–回避</li>
+<li><strong>格力电器回购95亿，股份比例达到3%。</strong>股价将将守在47附近，高瓴400多亿被套里面，虽然收购时的成本是46，但资金很多都是找银行借的，这么多年利息算下来肯定浮亏。格力就是我说的第一类股票，目前实在没有割肉的必要，做好准备蹲一个周期。</li>
+<li><strong>本周北向资金对中国平安加仓最多，对茅台的减仓最多。</strong></li>
+<li>清了智飞生物、韦尔，都是觉得它里面有基金在出货，还不如买芯片ETF更划算。结果星期五一天，芯片ETF就跑赢韦尔5%。除非已经跌透，否则那些持续一段时间跑输行业均值的基金重仓股，我都不想碰了。 ==&gt;虽然是下跌通道中，但是清的时间点不是最低</li>
+</ol>
+<br>
+
+<h5 id="0802"><a href="#0802" class="headerlink" title="0802"></a>0802</h5><ol>
+<li><strong>成交量爆炸，达到了1.5万亿的数量级。除了极少数强势板块回调外，小盘股、大盘股不再像以前那样玩跷跷板，</strong>绝大多数板块都是均衡普涨</li>
+<li><strong>二五重工今天涨停</strong>，变成了二七重工。另外像恒立液压、中联重科等股票今天也都强势涨停，<strong>工程器械板块今天整体+8%，居两市涨幅榜榜首。</strong>海螺水泥也几乎涨停</li>
+<li>原因：1政治局会议指出，积极的财政政策，兜牢基层“三保底线”，合理把握预算内投资和地方政府债券发行进度 == 搞下基建？ 2水泥价格反弹，需求端回暖 ==&gt;这套分析也是典型的先射箭，后画靶。事实上工程机械今早一开盘还是跌的，而海螺水泥的股价更是到10:30才勉强翻红。 3 内因：无非就是跌够了，跌到位了，正好今天锂电、新能源、芯片出现了集体回调，<strong>资金从焦点板块流出，倒灌回这些坑里面的票，于是就形成了今天“杀富济贫”的主线。</strong></li>
+<li><strong>花旗：下调美团目标价19%，从440降低至357，维持买进评级。</strong>原因是根据新政策，外卖送餐员的社保将增加运营成本，不过看好美团度过这次挑战，成为本地服务门户公司。我依然持有美团，因为我觉得未来还有更好的时候。</li>
+<li><strong>美的集团累计回购27.5亿元</strong>，昨天是格力累计回购快100亿了，这两难兄难弟，回购再多也抵不过想跑的机构资金</li>
+<li><strong>创业板的新股，叫义翘神州，发行价292.92元，一个签的资金高达14.65万</strong>。主营的概念还不错。单价虽然贵，但估值其实还可以，这个谁要是中一签盈利区间大概是15-20万。</li>
+<li><strong>财富公布了中国500强，其中还披露了一个净资产收益率前40强</strong>(统计的是去年的净利润)。<strong>净资产收益率是衡量一家优质公司的重要指标</strong>。 <img src="/Users/wyq/Downloads/satyrsBlog/source/_posts/ROE40%E5%BC%BA" alt="ROE40强"></li>
+<li>后面再买的话会加仓IC，也就是中证500指数基金</li>
+</ol>
+<br>
+
+<h5 id="0803"><a href="#0803" class="headerlink" title="0803"></a>0803</h5><ol>
+<li>经济参考登了批游戏的，中午又撤了，下午开盘后游戏板块强烈反弹，差不多把上午跌掉的一半给收了回来，但相关上市公司还是损失了5000亿左右的市值</li>
+<li><strong>人吃苦是为了提升自我，不是为了吃一辈子的苦。暂时克制娱乐，是为了以后更好的娱乐，不是彻底告别娱乐。</strong></li>
+<li><strong>阿里巴巴第一财季利润434亿</strong>，超过市场预期293亿，去年同期475亿。计划回购股票从100亿美元提升至150亿美元，这是中国企业史上最大金额的回购</li>
+</ol>
+<br>
+
+<h5 id="0804"><a href="#0804" class="headerlink" title="0804"></a>0804</h5><ol>
+<li><strong>段永平在雪球上发帖，说自己抄底腾讯了</strong>，如果后面跌，他再买一点。大佬说话还是很有号召力的</li>
+<li><strong>工信部开会，千方百计增加平板玻璃生产</strong>，严惩哄抬物价行为。相关板块上来领板子。</li>
+<li><strong>市场监管总局对涉嫌哄抬价格的化肥企业立案调查</strong>，这些现在都是风向标。</li>
+<li>新华社：警惕<strong>电子烟</strong>流向未成年。</li>
+<li><strong>保利地产高管、大股东宣布增持</strong>，就一个标题，正文数额我懒得看了，因为增再多也没格力美的回购的多，决定你跌不跌的不是你的回购，是那些叛徒还有多少要卖。</li>
+<li>深圳学位房采取大学区制，细节我没看，估计和北京差不多，都是全区随机摊派。之前北京西城就有家长去喂犬闹过，牵头的中介还被抓了。现在还炒学区房的都是蠢材，政府连万亿市场的教培行业都是直接咔嚓，决心之大清晰可见，至于学区房那点既得利益者，给你个狗胆你去折腾。</li>
+</ol>
+<br>
+
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>积分</title>
+    <url>/2021/08/04/%E7%A7%AF%E5%88%86/</url>
+    <content><![CDATA[<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结<span id="more"></span></h3><br>
+
+<h4 id="二重积分"><a href="#二重积分" class="headerlink" title="二重积分"></a>二重积分</h4><br>
+
+<ol>
+<li>性质上的、换坐标系的</li>
+<li>形心简化</li>
+<li>被积区间的拆分、补全、放缩，以及根据区间来触发思路</li>
+<li>不等式相关，略难。 – 被积函数的放缩(泰勒、对称性的不等式、积分中值定理)、区间</li>
+<li>能看出来凑微分 （定积分）</li>
+<li>换元</li>
+<li>应用：体积(h*dσ)</li>
+<li>把对称性、不等关系(稍微变化以下，但是还是平方不等式)、提取公因式，整合到一个题目的不等式证明里，本身就有些难想到了。再加上形式很隐蔽，不够容易联想。</li>
+<li></li>
+</ol>
+]]></content>
   </entry>
   <entry>
     <title>统计角度看ml</title>
@@ -5369,7 +5694,10 @@
 <h4 id="药"><a href="#药" class="headerlink" title="药"></a>药</h4><ol>
 <li>曲安奈德益康挫乳膏<span id="more"></span>，哈西奈德溶液</li>
 <li>莫匹罗星软膏</li>
-<li></li>
+<li>三金片、盐酸左氧氟沙星胶囊</li>
+<li>胸腺肽肠溶胶囊康司艾、保妇康栓</li>
+<li>氯雷他定片</li>
+<li>氨溴特罗口服溶液、小儿肺热咳喘颗粒、</li>
 </ol>
 ]]></content>
       <categories>
@@ -5567,6 +5895,118 @@
       </tags>
   </entry>
   <entry>
+    <title>达叔</title>
+    <url>/2021/08/04/%E8%BE%BE%E5%8F%94/</url>
+    <content><![CDATA[<h4 id="经济"><a href="#经济" class="headerlink" title="经济"></a>经济</h4><ol>
+<li>全球化<span id="more"></span><ol>
+<li>商品货币在体系中流动。体系：中心国家、准中心工业国家、外围工业国家、外围原材料国家</li>
+</ol>
+</li>
+<li>废票、废政策分房、铁饭碗、重视大学-扩招等。双轮驱动，要先富起来，富的有：基建 房地产、教育、商贸(进出口 制造业)、股市(放开借贷)。=&gt;转到现在的趋势，更多是芯片、半导体、新能源、互联网 ai 大数据、数字货币、虚拟货币等高新技术产业。</li>
+<li>城乡结构差异明显，劳动力在城市中估价更高(价值更高，因为城市的消费人群更愿意支付高的价格，他们的收入也高–正向循环)。因为城市的流动性更高、出口带来巨大的相关业务量、资源和信息也更有效率。而城乡的差异也造成了房价的天壤之别。</li>
+<li></li>
+<li></li>
+</ol>
+<br>
+
+
+
+<h4 id="政治"><a href="#政治" class="headerlink" title="政治"></a>政治</h4><ol>
+<li>省 地 县 乡，四级行政层级</li>
+<li>职位：县处级、厅局级、省部级、国家级</li>
+</ol>
+<br>
+
+<h4 id="厚黑学"><a href="#厚黑学" class="headerlink" title="厚黑学"></a>厚黑学</h4><ol>
+<li>信任。一旦获取到了信任，事情大多好办。找到了角色和别人的信任，越来越多的自己人，才是实力。索取只会失去，谦让反而获得。人的情绪价值利用好了，理解对方想法，就是情商。</li>
+<li>声音更大的、立场更坚决的、利益更大的、组织更大的，往往是胜利一方。</li>
+<li></li>
+</ol>
+<br>
+
+<h4 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h4><ol>
+<li>无非是卖东西的。有哪些东西，类别，以及为什么用户要买。以及对标的用户群。销售的渠道等。卖东西就有各种营销手段和活动。那么特殊的活动的数据、用户的数据、商品的数据。各有怎样的分类和定位。</li>
+<li>基础模式搞明白了 ，就是细节的数据。比如，行为数据及特征、商品的热点、头部，推荐的召回路径，各个场景，推荐的工程框架等。从业务和代码层面去梳理。各自的量级和变化。以及数据变化背后的业务和用户想法。</li>
+<li>更加细节：能够跟上老板的思路和规划。甚至可以预先考虑到老板的想法。更多创新的点子，从模型的角度、产品的角度、推荐召回的角度。</li>
+</ol>
+<br>
+
+
+
+<h4 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h4><ol>
+<li>需要有预判，有自己的逻辑，然后通过搜集现象来印证或者伪证，才能真的抓住”未来趋势“。比如，如果思路是从政策展开，看财政支出等重要投资公司的走向，分析相关联的公司、行业等等。现在重点就是半导体。芯片和半导体什么关系… 等等再分析出来芯片。但是时间点呢。无法确定是否就是在5月下旬启动的。但是大的方向总是可以get 的。但是是不是政策的原因呢。还是自然规律，非人为的。</li>
+<li>全分类地对情况做出反应。是自己对各个情况都有一定的预设和把握，才是真的了解。</li>
+<li>了解你的用户和你的受众。</li>
+<li>思想实验。</li>
+<li></li>
+</ol>
+<br>]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>通货膨胀-下</title>
+    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
+    <content><![CDATA[<p><strong>摘要</strong></p>
+<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
+<p><br> <br></p>
+<h1 id="谨记"><a href="#谨记" class="headerlink" title="谨记"></a>谨记</h1><p><strong>只是看了一本书，必然受作者局限。作者有误，不要认为天经地义。勿从众。勿从威。</strong></p>
+<p><br> <br></p>
+<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><span id="more"></span>
+<ul>
+<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
+</li>
+<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
+</li>
+<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
+</li>
+<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
+</li>
+</ul>
+<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
+<li>微观</li>
+</ul>
+<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
+<ul>
+<li>宏观<br>  1、对于产出的影响<ul>
+<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
+<li>促退论:通胀造成微观效率损失;</li>
+<li>中性论:“二分法”</li>
+</ul>
+</li>
+</ul>
+<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
+<p>3、对利率、汇率等重要经济变量的影响</p>
+<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
+<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
+<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
+<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
+<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
+</ul>
+<br>
+而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
+
+
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
+<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
+<p>3、价格的绝对值无意义，房价回不到过去。</p>
+<p>4、一般来说，批发价上涨幅度高于零售。</p>
+]]></content>
+      <categories>
+        <category>货银</category>
+        <category>货币政策</category>
+      </categories>
+      <tags>
+        <tag>货银</tag>
+        <tag>货币政策</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>通货膨胀</title>
     <url>/2021/02/17/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80/</url>
     <content><![CDATA[<p><br> <br></p>
@@ -5663,64 +6103,6 @@
 <p>=&gt;<br>惊人的数字让人记忆犹新。德国现在仍会谨慎。</p>
 <h4 id="俄国计划经济"><a href="#俄国计划经济" class="headerlink" title="俄国计划经济"></a>俄国计划经济</h4><p>todo                    </p>
 <br>]]></content>
-      <categories>
-        <category>货银</category>
-        <category>货币政策</category>
-      </categories>
-      <tags>
-        <tag>货银</tag>
-        <tag>货币政策</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>通货膨胀-下</title>
-    <url>/2021/02/21/%E9%80%9A%E8%B4%A7%E8%86%A8%E8%83%80-%E4%B8%8B/</url>
-    <content><![CDATA[<p><strong>摘要</strong></p>
-<p>定义、相关概念及现象、分类、成因、影响、相应政策。</p>
-<p><br> <br></p>
-<h1 id="谨记"><a href="#谨记" class="headerlink" title="谨记"></a>谨记</h1><p><strong>只是看了一本书，必然受作者局限。作者有误，不要认为天经地义。勿从众。勿从威。</strong></p>
-<p><br> <br></p>
-<h2 id="货币幻觉"><a href="#货币幻觉" class="headerlink" title="货币幻觉"></a>货币幻觉</h2><span id="more"></span>
-<ul>
-<li><p>货币幻觉是新凯恩斯主义的代表人物之一阿克洛夫再次提出的。<br>简单说是100元的钱，被认为有100元的购买力。但实际只有50，另一半则为“铸币税”被征收。<br>而幻觉的存在，因为我们不能够完全理性，价格的传导存在时滞，我们私心喜欢虚幻的“富裕”。</p>
-</li>
-<li><p>货币本质<br>一般等价物？资产？负债？债券？税票？<br>一般等价物是在交换中起的作用。并不能表现出货币的真实所值，或者说购买力。<br>劳动或资产所得的个人财富，通过货币形式，用于购置资产则为资产。而借来的货币，用以购置资产则为债务。<br>对国家而言，可以将美元看做债券，人民币看做税票，这样的视角更能看出货币所值的变化。</p>
-</li>
-<li><p>成本<br>借贷的利息，意味着货币资源的机会成本。</p>
-</li>
-<li><p>货币是一种符号。意味着涨涨跌跌的可能性。货币的乘数效应既能放大资产，也能放大负债。能熬得住，承受得了时间成本，则货币将沉淀为资产。</p>
-</li>
-</ul>
-<h2 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h2><ul>
-<li>微观</li>
-</ul>
-<p>1、货币幻觉导致财富再分配：银行存款名义利率往往不能随通胀充分调整以保证实际利率不变，短期内会出现挤兑， 长期内会造成负储蓄、负投资、负就业、负产出。<br>2、实体企业投资:由长期投资转向短期投资，由生产性投资转向非生产性投资<br>3、累进税制下税收扭曲:通胀税<br>4、商品之间相对价格的变动，价格信号配置资源的效率下降– 模糊了工作效果和报酬的关系、使得投机赌博盛行。</p>
-<ul>
-<li>宏观<br>  1、对于产出的影响<ul>
-<li>促进论:凯恩斯名义工资刚性理论、新凯恩斯粘性工资价格模型;弗里德曼和卢卡斯的预 期错误模型;</li>
-<li>促退论:通胀造成微观效率损失;</li>
-<li>中性论:“二分法”</li>
-</ul>
-</li>
-</ul>
-<p>2、对于就业的影响:菲利普斯曲线，附加预期菲利普斯曲线的运动 &amp; 长期垂直的菲利普斯曲线<br>货币政策的短期有效性及长期无效性、中央银行通胀预期管理的重要性;</p>
-<p>3、对利率、汇率等重要经济变量的影响</p>
-<h2 id="成因"><a href="#成因" class="headerlink" title="成因"></a>成因</h2><ul>
-<li>需求拉上：大量的货币发行，导致过多的货币和商品供给的增长不平衡，供给弹性不高不能及时地跟上货币发行。</li>
-<li>成本推动：劳动力市场的不完全或产品市场的不完全等造成的，主要包括工资推动型、利润推动型、进口成本推动型。如70s两次石油价格上涨和次贷危机后的大宗商品价格上涨。</li>
-<li>预期：当期高通胀率带来市场主体的高通胀预期，进而导致下期高通胀。</li>
-<li>结构：在供求总量基本相同的情况下，由于某些结构性因素，如本国产业结构老化，资源流动效率较低等造成的通胀–本质是新部门的供给未能及时跟上。</li>
-</ul>
-<br>
-而各种政策环境，如金本位下的铸币成色、白银涌入、转型为纸币制、战争等历史聚变、计划经济、金融秩序等都通过间接影响到以上四个成因因素而导致通胀。
-
-
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、货币在流通过程中的乘数效应导致的通胀是几何级数的，与通常讲的CPI所标示的通胀不是一个概念。CPI是有欺骗性的，最真实的通胀就是M2与GDP的比值。</p>
-<p>2、对偏离正常现象的分析，会带来更深刻的认知。</p>
-<p>3、价格的绝对值无意义，房价回不到过去。</p>
-<p>4、一般来说，批发价上涨幅度高于零售。</p>
-]]></content>
       <categories>
         <category>货银</category>
         <category>货币政策</category>
@@ -6033,6 +6415,27 @@
 </li>
 </ol>
 </li>
+<li><p>前端</p>
+<ol>
+<li>NodeJs internals：<ol>
+<li>V8 internals</li>
+<li></li>
+</ol>
+</li>
+<li>js<ol>
+<li>general JavaScript syntax</li>
+<li>map reduce</li>
+<li>array manipulations</li>
+</ol>
+</li>
+<li>typescript<ol>
+<li>generics</li>
+</ol>
+</li>
+<li></li>
+</ol>
+</li>
+<li></li>
 </ol>
 ]]></content>
       <categories>
@@ -6273,6 +6676,139 @@
       </tags>
   </entry>
   <entry>
+    <title>Sai.L</title>
+    <url>/2021/08/06/Sai-L/</url>
+    <content><![CDATA[<br>
+
+
+
+<h4 id="5月"><a href="#5月" class="headerlink" title="5月"></a>5月</h4><span id="more"></span>
+
+<br>
+
+<h5 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h5><ol>
+<li>顺周期行业、大宗商品价格</li>
+<li></li>
+</ol>
+<br>
+
+
+
+<h5 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h5><ol>
+<li>消息以及其其影响的程度，在消息出来之后会有很多的解读。个人也是有自己的连锁反馈地行为序列。比如查相关的资料(不同人查的也不同)，这已经体现视角的差异。当然最一手的，未必有。于是造成，大多都是观点的重复和抄袭。我不认为达叔和牛猫的影响力，代表了实力。而真的身在其中的人，又未必能够有意识利用这一手的信息。</li>
+<li>很少地整理，更多的思考</li>
+<li>如果可以预先地设想，并作出估值判断。(巴菲特的估值方式就是好公司好的管理人)。但是这好，又从何而言呢。什么数据呢。没有说。相当于没说(但是有示例和描述，多少人去研究这个事情呢)。但是理念也很重要就是了。</li>
+<li>我现在不再以解谜的心态来对待未知了，像原始人一样去迷信去猜。这个时代不需要这样。因为信息和知识足够让你对事件有一个边界性的认知。哪些是已知且公认的，哪些是未知的。哪些是待探索的问题。以及前景。都是明牌。虽然真的有各种私底下的操作，但始终，这个假设出来了，你也能够对假设之后的场景有一定的认知。</li>
+<li>大佬也是常人，非常的地方不在于看了哪些东西，而在于他自己对那些问题认为有价值，以及他的理解。他的理解也可能是依赖于经验，也可能是依赖于分析。你没有对方的经验，运用你的常识和检索，以及知识储备。总之，他们有过的积累，你也去积累就好。他们关注的，也留心和思考就好。</li>
+<li>除了态度和理念，要记忆和重复一些知识的。</li>
+<li>钱有没有更多地往这里走。</li>
+<li>为什么自黑，因为拉近了距离。也增添了自己的人。</li>
+<li></li>
+</ol>
+<br>
+
+<h5 id="0506"><a href="#0506" class="headerlink" title="0506"></a>0506</h5><p>五一假期的梳理</p>
+<ol>
+<li>旅游出游2.3亿人次，收入1132.3亿元，按可比口径恢复至疫前同期的77.0%。</li>
+<li>印度疫情的持续恶化，港股假期期间疫苗相关上市公司股价大涨，投资者也因此普遍预期假期后，A股市场相关上市公司的股价也会随之上涨。然而今天的盘面实际情况当中，这两个板块反而跌的惨不忍睹</li>
+<li>相关个股在“五一”假期之前就出现了一段时间的持续上涨，当“五一”假期的出行和消费数据出来之后，这些大资金借机兑现离场。利好往往是兑现的时机。真的有时间点对应的利好要提前埋伏。</li>
+<li>美国政府5日宣布，支持放弃对新冠疫苗的知识产权保护，以扩大全球范围内的疫苗接种。他给的解释是，这个事更多是一种人道主义的“姿态”，现实意义并不是很大，通俗点说就是生产疫苗要用的原材料和供应链是相对固定的，即使是放开知识产权保护，谁能生产谁就可以生产的话，也不是谁都能造得出来的，还得是实力较强的那些头部疫苗相关生产方才是收益的最大获得者</li>
+<li>创业板指数当中医药和医疗的权重比较高，生物科技行业大跌，也导致了创业板指数快速下挫，盘中最大跌幅一度超过4%，好在下午跌幅缩窄，收盘时跌幅为2.48%</li>
+<li>美国三月份商品和服务贸易逆差进一步扩大至744亿美元，高于修订后前值705亿美元，再写历史新高。这似乎意味着关税并未改变美国的经贸现实，反而增加了贸易参与各方的税收成本，这其中也包括许多美国的企业。</li>
+</ol>
+<br>
+
+<br>
+
+
+
+<h5 id="0508"><a href="#0508" class="headerlink" title="0508"></a>0508</h5><ol>
+<li>本来五一假期期间，很多投资者还对节后的市场有所期待，但是节后这两个交易日的实盘情况走出来之后，市场气氛瞬间滑落到了冰点，指数虽然还在3400点的位置上，但整个市场气氛的悲观和沮丧程度，已经快逼近当年2400点时的状态了</li>
+<li>每次真正牛市都在绝望和悲观当中悄然展开</li>
+<li>随着反弹的持续而转变成了更高的要求——能重新进入上涨通道最好，而节后这两天的行业，无论是创业板指数还是山西汾酒这类强势反弹股的情况，都无情的打破了投资者这方面的预期值，卖的话怕行情突然转好自己踏空了，不卖又怕C浪真的出现，这波回血的成果没守住，反而滑落到比之前更被动的境地，因此沮丧和悲观气氛一下子就不可抑止的扩散了。</li>
+<li>因为从当时的情况来看，指数已经攻上3400点，而疫情和美股熔断时的最低点也不过2600+，市场很难回调到一个让所有人都感觉绝望和悲观的点位了。我当时给出的解释是，最悲观最绝望不一定发生在绝对最低点</li>
+<li>过去两年市场虽然波折不断，但整体不断上涨的大背景，加上去年年底只要追大流买抱团股就可以“无脑”赚钱的情况而产生的高预期，在很多投资者的脑海当中，今年就是一个“赶在”赚钱的年份，压根就没有想过累计涨幅过大可能导致的回调，以及回调可能的深度</li>
+<li>基金公司没有多少纯粹是自己的钱，而又不能印钞票买股，他们的钱都是从基民手里拿过来用于投资的，行情走到现在这样，很多基民在忙着赎回，以就出现了这种看似该抄底的时候却只能被动卖卖卖的结局</li>
+</ol>
+<br>
+
+<p><img src="https://pic3.zhimg.com/80/v2-3b46b9efbe56edb215b0edcd624af9b6_1440w.jpg" alt="img"></p>
+<br>
+
+
+
+<h5 id="0510"><a href="#0510" class="headerlink" title="0510"></a>0510</h5><ol>
+<li>大宗商品的价格飙涨带动周期性行业上涨的情况，期货盘面上，最近有三大品种的价格刷新了历史性的高点，LME铜价突破1万美元大关，创下历史新高；沪铝则逼近20000元关口，创近十三年新高；铁矿石历史首次突破200美元大关，与螺纹钢一起创下历史新高。</li>
+<li>大宗商品期现货价格最近飙涨过程当中，市场认可的比较主流的原因有三项，一是后疫情时代的经济恢复会导致对大宗商品的需求变得旺盛；二是世界主要经济体在应对疫情对经济冲击时，大量增发货币，导致市场有强烈的通胀预期；三是拜登上台后一再强调的“新基建”计划落地实行的话，可能会进一步加大对大宗商品的需求量。在我看来这三项因素表明上都有一定合理性，但又都难以成为主要坚实的逻辑支撑，其中我最瞧不起的理由就是拜登的那个“新基建”计划</li>
+<li>如果能通过搞基建项目，把直接发钱变成给参与基建的人员发工资，变现的“撒币”操作和挽救就业数据这两大需求就可以一箭双雕的解决了。如果从财政系统出钱的话，在目前的赤字水平和负债率基础上搞这么大一笔钱，对于美国财政系统来说，几乎是个不太可能完成的任务；如果从货币系统出钱的话，直接印钱拿去搞基建从法理上说不通，而且在已经印了那么钱的情况下，继续印钱的副作用没人敢背锅。</li>
+<li>在A股C浪下探+大宗商品暂时冷静的双重作用下，A股周期行业回调到合理位置之后，再有一段稳妥上车的机会</li>
+</ol>
+<br>
+
+<br>
+
+<h5 id="0513"><a href="#0513" class="headerlink" title="0513"></a>0513</h5><ol>
+<li>部分大宗商品如铁矿石是需要现挖的，钢铁是需要现炼的，由于疫情严重时很多大宗商品供应方因为疫情不能正常开工，同时又因为疫情期间的需求低迷和价格低迷而刻意控制了产能，没全力输出，今天天气转暖后，疫情消退预期和需求恢复导致需求超预期回升，形成预期差，供给方的存量不足以应当市场短期需求，形成时间差，在供应方预期与市场实际预期差和存量+产能满足市场需求的时间差没解决之前，就形成了市场抢购大宗商品和中间商囤货加剧供需失衡的短期局面，但是等供应方在需求回升和价格飙涨的刺激下完全反应过来，并且产能全开的，有矿的可劲挖，有高炉的可劲炼的情况下，预期差和时间差会随时间的推移而被逐步消解，而一旦需求的回升速度缓和下来，以及需求不能长期保持在高位的话，短期的猛烈供应可能会在不久的将来导致价格出现明显回落。</li>
+<li>市场短期火爆的时候货车堵着煤矿和钢铁厂的大门等着抢货，货拉上车在奔赴目的地的路上还在不断吃涨价的盈利，中间商关门惜售不肯发货，囤着货等进一步涨价，价格短期很疯狂，但是等煤矿和钢铁厂产能全开三个月以上，货车也不排队了，中间商也敞开大门笑脸迎客求着你赶紧买了。因此，大宗商品近期的价格飙升在需求端的持续性上还有待接受考验，在经受住考验之前，市场短期供需失衡是更主要的价格推手，这种行情提前囤了的可以继续等等看，没有货的不能冒进。</li>
+<li>另一个大宗商品价格飙涨的理由就是全球放水后的“通胀预期”。在我看了“通胀预期”短期内只是一个助推大宗商品炒作的借口，正确的通胀带动大宗商品价格上涨路径不是这个模样的</li>
+<li>以“通胀预期”为理由，爆炒大宗商品的目的，更多的和近期美股垃圾股（游戏驿站为代表），垃圾虚拟币（狗狗币为代表），以及美股疯狂的IPO盲盒等博傻炒作是一脉相承的，虽然发动不同领域价格疯狂飙涨的主体不同，但原因都是实体经济不振，传统优质投资渠道过热，大量流窜型资金无处可去而引发的各领域非理性暴涨。</li>
+<li>工业制造国的政府和央行视大宗商品非理性暴涨都是看待死敌一般，尤其在中美两国目前都在承受通胀的大背景下，一定会尽全力平抑非理性，这一点中美等经济体的利益诉求是一致的，政府近期也在表态和行动，会有所作为的。</li>
+<li>上证指数目前的横向整理区间比较显著，目前风险警示线还在前期低点连线处，放量跌破3400整数关口的情况下有必要减仓避险，震荡上行的话，在指数未能有效突破前期高点连线之前不要急于加仓。</li>
+</ol>
+<br>
+
+<br>
+
+
+
+<h5 id="0514"><a href="#0514" class="headerlink" title="0514"></a>0514</h5><ol>
+<li>一个操作模式，就是分出一部分仓位留给券商，并且把这部分预留仓位分出几个等份，在券商行业指数跌破通道下沿时，或者每次有长阴线时，拿出一个等份的预留仓位用定投的方式去买入一点券商ETF或者券商个股，这样可以得到一个长期平均成本很低的券商持仓成本，如果有全面牛市就可以吃最纯正的“牛市概念”红利，如果仅是阶段性超级反弹或者是去年那种阶段性牛市,在券商股都能赚到一部分确定性比较高的收益，只不过这个过程会比较煎熬。</li>
+<li>单日大阴线的时候，分批收集了一点低价的券商ETF和个股，但是在券商行业上的总仓位目前还是没有超过去年7月份整体启动之前，今天这一个超级阳线出来之后，在券商行业上布局的仓位有明显的正收益出现。</li>
+<li>券商部分筹码：第一阶段目标是券商行业指数的MA60均线，如果行业指数反弹到这个位置受阻回落迹象明显的话，我会考虑先卖出一半的仓位兑现一部分盈利同时拿回部分本金，然后在后续反弹结束再进入低迷期的情况下重新抄底，以便在原有基础上继续降低总成本。如果行业指数顺利突破MA60均线的压制，回到原来的通道震荡的话，就暂时不做任何操作，持有目前现有的仓位跟风观望情况再说。</li>
+<li>A公墓今年一年产生的佣金是10亿元，然后要分给10个券商，这分钱就是在分仓。那这钱怎么分呢？一般来说是通过券商研究报告的质量来分。但是往往啊，如果这个券商和公募关系不错，或者这个券商是公募股东，又或者这个券商给公募提供的销售额最多。因为公募没有沪深交易资格，必须通过不同券商的交易席位才能交易。</li>
+</ol>
+<br>
+
+<br>
+
+<h5 id="0516"><a href="#0516" class="headerlink" title="0516"></a>0516</h5><ol>
+<li>叶飞爆料：目前已经被叶飞爆料波及到的上市公司共有10家，除了最开始的中源家居外，还有隆基机械、 维信诺、 东方时尚、 昊志机电 、华钰矿业 、众应互联、 法兰泰克、 祥鑫科技、 今创集团。涉及到的券商有四家，申万证券、恒泰证券、民生证券和天风证券。而周五券商股刚经历了一波集体大涨，周一被“爆料门”事件波及的券商股价情况如何，大家可以关注一下。被爆料的10家上市公司一个共同特点就是市值普遍较小，其中仅维信诺（120亿）、今创集团（109亿）两家市值过百亿，东方时尚（90.3亿）市值接近百亿之外，其它市值都不足百亿，有六家目前市值规模在10亿—50亿之间，其中市值最低的众应互联（*ST众应）连10亿都不到（9.91亿）。</li>
+<li>爆料最多的中源家居，从纯技术角度来看，其股价走势图当中确实有疑似“坐庄”的痕迹，不仅从2019年至今有多次不太符合常理的暴涨暴跌过程存在，同时该股K线在暴涨暴跌之间的横盘整理期内，也有我们之前更新当中说过的比较典型的庄股特征——“鱼骨”形态，即股价在横盘期内K线实体都异常的小，且上下影线较长，成交量也很低，</li>
+</ol>
+<br>
+
+<br>
+
+<h5 id="0517"><a href="#0517" class="headerlink" title="0517"></a>0517</h5><ol>
+<li>不仅被叶飞直接点名的多只个股惨烈大跌，整个市场低价小市值类型的股票大面积暴跌，事件当中被提及的天风证券也是今天行业内跌幅最大的一只，原本上周五券商行业整体气势如虹，今天却没能延续周五的惯性上攻，这一情况可能也是部分受了“爆料门”事件的影响</li>
+<li>大致就是，蒲菲迪要拉升股价，但是钱不够，筹码不够。找到叶飞，叶飞找了下家出钱。并且下家高位接盘代持，后面的卖出是下家的事情。但是接盘后，股价下跌的厉害，接盘方资金被套。原本说好操盘方主攻，接盘方辅助，大家一起割韭菜，然后接盘方个人拿到一笔好处费，同时还能让接盘资金（券商资管的钱）赚上一定涨幅，现在摆明了根本就一起“割韭菜”而是接盘方被当成了“韭菜”直接成了接盘侠。事件能搞成这么一出闹剧，实际情况应该是操盘方是个“蠢贼”团队，一方面没有足够的操盘水平，同时也没有配备足够的控盘资金，到处通过中间人去找辅助护盘资金，资金没找够导致计划执行一塌糊涂；另一方面没有能力约束上市公司大股东那边的行为，大股东那边见有人接盘，也不问是谁就直接出货变现拿钱，导致直接把自家操盘方拉来的接盘资金被砸在里面了。</li>
+<li>今天A股市场低价小市值全军尽墨，倒是前段时间波折比较大的绩优抱团股趁势崛起了</li>
+</ol>
+<br>
+
+<br>
+
+<h5 id="0519"><a href="#0519" class="headerlink" title="0519"></a>0519</h5><ol>
+<li>这两天锂矿和动力电池行业快速上涨。一个是我们昨天更新讲当中到的，全球最大锂生产商智利化工矿业（SQM）可能会因为政局变动而影响到产能，另一个是近期动力电池行业数据给了市场更大的期待，今年4月，我们动力电池产量12.9GWh，同比增长173.7%，环比增长15%；1-4月累计产量45.7GWh，同比增长252%。4月动力电池装机量8.4GWh，同比增长134%，环比下降7%；1-4月累计装机量31.6GWh，同比增长241%。从这个数据能直观的看到动力电池装机量近几个月在暴增，锂电池产业链相关原材料全面上涨，再加上智利锂矿可能减产的影响，这些情况就都直接反馈到了A股市场和“锂”有关的公司身上了</li>
+<li>新能源电动车理论上应该受到成本上涨可能导致利润下滑的威胁，但这几个交易日，新能源电动车相关上市公司的股价也跟着锂矿指数一起上涨。近期特斯拉处于“水逆”期，诸事不顺，特斯拉近期的股价从高位持续回落，同时口碑和声誉在国内市场受挫，这样市场也会期待国内相关的新能源电动车企业分食原本属于特斯拉的市场份额，因此短期并没有因为潜在的成本上升问题而对新能车行业股价予以负反馈。</li>
+<li>由于预期下半年宏观经济政策会向政府投资方向倾斜，部分周期性行业的业绩会因此保持在一个相对不错的水平上，所以钢铁煤炭行业指数这波回调到位之后，会考虑在原有底仓基础上再适当增加一点仓位。</li>
+</ol>
+<br>
+
+<br>
+
+<h5 id="0524"><a href="#0524" class="headerlink" title="0524"></a>0524</h5><ol>
+<li></li>
+</ol>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>SVM</title>
     <url>/2021/02/04/SVM/</url>
     <content><![CDATA[<br>
@@ -6439,6 +6975,354 @@
       </categories>
       <tags>
         <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>牛猫</title>
+    <url>/2021/08/02/%E7%89%9B%E7%8C%AB/</url>
+    <content><![CDATA[<br>
+
+
+
+<h4 id="股票"><a href="#股票" class="headerlink" title="股票"></a>股票</h4><ol>
+<li>富瀚微 – 海思被禁，股东减持跌后收复<span id="more"></span></li>
+<li>第一个圈是概念小票，第二个是老国企，第三个是银地保，第四个是家电酱油牛奶，圈里的还有：锂电、新能源车、医药、光伏、芯片。</li>
+</ol>
+<h4 id><a href="#" class="headerlink" title></a></h4><br>
+
+<h4 id="逻辑"><a href="#逻辑" class="headerlink" title="逻辑"></a>逻辑</h4><ol>
+<li>资金出入</li>
+<li>分红和红利税</li>
+<li>趋势模型</li>
+<li>分级基金</li>
+<li>缺口</li>
+<li>量化</li>
+<li>ETF</li>
+<li>指数名称及相应etf代码<ol>
+<li>沪深300 510300</li>
+<li>创业板指 159977</li>
+<li>中证500 510500</li>
+<li>中证科技 515000</li>
+<li>证券指数 512880</li>
+<li>中证军工 512660</li>
+<li>芯片指数 512760</li>
+</ol>
+</li>
+<li>退市流程</li>
+<li>股票增发</li>
+<li>海龟交易</li>
+<li>基金定投收益</li>
+<li>低开买入模型</li>
+<li>p2p</li>
+<li>中途上车模型</li>
+<li>股票观<ol>
+<li>短期无法预测</li>
+<li>交易效率和交易成本</li>
+<li>止损</li>
+<li>T+0</li>
+<li>右侧</li>
+<li>A股的价投</li>
+<li>投资=选战友</li>
+</ol>
+</li>
+<li>打新</li>
+<li>灾难事件</li>
+<li>读</li>
+<li>公告</li>
+<li>境外资金与A</li>
+<li>逆回购</li>
+<li>ma20</li>
+<li>蓝筹行业分级表</li>
+<li>股指期货</li>
+<li>沪港通规则</li>
+<li>融资打新</li>
+</ol>
+<br>
+
+<h4 id="理财"><a href="#理财" class="headerlink" title="理财"></a>理财</h4><ol>
+<li></li>
+</ol>
+<br>
+
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><ol>
+<li>宽基指数？</li>
+<li>ic升水？</li>
+<li>滚ic：每个月的第三个周五之前卖掉当前的合约买入下个月的。一年操作十二次。ic每个月的贴水是40-50，如果贴到50甚至更多，就换，不一定等到交个附近。远月合约跌的很多，导致月均的贴水扩大，也会换到远月合约上蹲一两个月，虽小了再换回近月。</li>
+<li>ttmpe</li>
+<li>扣非利润</li>
+<li>员工激励的员工购买价，不就是坑了中小股东么。为什么以前回购也是这个加购就不算是坑了</li>
+<li>欧菲光的下场？</li>
+<li>IF</li>
+<li></li>
+</ol>
+<br>
+
+<h4 id="日子"><a href="#日子" class="headerlink" title="日子"></a>日子</h4><br>
+
+<br>
+
+<h5 id="0713"><a href="#0713" class="headerlink" title="0713"></a>0713</h5><h5 id="0713-1"><a href="#0713-1" class="headerlink" title="0713"></a>0713</h5><h5 id="0713-2"><a href="#0713-2" class="headerlink" title="0713"></a>0713</h5><h5 id="0706"><a href="#0706" class="headerlink" title="0706"></a>0706</h5><ol>
+<li></li>
+</ol>
+<br>
+
+<h5 id="0707"><a href="#0707" class="headerlink" title="0707"></a>0707</h5><ol>
+<li><img src="https://mmbiz.qpic.cn/mmbiz_png/NUnibBdYwCWiatRjnwYTnXVzGic5JYB1aSTZXUkNmQLNHIuHAvy4VIJP5FB5TZVjgXicjnuvM9liamo3dXibicca68Uqg/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1" alt="Image"></li>
+<li>**目前中国的准备金率是大银行13%，小银行11%**，最近一次降准是2020年1月。</li>
+<li><strong>滴滴再次大跌7%，14美元的发行价，现在11.7美元。</strong></li>
+<li><strong>中远海控上半年预计盈利370亿</strong>，这个是真的猛，我主要是上一个熊市周期里看中国远洋难以置信的下跌（-96%），印象太深刻了，对海运这样的周期股都不想参与。</li>
+<li><strong>腾讯今天跌2%，把2021年最多的时候37%的涨幅全跌回去了</strong>，我这一路捂过来，内心也是有一股无力感。同样是捂龙头股的策略，美股那边真的很挣钱，A股和港股都是一言难尽。</li>
+<li>上午加仓智飞生物，<strong>最新仓位85%<strong>，其实还有一个股我也想买，但它今天涨太多了，算了，再等等吧。另外我今天</strong>加仓了期指</strong>，IC加1手，IF加1手，目前累计是16手，今年股票没挣钱，盈利全是滚期指滚出来的。</li>
+</ol>
+<br>
+
+<h5 id="0708"><a href="#0708" class="headerlink" title="0708"></a>0708</h5><ol>
+<li><p>腾讯从773回撤到528，美团从460回撤到267，快手从417回撤到160，海底捞从85回撤到40，农夫山泉从68回撤到38</p>
+</li>
+<li><p>受<strong>国内资金南下热潮所带动</strong>，当时港股通通道每天南流超过100亿，那个时候估计谁也没想到半年之后就变成现在这个样子。</p>
+</li>
+<li><p><strong>那些用自有资金炒股的散户反而普遍比较淡定，倒是一些机构，比散户更着急。</strong>看谁先跑</p>
+</li>
+<li><p>万华半年预增380%，净利润135亿，感觉前几天逆势上涨就是提前埋伏这个业绩，我有种预感，明天见光后可能会炸营，哎，不是我乌鸦嘴，是最近这类剧本演太多了。==&gt;隔了几天才炸</p>
+</li>
+<li><p>今晚美股跌了1.5%左右，其中中概股表现惨淡 ==&gt;有了前兆 。。 但是谁能对这样的前兆有预估呢。。</p>
+</li>
+<li><p>酒鬼酒上半年净利润5-5.2亿，增长170%-181%，这个业绩要换几个月前，肯定会让二级市场激动一下，现在白酒整个板块都熄火了，感觉明天也翻不起多大的浪。</p>
+</li>
+</ol>
+<br>
+
+<h5 id="0711"><a href="#0711" class="headerlink" title="0711"></a>0711</h5><ol>
+<li><p><strong>央行决定于2021年7月15日下调金融机构存款准备金率0.5个百分点</strong>（不含已执行5%存款准备金率的金融机构）。可以<strong>释放大约1万亿的资金</strong>，我国金融机构加权平均存款准备率仅为8.9%，创下过去15年的最低值。消息出来后A股已经收盘，但新加坡的A50期指还在交易，然后直接就起飞了。</p>
+</li>
+<li><p>A50的交易时间是早上9点到下午16:30，下午17点到次日凌晨4:45</p>
+</li>
+<li><p>另外和降准的消息配套出炉的，还有<strong>6月份的社融数据</strong>。新增人民币贷款21200亿，预期是18500亿，前值是15000亿。6月社会融资规模增量是36700亿，预期是28900亿，前值是19200亿。另外6月份的M2货币供应同比增长8.6%，预期是8.2%，前值是8.3%。</p>
+</li>
+<li><p>东方财富预计上半年盈利35-40亿，同比增长93-121%。这个业绩比较顶，考虑到目前A股整体的交易活跃度，三季度基本也不会太差的</p>
+</li>
+<li><p>市场监管总局禁止虎牙和斗鱼合并，这几年政府对互联网行业的整顿真就没停过。</p>
+<br></li>
+</ol>
+<h5 id="0712"><a href="#0712" class="headerlink" title="0712"></a>0712</h5><ol>
+<li><strong>上证指数在2000年前后就已经涨到了2000点附近，也就是说最近20年累计只涨了75%。</strong></li>
+<li><strong>而A股的股民，有将近80%都是2007年后才开户入市的，所以客观讲上证指数对绝大多数股民而言表现极差，基本都把它当做废物乱骂。</strong></li>
+<li>创业板指是2010年6月1日儿童节那天上线的，基点是1000点，11年间涨了250%，年化复利相当于9%</li>
+<li><strong>上证指数的成分股是所有上交所股票（代码6开头）的总市值加权</strong>，里面有大量过气行业的权重股，基本上大家耳熟能详的知名坑爹股都在里面；创业板指的成分股是创业板里挑选的100家优秀公司</li>
+<li>去年才上线的科创板50指数（代码000688）未来超过上证指数也是100%的事。</li>
+<li><strong>中国证券圈真正影响力最大的是沪深300指数，机构最认，被动跟踪的资金盘也是最多的。</strong>如果你看沪深300指数的话，就会发现A股还可以，不算很差</li>
+<li>考虑长线投资ETF基金。大盘指数基金它有一个特点很符合人性，就是它可以越跌越买，因为迟早是能涨起来的–行业ETF“迟早能涨起来”的时间周期不确定，可能需要等很久，没有大盘指数ETF稳当。</li>
+<li>整个传统行业最近也都不太好，白酒、食品、重工、证券、家电今年都惨惨的。去年A股的主线是风格歧视，弄死小市值，爽死大市值。今年A股的主线是行业歧视，抽血老旧慢，狂怼高新尖。</li>
+<li><strong>舍得酒业</strong>上半年利润7.1-7.5亿，增长332-356%。上周酒鬼酒预增业绩翻倍，第二天几乎跌停，最近的鬼行情已经不太认白酒行业，这种时候业绩好也容易成为高开跳水的板子。<strong>山西汾酒</strong>利润17.66-20.87亿，同比增长110-130%，同上，现在不是白酒的节奏。</li>
+<li><strong>卓胜微</strong>，上半年利润9.91-10.25%，增长180%-190%</li>
+<li><strong>中国建筑</strong>预告上半年利润245-270亿，上半年同比预增24-36%。“你以为我傻捏是吧，那…那是给死人用的纸钱！”——这就是我现在看传统行业预告利润的心情</li>
+<li><img src="https://mmbiz.qpic.cn/mmbiz_jpg/NUnibBdYwCWhBAgO8SwfFr47UADuZH9ibiaP3icck82L4ktka56nlWKp3ou59EPc4iaQ0IPrpxe8FHwqiacdOWibDsBBQ/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1" alt="Image"></li>
+</ol>
+<br>
+
+<h5 id="0713-3"><a href="#0713-3" class="headerlink" title="0713"></a>0713</h5><ol>
+<li><p><strong>历年来创业板指权重股的变迁</strong>，从2010年到2021年: </p>
+<ol>
+<li>2010-2013年——核心板块包括信息服务（包括传媒和计算机）、机械设备、化工、电子、通信、公用事业。<a href="http://quote.eastmoney.com/SZ300002.html">神州泰岳</a>、<a href="http://quote.eastmoney.com/SZ300070.html">碧水源</a>、<a href="http://quote.eastmoney.com/SZ300027.html">华谊兄弟</a>等为代表性成分股</li>
+<li>2014-2016年——传媒、计算机板块占比持续提升，化工、机械设备占比减少。乐视网、<a href="http://quote.eastmoney.com/SZ300059.html">东方财富</a>、<a href="http://quote.eastmoney.com/SZ300017.html">网宿科技</a>为代表性成分股。</li>
+<li>2017-2018年——农林牧渔、电子板块占比提升，传媒、计算机占比下滑。<a href="http://quote.eastmoney.com/SZ300498.html">温氏股份</a>、<a href="http://quote.eastmoney.com/SZ300136.html">信维通信</a>为代表性成分股。</li>
+<li>2019年至今——医药生物、电气设备占比提升，公用事业、农林牧渔下滑。此外，受到科技行情影响，传统行业占比快速下滑。</li>
+<li>从乐普医疗——汇川技术——碧水源——神州泰岳——乐视网——三聚环保——温氏股份——迈瑞医疗——宁德时代，这一路切换过来吗？</li>
+<li>历年的创业板龙头股里，<strong>有5个现在都已经坠机，坑爹率太高了</strong>。</li>
+<li><strong>马太效应会在其中发挥作用</strong>，让厉害的公司通过时间脱颖而出，占领越来越多的权重，从而带领指数向上，让持有ETF的人赚钱。</li>
+</ol>
+</li>
+<li><p>截至收盘，创业板权重股<a href="http://quote.eastmoney.com/SZ300750.html">宁德时代</a>总市值已达13113亿元，位列深市第一、A股第四，仅次于<a href="http://quote.eastmoney.com/SH600519.html">贵州茅台</a>、<a href="http://quote.eastmoney.com/SH601398.html">工商银行</a>、<a href="http://quote.eastmoney.com/SH601939.html">建设银行</a>。自2019年以来，创业板指持续大涨，2019年累计上涨43.79%，2020年累计上涨64.96%，2021年累计上涨18%。而在创业板指屡创新高的背后，多只权重股大涨成为关键。</p>
+</li>
+<li><p><img src="https://pic2.zhimg.com/80/v2-48868424ee28dce81a435b91d81bd581_720w.jpg" alt="img"></p>
+</li>
+<li><p><img src="https://pic1.zhimg.com/80/v2-fc969d648a909c768d001864aa5700e8_720w.jpg" alt="img"></p>
+</li>
+<li><p><strong>今天顺丰公布了半年度报告，第二季度预告净利润为16.29-18.19亿，这里面扣非后的净利润为6-7.3亿</strong>，比一季度自然是强多了，一季度亏损9.8亿，直接导致白马股集体恐慌。但这个业绩也不算很好，我们把坑爹的一季度刨除，去年四季度扣非净利润为10亿，去年三季度扣非净利润为17亿，都比今年二季度的数据要好。所以顺丰这波只能说经营已经切换回正轨，止损止血，但盈利能力依然和去年有明显差距。</p>
+</li>
+<li><p>这里面主要问题还是快递行业太卷了，尤其是低价快递有新进场的在搞价格战，顺丰为了抢市场份额只能压缩自己的毛利润。只有等这轮内卷告一段落，顺丰的盈利能力才会反弹，这股短线弃疗了，中长线倒是可以慢慢蹲。</p>
+</li>
+</ol>
+<br>
+
+<h5 id="0714"><a href="#0714" class="headerlink" title="0714"></a>0714</h5><ol>
+<li><strong>牧原股份的二季报预告来了，预计利润94-102亿，同比去年下降5.4-12.8%。</strong>其中第二季度单算的利润是24-32亿，这个业绩环比下滑挺厉害的，原因大家都知道，猪肉最近跌惨了。之前几个季度的利润分别是69、65、102亿，等于是一下子掉了一半，所以上半年累计是下滑的。<strong>但这个业绩在养猪的行业里已经算是挺能打的</strong></li>
+<li>今晚正邦科技也发布了预告，上半年亏损12-14.5亿，瘟氏和新绝望大概率也好不到哪去，牧原起码二季度还能赚30亿左右，我觉得不至于大跌。目前猪肉期货在一小波反弹后再度下探，<strong>但我觉得16元/每公斤差不多就是铁底了</strong>，没有太多继续下行的空间。关键在于会在这个附近调整多久，如果再盘2-3个月，养猪企业今年的业绩就没法看了。</li>
+<li>牧原我有保持关注，公司是个好公司，就是周期太跳了。</li>
+<li><strong>石大胜华</strong>预计上半年盈利5.75-5.95亿，去年同期是亏损4223万，这个公司今天上热搜了，因为从+9%到-10%跌停，最诡异的是我在龙虎榜上竟然看不出来是谁砸的。全天成交44亿，但卖一只出了8000万，<strong>我不信这种日内20%的回撤是散户齐心协力砸出来的</strong>，可能用了关联账户，这个监管层应该关注一下的。这种有操纵痕迹的股票散户不要参与，不是透明博弈。</li>
+<li><strong>赣锋锂业上修业绩预告，上半年利润13-16亿，同比增长730-922%。</strong>这是盘后出的消息，赣锋锂业跌了5%，不过不是它单个的问题，今天整个锂电新能源板块都大幅回撤。景气赛道过去半个月大幅上涨，出现技术性回调也正常。</li>
+<li><strong>同花顺多位股东计划6个月内合计减持不超过7.46%股份。</strong>那几个名字我都会背了，于浩淼，叶琼玖，王进，每年都会把祖传的7.46%股份拿出来吆喝一下。我不知道他们几个在想啥，每年都是这个公告，然后这么多年下来也没真的卖</li>
+<li><strong>东鹏饮料</strong>预计上半年6.65-6.85亿，增长50-55%。这个公司也是上市就出名了，因为是上交所的新股，一签1000股，46块钱涨到了250元，<strong>新股中一个号赚20万</strong></li>
+<li>我也有银地保，但我不会只有银地保，而且我的交易习惯就是亏钱的股票轻易不补仓，所以跌着跌着占比越来越低，影响也越来越小。股市最大的特点就是马太效应，所以千万不要搞持仓内的均富主义，千万不要汰强补弱。</li>
+<li>苹果上涨2.4%，机构普遍预期苹果明年会增产，所以果链又能搞一下？但欧菲光的下场实在是太惨了，果链公司要搞也不能搞太多仓位。</li>
+</ol>
+<br>
+
+<h5 id="0715"><a href="#0715" class="headerlink" title="0715"></a>0715</h5><ol>
+<li><strong>今年上半年A股交易额107万亿，去年同期交易额是87万亿，同比增长22%，证券公司今年上半年整体利润增长2成是摊在桌面上的明牌</strong>。结果证券指数2021年累计下跌12%。</li>
+<li>**新绝望公布了上半年的业绩，预亏29.5-34.5亿，同比下降193-209%**，这其中包括了10亿的货值计提。公司上半年累计新增借款208亿，用于扩张产能，同一个行业的企业，牧原今年遭遇反周期还能半年赚100亿，新绝望亏30亿，我们必须要承认企业和企业之间差距是很大的</li>
+<li><strong>药明康德</strong>上半年利润9.1亿-9.4亿，同比增长53-55%，当初它和恒瑞我二选一选砸了，我菜。</li>
+<li><strong>中国平安</strong>上半年保费4222亿，同比下降5%，这个业绩是不好，但上半年股价下跌30%确实过分了。</li>
+<li><strong>长江电力</strong>上半年利润增长6.22%，主要是投资收益增长了，扣非利润是下降的。但这股的股息率接近5%，又是很稳定的业态，涨不上去也跌不下来。<strong>长电要是大跌的话，真的可以买一些当养老股。</strong></li>
+<li><strong>洋河也做了一期的员工激励，总价10亿，员工购买价格是103.73元/每股</strong>。虽然比市场价便宜了一半，但这些股票是洋河前几年回购来的，当时回购的均价就是103.73元，所以并没有坑中小股东。另外行权条件是未来两年营收增长15%，说明公司对业绩增长还是有信心。整体看，比珠海那家的厚道多了，国企这方面还是比较注意影响。</li>
+</ol>
+<br>
+
+
+
+<h5 id="0716"><a href="#0716" class="headerlink" title="0716"></a>0716</h5><ol>
+<li>滴滴被七大部门入驻调查的新闻。我今晚开盘就把滴滴全抛了，没挣啥钱，就1%的屁盈。君子不立危墙之下，等调查结果出来，形势明朗了再说。看到 自然资源部的时候还有些困惑，找懂行的问了一下，才知道在中国境内做地图测绘是归它们管的</li>
+</ol>
+<br>
+
+
+
+<h5 id="0717"><a href="#0717" class="headerlink" title="0717"></a>0717</h5><ol>
+<li>很多人感叹那个年代的港台出美女，其实稍微想一下，香港+台湾一共才3000万人口，出美女的数量和质量怎么和11亿人口的大陆比。<strong>但当时他们有更繁荣的城市文化，港台女艺人在这些更有高级感的歌曲，影视，综艺加持下，确实对内地的土包子们有致命的吸引力。</strong></li>
+</ol>
+<br>
+
+<h5 id="0718"><a href="#0718" class="headerlink" title="0718"></a>0718</h5><ol>
+<li>结构性暴跌，<strong>中位数其实没咋跌，也就-0.26%<strong>，主要盯着创业板的权重股爆锤。</strong>宁德时代跌6.5%<strong>，这票现在占创业板指</strong>15%的权重</strong>，所以单单它一只股就导致了创业板指下跌1%。</li>
+<li>整个锂电池、新能源板块都遭遇了回撤，还有最近一起涨的芯片板块也跌了。这一波从5月上旬启动，涨到现在也涨了2个半月，主升浪已经是强弩之末。<strong>通常这类调整都是围绕着20日均线进行</strong>，横向震荡，持续时间通常为2-3个星期。</li>
+<li><strong>片仔癀</strong>业绩快报，上半年净利润11.14亿，同比增长28%。它们家的一颗药丸给炒到上万</li>
+<li><strong>格力电器</strong>已耗资36.77亿回购1.16%股份。公司股价一直在50附近挣扎，我觉得在这里回购起码是不亏的，现在回购的股票后面都会注销。格力现在ttmpe是12倍，股息率是4%，如果是那种偏爱长线持有吃股息的投资者，现在真的是遍地黄金。</li>
+<li>小米的安卓生态是和竞品打通的。苹果有自己的生态闭环，10亿用户，每年除了卖手机，还能躺着收30%的苹果税。</li>
+<li><strong>美国军机在台湾机场降落，大陆启动新一轮军事演习</strong>，周五军工板块大涨4%，领涨两市。但军工板块渣男属性很严重，玩玩还行，炒出感情的全在山顶站岗。</li>
+</ol>
+<br>
+
+<h5 id="0719"><a href="#0719" class="headerlink" title="0719"></a>0719</h5><ol>
+<li>今晚还有一个大事，就是欧美跌的比较凶。道琼斯目前跌2.36%，纳斯达克跌1.7%。对于习惯了A股波动的股民来说，这好像也没什么大不了的，但美股那边的波动率大概是我们的40%，所以今晚的跌幅对应成A股差不多就是-4%、-5%的样子。明天A股应该有一个低开，但幅度不会很大，因为我看了一下A50期指今晚只跌了0.5%。</li>
+<li>花旗将上调<strong>宁德时代目标价为645元</strong>，受益于全球电动车渗透率的提升。</li>
+<li><strong>摩根大通上调赣锋锂业目标价至180港元</strong>，这个说的是港股，目前股价是149港币。</li>
+<li><strong>恒大美元债创9个月最大跌幅。</strong>我去看了一下恒大的美元债，明年和后年到期的年化收益率都在45-50%左右，恒大要是真有钱，去回购一些自己的债券都能大赚一笔。</li>
+<li><strong>华夏幸福公告累计未能如期偿还债务本息合计732亿元</strong>，哎，平安当初真是瞎了狗眼，去趟了这浑水，也是活该自己股价跌成狗屎。</li>
+</ol>
+<br>
+
+<h5 id="0720"><a href="#0720" class="headerlink" title="0720"></a>0720</h5><ol>
+<li><strong>此前有网友问我能不能捡便宜恒大的打折房，我就预警过这类风险，怕就怕资金被挪用，房屋烂尾。</strong>湖南邵阳的住建局还是很警觉的，起码保护了当地利益。</li>
+<li>连着两天出事，<strong>恒大地产+恒大汽车的市值跌掉了1000多亿港币</strong></li>
+<li>这两天金融地产跌的跟鬼一样，在很大程度上就是受恒大情绪的影响。<strong>你说开个公司借那么多的钱干嘛，</strong>我现在真的特别烦高杠杆暴富的企业家，押对了就上福布斯，押错了就是社会救救我。</li>
+<li>年初恒大本来不是要回购1000亿的股份吗，就是苏宁也有200亿在里面的那笔钱，后来说恒大赖皮，让这些股东都放弃了回购。</li>
+<li><strong>这一波下跌这1000亿已经亏了500亿以上了，可谓是血的代价。</strong>这些人当初把钱借给恒大，打的如意算盘是借壳A股上市，割股民韭菜。万一上市失败，由恒大进行回购。可谓包赚不赔的买卖。</li>
+<li>结果证监会卡住不让恒大上A股，然后恒大没钱回购</li>
+<li><strong>每逢水灾做水管的那几家公司就会涨一下</strong>，但都是冲高回落，抢这种热点股很容易挂旗杆。</li>
+<li><strong>农业部：要提醒广大养猪场户，高利润阶段已经结束</strong>，不要再赌市场。</li>
+<li><strong>融创斥资1.53亿回购港股。</strong>其实我觉得那些聚焦一二线城市的地产公司，这一波都能扛过来，因为一二线的房产流通性很好。千万别学碧桂园和恒大，拼命借钱，然后弄了一堆三四线城市的项目，害人害己。</li>
+</ol>
+<br>
+
+<h5 id="0721"><a href="#0721" class="headerlink" title="0721"></a>0721</h5><ol>
+<li><strong>涨得最好的主要有3个板块，新能源、新材料、芯片</strong>，都是+4%以上，另一边传统板块则继续被抽血，银地保再度下跌。</li>
+<li><strong>最近两天大量公募披露的持仓有关，不少管理着千亿+规模的明星基金都在二季度做了调整，调整的方向就是从传统行业撤退，然后加仓到我上面提到的3个板块。</strong></li>
+<li>短线如果想挣钱就只能随大流，如果不会选个股的话，可以考虑这三个行业的ETF基金，分别是芯片ETF（159995）、新材料ETF（516360）、新能源车（515030）。最近连着两天大涨有些偏离，后期可以等回踩均线的时候再择机上车。亦或者买点宽基ETF，创业板、中证500的那种，更适合今年这种风格来回横跳的市场。</li>
+<li><strong>果链的明星股歌尔股份在14:50的时候突然放量暴跌，一度被砸至跌停</strong>，受其影响整个果链相关的股票今天表现都被拖下水。不太像是业绩有雷。港资那边今天是净买入2.5亿，所以<strong>砸盘的应该是卖方第二的席位，也就是中信建投潍坊福寿西街营业部。</strong>这个山东潍坊的营业部并<strong>不是活跃游资，整个2021年只有今天上了一次龙虎榜</strong>，再加上歌尔股份就是山东潍坊的，我有点怀疑出货的<strong>可能是月初解锁的员工持股计划“家园4号”</strong>。如果真是它们在卖的话，总规模接近20亿，今天这个出货量只占10%，后面可能还得卖。当然这仅仅是我的猜测，起码勉强说的通。</li>
+<li>至于立讯精密、蓝思科技这两个倒霉蛋，就是看到歌尔股份突然暴跌，有人被吓的跟风出货罢了。</li>
+<li><strong>恒大</strong>给灾区捐了2000万，许家印是河南人，所以这也是勒紧裤腰带支援家乡人民。</li>
+<li><strong>片仔癀****大股东计划减持1%股份</strong>，还好了，也就30亿，以片仔癀目前的流动性肯定接的动。</li>
+<li><strong>公募</strong>明星基金<strong>的二季报，还有一个动向，大量增配了银行股</strong>。这个是我没想到的，当然了，银行比地产保险稍微好一丢丢吧。买的最多的是<strong>招行、兴业、平安银行、江苏银行</strong>，所以这几只股票还过得去，至于传统的国有四大行，已经被主流资金抛弃了。</li>
+</ol>
+<br>
+
+<h5 id="0722"><a href="#0722" class="headerlink" title="0722"></a>0722</h5><ol>
+<li>FFIE <strong>提出一个破产重整的方案，用自己手里的法拉第股份来偿还债务，以交换债主们同意公司在美国上市。</strong>双方终于达成一致，<strong>确认负债是29.6亿美金</strong>。<strong>贾跃亭必须偿还40%以上，才能解除在中国境内的债务。</strong>另外贾跃亭的老婆放弃了财产优先分割权。</li>
+<li>今晚上市的FFIE股权分为：<strong>只要这家公司的股价涨250%，贾跃亭就可以把所有欠债都还清</strong>，彻底摘掉老赖的帽子，堂堂正正的回国。<ol>
+<li>法拉第原有股东持股51.1% – 有恒大，不亏的，浮盈大概翻倍了，但是现在也减持不了</li>
+<li>本次上市公开发行的股份23%</li>
+<li><strong>贾跃亭的债权人们转债股17.2%（这部分股票应该是从贾跃亭个人名下划转过来的）</strong></li>
+<li>借壳之前的老股东持股6.8%</li>
+<li>卖壳的人分到1.9%的干股</li>
+</ol>
+</li>
+<li>今天A股行情整体还凑合，就是<strong>医药板块跌的比较多</strong>，中证医药指数跌了3%，所以含药量比较高的创业板指今天拉胯了。<strong>一是片仔癀大股东减持带来的负面影响</strong>，把最近涨势凶猛的中药板块给锤下来了，广誉远、同仁堂之类的今天都大跌。<strong>另一个被爆锤的是生物疫苗</strong>，康泰生物-10%，智飞、复星、康希诺也都大跌。</li>
+<li><strong>恒大和广发和解了，官司撤了。</strong>我原先猜测恒大是提前把钱还了，但后来看新闻并没有，依然是明年到期的时候还。这说明恒大的商务和公关能力依然很强，在金融圈依然有信用。受此刺激恒大股价反弹，<strong>顺带A股的银地保也联动反弹</strong>，但弹性非常弱，保险涨1.5%，地产涨0.8%，银行涨0.56%</li>
+<li><strong>歌尔股份</strong>中午继续跌，<strong>公司紧急开了个电话会议安抚军心</strong>。其实昨天的闪崩主要是潍坊那个营业部净卖出1.8亿造成的</li>
+<li><strong>深南股份的实际控制人周世平被强制刑事措施了</strong>，他就是之前著名的P2P平台红岭创投的实控人，这次被抓我猜测和上市公司无关，可能是P2P的秋后算账。</li>
+<li>韦尔股份比较失望，感觉是在正确的板块挑了错误的股票，虽然有盈利，但和同期的北方华创、三安光电比真的难过到内伤</li>
+</ol>
+<br>
+
+<h5 id="0725"><a href="#0725" class="headerlink" title="0725"></a>0725</h5><ol>
+<li>酱油老二<strong>中炬高新</strong>被知名基金经理张坤加持，但股价在上半年一跌再跌，终于在这个周末出了一套二连招来提振股价。<strong>回购3-6亿的股票</strong>，用于注销，这个没啥问题。<strong>定增募集77.91亿</strong>，用于扩增300万吨产能。这部分股票<strong>发行价32.6元</strong>，比周五的收盘价折让13.6%，<strong>全部由大股东认购。</strong>市值也才300亿，大股东哪来那么多钱，查了一下大股东是<strong>宝能姚振华</strong>，哦，大佬确实有钱。</li>
+<li>海康威视<strong>上半年利润64.8亿，增长40.17%。挺好的业绩，半年报稳。</strong></li>
+<li>社保基金未来6个月减持中国人保2%**。好家伙，所以估值低真的是个陷阱，你会发现大机构还在卖保险。</li>
+</ol>
+<br>
+
+<h5 id="0726"><a href="#0726" class="headerlink" title="0726"></a>0726</h5><ol>
+<li>今天两市涨幅第一的是<strong>半导体板块，这大概是目前最正能量的行业。</strong></li>
+<li><strong>第二条线是监管层对垄断资本的整顿</strong>，腾讯今天暴跌将近8%，已经从年度最高价775跌到了490，回撤幅度37%。流动性最强的鹅厂尚且如此，其他那些涉垄断的互联网公司就更别提了。</li>
+<li>今天两市跌幅第一的是白酒板块，-6.6%</li>
+<li>最近行情跌这么多，为什么大部分指数都还在趋势的强侧，仔细看了一下，创业板、中证500、科技指数、军工、芯片，这还真都是市场上为数不多的热点。**我今天卖了一半的海天味业，4成的洋河，仓位降至75%**，茅台我忍住了没卖。</li>
+</ol>
+<br>
+
+<h5 id="0727"><a href="#0727" class="headerlink" title="0727"></a>0727</h5><ol>
+<li>情绪<ol>
+<li>外资进一步减仓它们持有的中国股票。幅度大都在10-30%之间。北上资金净流出90亿，外资之前买A股主要都是白马股，现在砸盘的也主要是白马股。</li>
+<li>互联网公司股票被资本市场加速看衰。</li>
+<li>市场更关注正能量的行业，减持浓度不够的行业。</li>
+<li>消费行业出现资金加速逃离。<strong>这个看起来会影响挺长一段时间</strong></li>
+</ol>
+</li>
+<li><strong>恒生指数最近两天跌了将近10%</strong></li>
+<li><strong>但斌道歉上了热搜</strong>，他说新产品亏损17%，其中美股是正回报。<strong>今天砸盘的那些人，很多都是去年信仰长线投资的变节者</strong></li>
+<li><strong>最差情况也不会跌回3000点以下，从周线上看3152那里有一个缺口，有可能是回调的底线</strong>，这是悲观的预期，也有可能像前几次那样3300+就获得支撑，又弹回3500附近。</li>
+<li>再买芯片板块我就买159995芯片ETF</li>
+<li><strong>恒生互联ETF</strong>这个ETF春节后跌了42%，前十大重仓股都是阿里、腾讯、小米、美团、快手、京东这些公司，我还是相信它们的困难是暂时的，未来有更好的发展。</li>
+</ol>
+<br>
+
+<h5 id="0728"><a href="#0728" class="headerlink" title="0728"></a>0728</h5><ol>
+<li>指数方面，确实比较典型的遵循了<strong>暴跌次日公式</strong>，上午有恐慌性的急杀，然后快速拉起，几个重要指数收盘的时候有的翻红，有的小跌</li>
+<li><strong>大买方的交流会纪要</strong>：<strong>欧美系资金</strong>这波是被教培行业的新政惊呆了，所以<strong>普遍减仓了20%左右</strong>，是这些机构<strong>自发的系统性避险</strong>，和政治因素无关，网传美国政府限制资本投资中国市场是谣言，没有的事。如果没有新的刺激，这一波的减持暂时告一段落。</li>
+<li>境外资金为了规避政策风险，<strong>基本撤出了对军工股的投资</strong></li>
+<li><strong>技术上的短线超跌依然存在，明天可以期待一下。</strong> ==误判。。很多的误判。是聊天吗</li>
+<li>股指期货的IC主力合约出现了罕见的+6个基点的升水，说明有<strong>不少资金看好宽基指数明天反弹</strong>。风险主要是周五及下周，到时候五日线压下来，才是对盘面的真考验。==&gt;下周没有被压垮</li>
+<li><strong>中信证券上半年121亿利润，增长36%<strong>，这样的业绩今年股价却跌了22%。公司也不着急，完全不做市值管理。而且</strong>最近几天还给证监会递了280亿的配股申请</strong>，已经被受理。券商是今年最曰了狗的板块。除了东方财富，其余都是一言难尽。</li>
+<li>想靠暴跌次日公式操作一下。我股票持仓太分散，短时间内操作不过来，所以<strong>我做波段的标的是期指里的IC和IF</strong>，这样效率会高一些。</li>
+<li>**A50比下午15点收盘的时候涨了2.3%**，明天有望继续回血。</li>
+</ol>
+<br>
+
+<h5 id="0729"><a href="#0729" class="headerlink" title="0729"></a>0729</h5><ol>
+<li>领涨的依然是<strong>创业板、芯片、新能源</strong>等热门焦点，但也有一些弱势白马股继续下跌，处于明显资金流出的状态。</li>
+<li>最近公募基金披露了持仓，所以机构统计了<strong>公募基金增减持top20的表格</strong>。比如平安从1.03%减到0.18%，等于公募基金减掉了8成的平安。再有就是恒瑞医药的二季度走势也很衰，从0.7%减到了0.13%。茅台虽然在减持榜的榜首，从5.92%减到了4.75%，但减持幅度其实还好，大概就走了1/5的仓位，还有4/5的人选择留下。</li>
+<li><strong>能从公募的增减持看到局部的一个缩影，因为机构之间的立场和观点有比较强的传染性，交易趋同性明显高于散户。</strong>机构：<strong>决策撤离某只股票，卖的时候会很决绝，而且卖完了短期内都不会吃回头草。</strong></li>
+<li>平安二季度下跌16%，当然不只是公募的那0.85%给砸下来的，出货的可能还有<strong>险资、社保、养老、理财信托、大户，以及一部分散户</strong>，只是这些交易数据不像公募那样便于统计。</li>
+<li><strong>减持的百分比进度，能看出一只股票未来下跌的潜力</strong></li>
+<li><strong>被减持的股票，超过一半以上都来自消费板块，机构现在普遍看衰老百姓消费力下滑已经不是什么秘密</strong></li>
+<li><strong>滴滴今天盘前交易突然拉升接近50%，有传闻说是要私有化退市，但滴滴随后对这个消息进行了辟谣</strong>，目前股价又回落到+20%附近。从目前的形势看滴滴从美股退市的概率确实挺大的，比较好的结局是监管整顿完毕后去香港上市。</li>
+<li><strong>武汉的房子要凭房票购买</strong>；<strong>道琼斯，标普500，今晚继续刷新历史新高</strong>；<strong>好未来、高途后续都准备大规模裁员</strong>；<strong>中概股普遍回调，再加上明天五日线压下来，所以盘面有一定的压力。</strong></li>
+</ol>
+<br>
+
+<h5 id="0730"><a href="#0730" class="headerlink" title="0730"></a>0730</h5><ol>
+<li>未来投资的主要范围还是有历史优秀基因的白马股，但会比较关注流动性溢价的变化，总结一下就是三句话：<ol>
+<li>机构已经卖透了的过气白马股，可以适当仓位长线蹲一下。</li>
+<li>机构正在退出的白马股，要尽量回避。</li>
+<li>机构还在往里怼的白马股，可以趋势性参与，见机撤退。</li>
+</ol>
+</li>
+<li>消费和白马回避下</li>
+<li>太宗皇帝说的好，疾风知劲草，板荡识诚臣。勇夫安识义，智者必怀仁。</li>
+<li>中国价投：公司价值之上的流动性博弈。教培政策让资金应激后，往正能量行业里怼。</li>
+</ol>
+<br>
+
+
+
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ol>
+<li>大多消息还是业绩。只是看看业务和扣非的净利。很多估计也不太准确。当然思路比判断重要。所以我也不要在于去估计。正反的看越看越看不懂。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
