@@ -16,7 +16,7 @@
 <meta property="og:description" content="无中心、碎片知识点">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-04-05T11:27:02.000Z">
-<meta property="article:modified_time" content="2021-06-15T03:39:55.173Z">
+<meta property="article:modified_time" content="2021-08-30T06:00:10.252Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="零散知识点">
 <meta name="twitter:card" content="summary">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">157.5k</span>
+    总字数 <span class="post-count">164.2k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,7 +186,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：1.7k字 | 预计阅读时长：5分钟
+    字数：1.7k字 | 预计阅读时长：6分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -211,9 +211,14 @@
 </ul>
 <ul>
 <li>感受野<br>如果两个3<em>3和一个5</em>5对原始输入后卷积都得到了1<em>1的输出<br>那么哪个filter好呢？<br>从计算量和参数个数来看，选择多层卷积，而每个卷积为3</em>3的更好。</li>
+<li>backbone</li>
+<li>hdcnn</li>
+<li>cascade</li>
+<li>小目标检测</li>
+<li>caffe源码里的底层设计模式、数据流、cuda细节、如何添加新层</li>
 <li></li>
+<li>更倾向于给你一个场景看你的思路，场景里你怎么分析<br>怎么挑出来好的样本、选择什么样子的模型<br>特征工程的做法–<br>ab背后的正交<br>特征管理的方案<br>知识图谱好的应用方式<br>模型选型，为啥用图模型<br>一维的卷积的加速<br>模型 的可解释性、业务上解释<br>长尾item<br>采样方式–正负样本的做法<br>实时模型<br>实时特征落地<br>adam优化器背后的优化，解决了什么问题<br>sgd有什么问题<br>你是如何调参的<br>图模型有什么弊端<br>xgb的特征重要性怎么算出来的<br>ab正交机制<br>gnn的输入 gnn的思路是？<br>文本的情感类别，比如 美食领域的正向还是负向 怎么判断<br>Self attention和普通attention的区别<br>多种transformer的架构、对比<br>cnn输入的如果是长文本 怎么处理<br>各种loss<br>图模型还有哪些<br>同构图和异构图的区别<br>vae的loss<br>分裂加速<br>Mmoe<br>Highway network<br>Bidaf<br>Elmo<br>esmm<br>逻辑回归的时候问一下odds的概念，<br>贝叶斯线性回归要是需要强制系数非负该怎么办，<br>核函数，relu函数是什么意思。<br>半监督学习或者时间序列<br>lasso，逻辑回归，非负矩阵分解，svm的目标函数<br>什么叫显著，什么叫p值，<br>rerank阶段的强化学习、多目标任务<br>tf-serving的搭建<br>推荐中多样性、头部问题<br>其他的排序模型、召回框架<br>召回更好的做法，优化思路<br>计算量（样本量、分类效果or打分效果、epoch、时间，在线学习设计）<br>各个场景推荐策略的区别<br>目的是什么。<br>CET<br>概率图的条件独立？<br>spark解决数据倾斜<br>widedeep，为什么需要wide+deep好处的解释<br>如何避免落入局部最优<br>约束方程怎么解 – y&gt;=0的条件下……<br>hmm具体内容<br>attention bert transformer<br>pytorch的常用函数整理<br>全连接层有什么作用？做一个图像识别的网络，可以不要全连接层吗？<br>机器学习训练误差由哪些构成；<br>BN层加在激活函数前与后效果有何不同；<br>如何判断异常点；<br>逻辑回归的分布函数；<br>逻辑回归的参数求解在优化方面属于什么类型；<br>seq-seq有哪些结构形式；<br>soft-attention与hard-attention的区别；<br>数据分类不均匀的话，要做哪些处理；<br>手写逻辑回归极大似然函数的数学推导；<br>Glove与word2vec的比较；<br>PageRank是怎么回事；<br>在resnet中，什么是残差，有何意义？<br>在GEMM中，如何优化缓存？<br>在ARM平台上，SIMD(单指令多数据)介绍一下大概？<br>是否了解其他平台的SIMD指令？intel的AVX和ARM NEON有何不同？<br>在实现一个SIMD程序时，应该注意哪些方面？如何判断一个算法适不适合SIMD加速？<br>如何证明，SIMD已经达到了最优化性能？<br>在大量的SIMD指令中，如何选择性能最佳的指令？<br>实现memcpy.<br>如何在main函数之外之行一个函数。<br>这样声明变量有没有问题：int a[10000000].<br>static修饰符有什么用？如果不加会出现什么后果？<br>常见的语言模型；<br>文本表达方法；<br>新词如何发现；<br>句子中关键词如何提取（tfidf，textrank）；<br>如何计算两个句子相似度；<br>讲一下Bert；讲一下fastText；<br>文本处理常用步骤；<br>分词分得不准确的话，该如何处理。<br>DenseNet的网络结构？与全连接有何不同？<br>简历项目中网络用了多少层FeatureMap，每层面积？<br>FeatureMap提取了哪些特征？<br>词向量怎么训练的？<br>word2vec两种常用模式？<br>词向量后面的Softmax如何优化？<br>CBOW和Skipgram哪个更适合采用？（大规模训练的话Skipgram要更好）<br>Glove的原理？（简历上有体现）<br>讲一下fastText（简历上有体现），说一下与word2vec的联系；<br>Huffman树；<br>如果用seq-seq进行embedding，做相似度计算，会如何（替代Glove的话）；<br>Glove如何训练的，用的多少维；<br>解释下TextRank（简历有体现）；<br>为什么数据量越大SVM训练越慢；<br>分词是如何处理的；<br>语料中遇到新词如何处理；<br>决策树和SVM在数据预处理上有何不同（缺失值）；SVM对文本要先做什么处理；<br>fastText最初先对文本如何处理（固定格式）；<br>词性标注比较好的方法是哪些，有没有最新的模型。<br>手推SVM；LSTM的结构，优势在哪里。<br>生成模型主流就那几个<br>VAE系列<br>Glow系列<br>GAN系列<br>思考，VAE的优缺点有哪些，为什么VAE的结果通常是比较模糊的？VQVAE的提出是希望解决什么问题，他存在VAE类似的问题吗？如果存在，那是为什么。<br>Glow的优缺点？为什么用Glow？Glow的分布会对结果产生什么影响？<br>GAN的稳定训练措施有哪些？各个稳定方法的优缺点比较？pair与非pair数据对GAN的训练影响？<br>从生成模型的角度来看，当我们希望对生成内容的属性进行控制的时候，你会选哪些方法，为什么？<br>进一步地，从模型训练的角度。参数初始化，激活函数选择，数据的均值方差，正则化，归一化，优化器（adam以及变种），自回归与非自回归的选择。<br>最后的最后，从训练数据而言。因为我接触信号比较多，那么，这段信号有什么特点，怎么提取feature输入网络？干净的数据怎么做，带噪的数据怎么做，数据的干净程度对结果的影响，一定要用深度学习吗，传统的信号分析能作为辅助loss吗？怎么衡量你的模型效果？<br>最最后的深坑，这个东西可以用强化学习做吗</li>
 </ul>
-<p>更倾向于给你一个场景看你的思路，场景里你怎么分析<br>怎么挑出来好的样本、选择什么样子的模型<br>特征工程的做法–<br>ab背后的正交<br>特征管理的方案<br>知识图谱好的应用方式<br>模型选型，为啥用图模型<br>一维的卷积的加速<br>模型 的可解释性、业务上解释<br>长尾item<br>采样方式–正负样本的做法<br>实时模型<br>实时特征落地<br>adam优化器背后的优化，解决了什么问题<br>sgd有什么问题<br>你是如何调参的<br>图模型有什么弊端<br>xgb的特征重要性怎么算出来的<br>ab正交机制<br>gnn的输入 gnn的思路是？<br>文本的情感类别，比如 美食领域的正向还是负向 怎么判断<br>Self attention和普通attention的区别<br>多种transformer的架构、对比<br>cnn输入的如果是长文本 怎么处理<br>各种loss<br>图模型还有哪些<br>同构图和异构图的区别<br>vae的loss<br>分裂加速<br>Mmoe<br>Highway network<br>Bidaf<br>Elmo<br>esmm<br>逻辑回归的时候问一下odds的概念，<br>贝叶斯线性回归要是需要强制系数非负该怎么办，<br>核函数，relu函数是什么意思。<br>半监督学习或者时间序列<br>lasso，逻辑回归，非负矩阵分解，svm的目标函数<br>什么叫显著，什么叫p值，<br>rerank阶段的强化学习、多目标任务<br>tf-serving的搭建<br>推荐中多样性、头部问题<br>其他的排序模型、召回框架<br>召回更好的做法，优化思路<br>计算量（样本量、分类效果or打分效果、epoch、时间，在线学习设计）<br>各个场景推荐策略的区别<br>目的是什么。<br>CET<br>概率图的条件独立？<br>spark解决数据倾斜<br>widedeep，为什么需要wide+deep好处的解释<br>如何避免落入局部最优<br>约束方程怎么解 – y&gt;=0的条件下……<br>hmm具体内容<br>attention bert transformer<br>pytorch的常用函数整理<br>全连接层有什么作用？做一个图像识别的网络，可以不要全连接层吗？<br>机器学习训练误差由哪些构成；<br>BN层加在激活函数前与后效果有何不同；<br>如何判断异常点；<br>逻辑回归的分布函数；<br>逻辑回归的参数求解在优化方面属于什么类型；<br>seq-seq有哪些结构形式；<br>soft-attention与hard-attention的区别；<br>数据分类不均匀的话，要做哪些处理；<br>手写逻辑回归极大似然函数的数学推导；<br>Glove与word2vec的比较；<br>PageRank是怎么回事；<br>在resnet中，什么是残差，有何意义？<br>在GEMM中，如何优化缓存？<br>在ARM平台上，SIMD(单指令多数据)介绍一下大概？<br>是否了解其他平台的SIMD指令？intel的AVX和ARM NEON有何不同？<br>在实现一个SIMD程序时，应该注意哪些方面？如何判断一个算法适不适合SIMD加速？<br>如何证明，SIMD已经达到了最优化性能？<br>在大量的SIMD指令中，如何选择性能最佳的指令？<br>实现memcpy.<br>如何在main函数之外之行一个函数。<br>这样声明变量有没有问题：int a[10000000].<br>static修饰符有什么用？如果不加会出现什么后果？<br>常见的语言模型；<br>文本表达方法；<br>新词如何发现；<br>句子中关键词如何提取（tfidf，textrank）；<br>如何计算两个句子相似度；<br>讲一下Bert；讲一下fastText；<br>文本处理常用步骤；<br>分词分得不准确的话，该如何处理。<br>DenseNet的网络结构？与全连接有何不同？<br>简历项目中网络用了多少层FeatureMap，每层面积？<br>FeatureMap提取了哪些特征？<br>词向量怎么训练的？<br>word2vec两种常用模式？<br>词向量后面的Softmax如何优化？<br>CBOW和Skipgram哪个更适合采用？（大规模训练的话Skipgram要更好）<br>Glove的原理？（简历上有体现）<br>讲一下fastText（简历上有体现），说一下与word2vec的联系；<br>Huffman树；<br>如果用seq-seq进行embedding，做相似度计算，会如何（替代Glove的话）；<br>Glove如何训练的，用的多少维；<br>解释下TextRank（简历有体现）；<br>为什么数据量越大SVM训练越慢；<br>分词是如何处理的；<br>语料中遇到新词如何处理；<br>决策树和SVM在数据预处理上有何不同（缺失值）；SVM对文本要先做什么处理；<br>fastText最初先对文本如何处理（固定格式）；<br>词性标注比较好的方法是哪些，有没有最新的模型。<br>手推SVM；LSTM的结构，优势在哪里。<br>生成模型主流就那几个<br>VAE系列<br>Glow系列<br>GAN系列<br>思考，VAE的优缺点有哪些，为什么VAE的结果通常是比较模糊的？VQVAE的提出是希望解决什么问题，他存在VAE类似的问题吗？如果存在，那是为什么。<br>Glow的优缺点？为什么用Glow？Glow的分布会对结果产生什么影响？<br>GAN的稳定训练措施有哪些？各个稳定方法的优缺点比较？pair与非pair数据对GAN的训练影响？<br>从生成模型的角度来看，当我们希望对生成内容的属性进行控制的时候，你会选哪些方法，为什么？<br>进一步地，从模型训练的角度。参数初始化，激活函数选择，数据的均值方差，正则化，归一化，优化器（adam以及变种），自回归与非自回归的选择。<br>最后的最后，从训练数据而言。因为我接触信号比较多，那么，这段信号有什么特点，怎么提取feature输入网络？干净的数据怎么做，带噪的数据怎么做，数据的干净程度对结果的影响，一定要用深度学习吗，传统的信号分析能作为辅助loss吗？怎么衡量你的模型效果？<br>最最后的深坑，这个东西可以用强化学习做吗</p>
 
       
 
@@ -544,15 +549,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">论文</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">gpu</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">cuda</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">论文</a>
               </li>
              
               <li class="article-tag-list-item">
