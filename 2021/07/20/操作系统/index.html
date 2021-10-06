@@ -8,15 +8,13 @@
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
   <title>操作系统 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="要刷的几个题目">
-<meta property="og:type" content="article">
+  <meta property="og:type" content="article">
 <meta property="og:title" content="操作系统">
 <meta property="og:url" content="https://satyrswang.github.io/2021/07/20/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="要刷的几个题目">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-07-20T05:06:59.000Z">
-<meta property="article:modified_time" content="2021-07-21T10:48:12.716Z">
+<meta property="article:modified_time" content="2021-09-13T09:42:06.443Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="计算机">
 <meta name="twitter:card" content="summary">
@@ -86,7 +84,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">164.2k</span>
+    总字数 <span class="post-count">191.6k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,130 +184,13 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：1.9k字 | 预计阅读时长：6分钟
+    字数：0字 | 预计阅读时长：1分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
         <br>
 
 <br>
-
-<h4 id="要刷的几个题目"><a href="#要刷的几个题目" class="headerlink" title="要刷的几个题目"></a>要刷的几个题目</h4><span id="more"></span>
-
-<br>
-
-<br>
-
-
-
-<h4 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h4><ol>
-<li><p>进程实体：PCB 程序段 数据段。进程：进程实体运行的过程，动态的，系统资源分配和调度的单位。</p>
-</li>
-<li><p>PCB：进程描述信息：pid(进程标识符)，uid；进程管理控制信息：进程优先级，当前状态；资源分配清单：程序段、数据段指针，键盘、鼠标等资源；处理机cpu相关：寄存器值。</p>
-</li>
-<li><p>进程的组织：1链接方式–PCB分多个队列、os有队列的指针；2索引方式–建立几个索引表(索引表的每一项是属于该表的各个PCB的指针)、os有索引表指针</p>
-</li>
-<li><p>进程特性：动态性、并发性、独立性–独立获得资源、异步性、结构性</p>
-</li>
-<li><p>三种基本状态：运行、就绪、阻塞。还有两种：创建态、终止态(撤销pcb、回收系统资源等)。阻塞原语：等待资源；等待其他进程。唤醒原语：等待的事件发生。挂起状态，比如就绪挂起，那么<strong>创建态、阻塞挂起、运行态、就绪态</strong>的进程都有可能被调入到就绪挂起里。挂起的进程，进程除了pcb会被调入到外存中。</p>
-</li>
-<li><p>进程控制：对进程各个状态中切换进行控制。os提供了几种原语：功能–更新PCB、插入PCB到合适的队列、分配回收资源</p>
-</li>
-<li><p>原语：采用关中断和开中断实现，过程中不能被中断，这样的操作也是 原子操作。在 核心态执行。</p>
-</li>
-<li><p>进程通信：由于进程有自己的内存空间，所以之间的通信需要一定的共享机制。1共享存储，分为数据结构的共享(queue)和存储区域的共享(更快、高级)。2管道，即内存的一块缓冲区，连接着读写，半双工的通信。读写之间是阻塞的，没有写满不允许读，没有读空不允许写。3消息传递，分为直接和间接两种方式。直接就是每个进程有自己的消息队列，其他进程往这个队列里去发消息，间接则有个中间邮箱暂存消息，大家都往一个地方写，系统管理着信箱。</p>
-</li>
-<li><p>多线程及属性：来提高系统并发度。1进程就只作为资源分配的单元，而调度的基本单位是线程。2切换线程的系统开销很低，线程几乎没有系统资源，而是共享一个进程的资源，线程间的通信只要通过进程而不用系统干预。3多cpu ，各个线程可以占用不同的cpu。4线程有threadid，以及TCB。</p>
-</li>
-<li><p>线程实现方式：</p>
-<ol>
-<li><p>用户级线程：用户线程由应用程序通过线程库(pool)实现，切换也是用户态完成。os意识不到线程存在，对os是透明的，是多对一。(多cpu 的，我开了多个线程，如果是用户级的，能不能充分利用多核？–是不能的。) –&gt;切换效率高，但并发度就很低，一个线程被阻塞，整个进程都会被阻塞，多线程不能在多核上并行。</p>
-</li>
-<li><p>内核级线程：线程管理是os内核负责的，内核线程切换要核心态完成。用户的线程和核心线程是一一对应的。而内核级线程才是os分配cpu的单位。–&gt;并发能力强，管理成本高。</p>
-</li>
-<li><p>1和2的组合，n个用户的线程映射到m个内核线程上。n&gt;=m。</p>
-</li>
-<li><p>上面的总结，可以理解为是多线程模型。多对一。一对一。多对多。</p>
-</li>
-</ol>
-</li>
-<li><p>cpu调度：分为高级调度、中级和低级。高级(面向作业)：后备的作业队列中选择一个或多个作业，调入内存并分配资源，建立PCB，然后就可以去竞争cpu。中级：引入虚拟存储技术后，os会将空闲的进程调出到外存，即为挂起状态(有就绪挂起和阻塞挂起)，(PCB常驻内存)被os放在挂起队列里；中级调度是决定哪个挂起状态的进程重新调入内存。低级：即进程调度，从就绪队列里选择进程进入运行(是内存和cpu之间的，其他为内存和外存之间)。三种名称又是，作业调度、内存调度、进程调度。</p>
-</li>
-<li><p>进程调度：时机、方式、与进程切换。</p>
-<ol>
-<li><p>时机</p>
-<ol>
-<li>主动放弃cpu以及被动。主动：完成、异常、等待io。</li>
-<li>被动：时间片到了、优先级高的抢了、有其他需要先处理如io中断。</li>
-<li>不能调度：处理中断过程、原子操作过程、os内核程序临界区(临界区是指访问临界资源的那段代码，临界资源是必须要互斥地被访问的资源)中(某个进程正在访问内核的数据结构如PCB队列，此时会将此结构上锁，那么如果在此时进行调度，调度必然要访问这个PCB队列，而已被锁住，这就死锁了，此时要等进程对内核临界区访问结束然后再调度。如果是一般的非内核临界区，则可以直接剥夺进行调度。不会有系统隐患。)。</li>
-</ol>
-</li>
-<li><p>方式</p>
-<ol>
-<li><p>抢占式，分时操作和实时操作系统</p>
-</li>
-<li><p>非抢占，早起的批处理</p>
-</li>
-</ol>
-</li>
-<li><p>进程切换：</p>
-<ol>
-<li>调度选中的进程可能是刚刚暂停的进程，切换是进程让出cpu而另一个进程占用cpu。切换需要保存，pc、程序状态字、寄存器现场等</li>
-<li>广义的进程调度包括，选择一个进程以及进程切换</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><p>调度算法评价指标</p>
-<ol>
-<li>cpu利用率 =  忙碌时间/总时间</li>
-<li>系统吞吐量 = 总共完成的作业/总共的时间</li>
-<li>周转时间 = 完成时间 - 作业提交时间 ，os更加关注平均周转时间</li>
-<li>带权周转时间 = 周转时间/作业实际运行时间</li>
-<li>等待时间 = 所有等待时间之和</li>
-<li>响应时间 = 首次响应时间 - 提出请求时间</li>
-</ol>
-</li>
-<li><p>调度算法</p>
-<ol>
-<li><p>FCFS</p>
-<ol>
-<li>等待时间越长越先，可以用于作业调度也可以用于进程调度，非抢占式，公平、简单</li>
-<li>缺点：带权周转时间比较大，不利于短作业</li>
-<li>不会饥饿</li>
-</ol>
-</li>
-<li><p>SJF</p>
-<ol>
-<li>进程调度时候是，短进程优先。有抢占版本：最短剩余时间优先算法。默认做题是非抢占</li>
-<li>在所有的进程同时可运行时/几乎同时到达，SJF的平均等待和平均周转时间是最少的。但相比于FCFS，是要少的平均等待和平均周转</li>
-<li>不公平，利于短作业，会饥饿，且作业时间是用户可设置的</li>
-</ol>
-</li>
-<li><p>HRRN高响应比算法</p>
-<ol>
-<li>响应比= (等待时间+作业时间)/作业时间，非抢占</li>
-<li>不会饥饿</li>
-</ol>
-</li>
-<li><p>总结</p>
-<ol>
-<li><p>FCFS考虑了等待时间但不考虑作业时间，所以短作业不友好，SJF考虑了作业时间但是没考虑等待，所以不公平。=&gt;来了HRRN。</p>
-</li>
-<li><p>这三种，考虑了公平、系统性能，但是没有考虑响应时间及优先级，适用于批处理系统，但是不适用交互式。</p>
-</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><p>调度算法二</p>
-<ol>
-<li>时间片轮转RR<br>1. </li>
-<li>优先级调度</li>
-<li>多级反馈队列</li>
-</ol>
-</li>
-</ol>
 
       
 
@@ -640,15 +521,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">论文</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">gpu</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">cuda</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">论文</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -660,11 +541,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">es</a>
+                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">

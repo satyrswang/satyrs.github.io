@@ -6,17 +6,17 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
-  <title>GAN | satyrswang</title>
+  <title>缠0811-0914分析 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="过程">
-<meta property="og:type" content="website">
-<meta property="og:title" content="GAN">
-<meta property="og:url" content="https://satyrswang.github.io/%E5%BE%85%E5%AE%8C%E5%96%84/GAN.html">
+  <meta name="description" content="我想理清楚他的思路。尤其从8月11到现在的节点，为什么他选择这些股票。 他对宏观的把握以及对于行业到个股的选择。再到对k线的分析。     8月    8&#x2F;2：两市除钢铁、煤炭、有色以外，基本呈现普涨行情。景气度高的稀缺资源类个股和困境反转类个股。 8&#x2F;3： 今日沪深三大指数全线低开，随后指数宽幅震荡，创指一度跌逾1%，前期热点板块大幅回调，医药板块今天表现不错。盘面上：生物制品、新冠检测、医">
+<meta property="og:type" content="article">
+<meta property="og:title" content="缠0811-0914分析">
+<meta property="og:url" content="https://satyrswang.github.io/2021/09/14/%E7%BC%A00811-0914%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="过程">
+<meta property="og:description" content="我想理清楚他的思路。尤其从8月11到现在的节点，为什么他选择这些股票。 他对宏观的把握以及对于行业到个股的选择。再到对k线的分析。     8月    8&#x2F;2：两市除钢铁、煤炭、有色以外，基本呈现普涨行情。景气度高的稀缺资源类个股和困境反转类个股。 8&#x2F;3： 今日沪深三大指数全线低开，随后指数宽幅震荡，创指一度跌逾1%，前期热点板块大幅回调，医药板块今天表现不错。盘面上：生物制品、新冠检测、医">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-03-11T15:17:06.000Z">
-<meta property="article:modified_time" content="2021-04-05T11:35:38.394Z">
+<meta property="article:published_time" content="2021-09-14T11:21:43.000Z">
+<meta property="article:modified_time" content="2021-09-19T23:04:11.942Z">
 <meta property="article:author" content="yuqing wang">
 <meta name="twitter:card" content="summary">
   
@@ -85,7 +85,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">164.2k</span>
+    总字数 <span class="post-count">191.6k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -165,55 +165,52 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="page-" class="article article-type-page " itemscope itemprop="blogPost">
+            <article id="post-缠0811-0914分析" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      GAN
+      缠0811-0914分析
     </h1>
   
 
         
-        <a href="/%E5%BE%85%E5%AE%8C%E5%96%84/GAN.html" class="archive-article-date">
-  	<time datetime="2021-03-11T15:17:06.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-03-11</time>
+        <a href="/2021/09/14/%E7%BC%A00811-0914%E5%88%86%E6%9E%90/" class="archive-article-date">
+  	<time datetime="2021-09-14T11:21:43.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-09-14</time>
 </a>
             
         
       </header>
     
     <div align="center" class="post-count">
-    字数：81字 | 预计阅读时长：1分钟
+    字数：225字 | 预计阅读时长：1分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <br>
+        <span id="more"></span>
 
-<h2 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h2><span id="more"></span>
+<p>我想理清楚他的思路。尤其从8月11到现在的节点，为什么他选择这些股票。</p>
+<p>他对宏观的把握以及对于行业到个股的选择。再到对k线的分析。</p>
+<br>
 
-<h2 id="loss"><a href="#loss" class="headerlink" title="loss"></a>loss</h2><h2 id="beam-search"><a href="#beam-search" class="headerlink" title="beam search"></a>beam search</h2><h2 id="conditional-gan"><a href="#conditional-gan" class="headerlink" title="conditional gan"></a>conditional gan</h2><ul>
-<li><p>任务 text-to-image 有监督</p>
-</li>
-<li><p>比gan多的地方是</p>
-<ul>
-<li>generator的输入，除了分布z的随机输入，还有text输入</li>
-<li>discriminator去判断，不仅是图像质量，还有图像是否和文字匹配</li>
-</ul>
-</li>
-<li><p>伪代码</p>
-</li>
-<li><p>两种discriminator的结构</p>
-</li>
-<li><p>高于baseline的stack gan</p>
-</li>
-<li><p>任务 image-to-image</p>
-</li>
-<li><p>todo</p>
-</li>
-</ul>
 
+
+<h4 id="8月"><a href="#8月" class="headerlink" title="8月"></a>8月</h4><br>
+
+<br>
+
+<p>8/2：两市除钢铁、煤炭、有色以外，基本呈现普涨行情。景气度高的<strong>稀缺资源类个股</strong>和<strong>困境反转类</strong>个股。</p>
+<p>8/3： 今日沪深三大指数全线低开，随后指数宽幅震荡，创指一度跌逾1%，前期热点板块大幅回调，医药板块今天表现不错。盘面上：生物制品、新冠检测、医疗器械服务等板块涨幅居前；盐湖提锂、光刻胶、稀土等板块跌幅居前。</p>
+<br>
+
+<br>
+
+<h4 id="9月"><a href="#9月" class="headerlink" title="9月"></a>9月</h4><p>9/14：鸿蒙概念个股集体高涨，石油、CRO概念板块拉升走强；有色、钢铁、煤炭板块集体回调。                                      </p>
+<br>
+
+<br>
       
 
        <!-- 添加版权声明 -->
@@ -226,7 +223,7 @@
     
     <br>
     <strong>本文链接：</strong>
-    <a href="https://satyrswang.github.io/待完善/GAN.html" title="GAN" target="_blank">https://satyrswang.github.io/待完善/GAN.html</a>
+    <a href="https://satyrswang.github.io/2021/09/14/缠0811-0914分析/" title="缠0811-0914分析" target="_blank">https://satyrswang.github.io/2021/09/14/缠0811-0914分析/</a>
     <br>
     <strong>版权声明：</strong>
     本作品采用
@@ -323,7 +320,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=https://satyrswang.github.io/%E5%BE%85%E5%AE%8C%E5%96%84/GAN.html" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://satyrswang.github.io/2021/09/14/%E7%BC%A00811-0914%E5%88%86%E6%9E%90/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -335,6 +332,25 @@
 </article>
 
   
+<nav id="article-nav">
+  
+    <a href="/2021/09/20/%E5%88%9B%E6%84%8F/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          创意
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/09/13/2021-09/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">2021-09</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
 
 <aside class="wrap-side-operation">
     <div class="mod-side-operation">
@@ -388,7 +404,7 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
 		isTag: false,
 		isCategory: false,
@@ -502,15 +518,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">论文</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">gpu</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">cuda</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">论文</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -522,11 +538,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">es</a>
+                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
