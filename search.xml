@@ -470,6 +470,40 @@
       </tags>
   </entry>
   <entry>
+    <title>CRF后续</title>
+    <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
+    <content><![CDATA[<br>
+
+<p>介绍下BiLSTM+CRF吧</p>
+<br>
+
+<span id="more"></span>
+
+
+
+<h4 id="Q1、为啥搞一个LSTM-CRF的hybrid-model"><a href="#Q1、为啥搞一个LSTM-CRF的hybrid-model" class="headerlink" title="Q1、为啥搞一个LSTM+CRF的hybrid model?"></a>Q1、为啥搞一个LSTM+CRF的hybrid model?</h4><p>用LSTM，整体的预测accuracy是不错indeed, 但是会出现上述的错误：在B之后再来一个B。这个错误在CRF中是不存在的，因为CRF的特征函数的存在就是为了对given序列观察学习各种特征（n-gram，窗口），这些特征就是在限定窗口size下的各种词之间的关系。然后一般都会学到这样的一条规律（特征）：B后面接E，不会出现E。这个限定特征会使得CRF的预测结果不出现上述例子的错误。</p>
+<p>那就把CRF接到LSTM上面，把LSTM在time<em>step上把每一个hidden</em>state的tensor输入给CRF，让LSTM负责在CRF的特征限定下，依照新的loss function，学习出一套新的非线性变换空间。</p>
+<h4 id="Q2、CRF-源码"><a href="#Q2、CRF-源码" class="headerlink" title="Q2、CRF++源码"></a>Q2、CRF++源码</h4><ul>
+<li>输入</li>
+</ul>
+<p>He reckons the current account deficit will narrow to only #1.8 billion in September .”代表一个训练句子xx，而CRF++要求将这样的句子拆成 <strong>每一个词一行并且是固定列数的数据</strong>，其中列除了原始输入，还可以包含一些其他信息，比如第二列包含了POS信息，最后一列是Label信息。而不同的训练序列与序列之间的相隔，就靠一个空白行来区分。</p>
+<ul>
+<li>特征模版</li>
+</ul>
+<p>1、“%x[row, column]” 代表获得<strong>当前指向位置向上或向下偏移|row|行</strong>，并指向第column列的值。</p>
+<p>2、CRF++中主要有两种特征模版，<strong>Unigram和Bigram 模版</strong>，注意Unigram和Bigram是<strong>相对于输出序列</strong>而言，而不是相对于输入序列。对于”U01:%x[0,1]”这样一个模版，上面例子的输入数据会产生如下的特征函数：</p>
+<p>3、</p>
+]]></content>
+      <categories>
+        <category>算法</category>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CRF前续知识</title>
     <url>/2021/04/14/CRF%E5%89%8D%E7%BB%AD%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<br>
@@ -622,40 +656,6 @@
       <tags>
         <tag>编程语言</tag>
         <tag>python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CRF后续</title>
-    <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
-    <content><![CDATA[<br>
-
-<p>介绍下BiLSTM+CRF吧</p>
-<br>
-
-<span id="more"></span>
-
-
-
-<h4 id="Q1、为啥搞一个LSTM-CRF的hybrid-model"><a href="#Q1、为啥搞一个LSTM-CRF的hybrid-model" class="headerlink" title="Q1、为啥搞一个LSTM+CRF的hybrid model?"></a>Q1、为啥搞一个LSTM+CRF的hybrid model?</h4><p>用LSTM，整体的预测accuracy是不错indeed, 但是会出现上述的错误：在B之后再来一个B。这个错误在CRF中是不存在的，因为CRF的特征函数的存在就是为了对given序列观察学习各种特征（n-gram，窗口），这些特征就是在限定窗口size下的各种词之间的关系。然后一般都会学到这样的一条规律（特征）：B后面接E，不会出现E。这个限定特征会使得CRF的预测结果不出现上述例子的错误。</p>
-<p>那就把CRF接到LSTM上面，把LSTM在time<em>step上把每一个hidden</em>state的tensor输入给CRF，让LSTM负责在CRF的特征限定下，依照新的loss function，学习出一套新的非线性变换空间。</p>
-<h4 id="Q2、CRF-源码"><a href="#Q2、CRF-源码" class="headerlink" title="Q2、CRF++源码"></a>Q2、CRF++源码</h4><ul>
-<li>输入</li>
-</ul>
-<p>He reckons the current account deficit will narrow to only #1.8 billion in September .”代表一个训练句子xx，而CRF++要求将这样的句子拆成 <strong>每一个词一行并且是固定列数的数据</strong>，其中列除了原始输入，还可以包含一些其他信息，比如第二列包含了POS信息，最后一列是Label信息。而不同的训练序列与序列之间的相隔，就靠一个空白行来区分。</p>
-<ul>
-<li>特征模版</li>
-</ul>
-<p>1、“%x[row, column]” 代表获得<strong>当前指向位置向上或向下偏移|row|行</strong>，并指向第column列的值。</p>
-<p>2、CRF++中主要有两种特征模版，<strong>Unigram和Bigram 模版</strong>，注意Unigram和Bigram是<strong>相对于输出序列</strong>而言，而不是相对于输入序列。对于”U01:%x[0,1]”这样一个模版，上面例子的输入数据会产生如下的特征函数：</p>
-<p>3、</p>
-]]></content>
-      <categories>
-        <category>算法</category>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -1203,6 +1203,34 @@
       </tags>
   </entry>
   <entry>
+    <title>bean解析及注册源码</title>
+    <url>/2021/03/11/bean%E8%A7%A3%E6%9E%90%E5%8F%8A%E6%B3%A8%E5%86%8C%E6%BA%90%E7%A0%81/</url>
+    <content><![CDATA[<br>
+
+<p>S1<code>xml文件等资源类 </code> – 对各种资源类的封装+encode</p>
+<span id="more"></span>
+<p><img src="https://upload-images.jianshu.io/upload_images/8716089-f03da4d523f26bbb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="resource.jpg"></p>
+<p>S2<code>读取xml文件</code> – 对xml文件的校验、load、read(这里的read调用BeanDefinitionDocumentReader)<br>主要在<code>XmlBeanDefinitionReader</code>中</p>
+<p>S3<code>解析属性(xml中标签)</code> –从xml到Bean<br>实现在<code>DefaultBeanDefinitionDocumentReader</code><br><code>doRegisterBeanDefinitions()</code> 中解析了<code>profile</code>属性，并且其中的<code>parseBeanDefinitions()</code>是解析xml的开始。</p>
+<p>根据不同的<code>namespace</code>和<code>nodename</code>，分别不同处理</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) &#123;</span><br><span class="line">	importBeanDefinitionResource(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) &#123;</span><br><span class="line">	processAliasRegistration(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) &#123;</span><br><span class="line">	processBeanDefinition(ele, delegate);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) &#123;</span><br><span class="line">	&#x2F;&#x2F; recurse</span><br><span class="line">	doRegisterBeanDefinitions(ele);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>处理过程涉及到<code>BeanDefinitionParserDelegate BeanDefinitionHolder BeanDefinitionReaderUtils XmlReaderContext</code></p>
+<blockquote>
+<p>delegate中对元素(属性)进行解析，结果放入holder中，此时holder已经包含了各种属性。再由Utils中将holder进行注册。最后由context将注册结果通知监听器。</p>
+</blockquote>
+<p>S4<code>注册</code></p>
+]]></content>
+      <categories>
+        <category>工程</category>
+        <category>spring</category>
+      </categories>
+      <tags>
+        <tag>工程</tag>
+        <tag>spring</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>c++tips上</title>
     <url>/2021/04/11/c-tips/</url>
     <content><![CDATA[<br>
@@ -1335,34 +1363,6 @@
       <tags>
         <tag>工程</tag>
         <tag>c++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>bean解析及注册源码</title>
-    <url>/2021/03/11/bean%E8%A7%A3%E6%9E%90%E5%8F%8A%E6%B3%A8%E5%86%8C%E6%BA%90%E7%A0%81/</url>
-    <content><![CDATA[<br>
-
-<p>S1<code>xml文件等资源类 </code> – 对各种资源类的封装+encode</p>
-<span id="more"></span>
-<p><img src="https://upload-images.jianshu.io/upload_images/8716089-f03da4d523f26bbb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="resource.jpg"></p>
-<p>S2<code>读取xml文件</code> – 对xml文件的校验、load、read(这里的read调用BeanDefinitionDocumentReader)<br>主要在<code>XmlBeanDefinitionReader</code>中</p>
-<p>S3<code>解析属性(xml中标签)</code> –从xml到Bean<br>实现在<code>DefaultBeanDefinitionDocumentReader</code><br><code>doRegisterBeanDefinitions()</code> 中解析了<code>profile</code>属性，并且其中的<code>parseBeanDefinitions()</code>是解析xml的开始。</p>
-<p>根据不同的<code>namespace</code>和<code>nodename</code>，分别不同处理</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) &#123;</span><br><span class="line">	importBeanDefinitionResource(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) &#123;</span><br><span class="line">	processAliasRegistration(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) &#123;</span><br><span class="line">	processBeanDefinition(ele, delegate);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) &#123;</span><br><span class="line">	&#x2F;&#x2F; recurse</span><br><span class="line">	doRegisterBeanDefinitions(ele);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>处理过程涉及到<code>BeanDefinitionParserDelegate BeanDefinitionHolder BeanDefinitionReaderUtils XmlReaderContext</code></p>
-<blockquote>
-<p>delegate中对元素(属性)进行解析，结果放入holder中，此时holder已经包含了各种属性。再由Utils中将holder进行注册。最后由context将注册结果通知监听器。</p>
-</blockquote>
-<p>S4<code>注册</code></p>
-]]></content>
-      <categories>
-        <category>工程</category>
-        <category>spring</category>
-      </categories>
-      <tags>
-        <tag>工程</tag>
-        <tag>spring</tag>
       </tags>
   </entry>
   <entry>
@@ -1959,80 +1959,6 @@
       </tags>
   </entry>
   <entry>
-    <title>hive</title>
-    <url>/2021/03/03/hive/</url>
-    <content><![CDATA[<br>
-
-
-<ul>
-<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
-<span id="more"></span>
-<blockquote>
-<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
-</blockquote>
-</li>
-<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
-</li>
-<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
-</li>
-<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
-</li>
-<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
-</li>
-<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
-</li>
-<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
-</li>
-<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
-</li>
-</ul>
-<ul>
-<li> Making Multiple Passes over the Same Data<blockquote>
-<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
-</blockquote>
-</li>
-</ul>
-<p>因此如下方式更加高效,并且可开启并行：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>日期处理<br>查看N天前的日期：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
-<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
-<li><p>left outer join</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
-</li>
-<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
-</li>
-<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
-<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
-</li>
-<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
-</li>
-<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
-<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure></li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure>
-<ul>
-<li><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></li>
-<li>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>大数据</category>
-      </categories>
-      <tags>
-        <tag>大数据</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>graphsage</title>
     <url>/2021/03/08/graphsage/</url>
     <content><![CDATA[<h4 id="GCN"><a href="#GCN" class="headerlink" title="GCN"></a>GCN</h4><ul>
@@ -2115,68 +2041,77 @@
       </tags>
   </entry>
   <entry>
-    <title>lexicons</title>
-    <url>/2021/07/20/lexicons/</url>
+    <title>hive</title>
+    <url>/2021/03/03/hive/</url>
     <content><![CDATA[<br>
 
-<br>
 
-<p>spared by幸免于</p>
-<p>upheaval</p>
+<ul>
+<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
 <span id="more"></span>
+<blockquote>
+<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
+</blockquote>
+</li>
+<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
+</li>
+<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
+</li>
+<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
+</li>
+<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
+</li>
+<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
+</li>
+<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
+</li>
+<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
+</li>
+</ul>
+<ul>
+<li> Making Multiple Passes over the Same Data<blockquote>
+<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
+</blockquote>
+</li>
+</ul>
+<p>因此如下方式更加高效,并且可开启并行：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
 
-<p>maintain its work- force at full force</p>
-<p>help us maintain our level of excellence through this complicated time despite the new challenges that confront us all</p>
-<p> our current economic woes 经济困难</p>
-<p>we wish you well as we all plot our courses through the current difficulties.</p>
-<p>an abiding influence 持续的影响</p>
-<p>commenced the day-long event</p>
-<p>delivering the keynote address</p>
-<p>attends to the problems facing practitioners </p>
-<p>be caricatured as  an Ivory Tower academic被讽刺为象牙塔学术</p>
-<p>Consul General of Egypt 埃及总领事</p>
-<p>reiterate 重申</p>
-<p>crowd out 挤出</p>
-<p>cabinet内阁</p>
-<p>upper eche-lons of 高层</p>
-<p> wonk 专家</p>
-<p>newsletter 时事通讯</p>
-<p>liquidate 清盘</p>
-<p>scrutinize</p>
-<p>the July Politburo meeting</p>
-<p>catalyst</p>
-<p>economy tilting over</p>
-<p>extradition request</p>
-<p>stiff competition</p>
-<p>coerce强迫</p>
-<p>The comments sit awkwardly with China’s existing diplomatic disputes</p>
-<p>State Department 国务院</p>
-<p>span from</p>
-<p> after a volatile session that saw it swing between gains and losses </p>
-<p>put it on course for a bear market</p>
-<p>talk up the market 讨论/哄抬市场</p>
-<p>in the crosshairs of Beijing’s sweeping regulatory crackdowns 全面监管镇压的焦点</p>
-<p>venting of sentiment </p>
-<p>jawboning 嘘声</p>
-<p>regulatory onslaught 监管冲击</p>
-<p>property sectors房地产行业</p>
-<p> tighten its grip on </p>
-<p>exacerbate</p>
-<p>a pillar of support that</p>
-<p> anti-trust</p>
-<p>bailed out</p>
-<p>once priced in</p>
-<p> scrutiny</p>
-<p>sweep up</p>
-<p>a slew of </p>
-<p>auto-hailing</p>
-<p>the gauge slumped 8.2% </p>
+<ul>
+<li><p>日期处理<br>查看N天前的日期：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
+<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
+<li><p>left outer join</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
+</li>
+<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
+</li>
+<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
+<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
+</li>
+<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
+</li>
+<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
+<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></li>
+<li>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></li>
+</ul>
 ]]></content>
       <categories>
-        <category>英文积累</category>
+        <category>大数据</category>
       </categories>
       <tags>
-        <tag>英文积累</tag>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -2239,6 +2174,71 @@
         <tag>编程语言</tag>
         <tag>java</tag>
         <tag>并发</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>lexicons</title>
+    <url>/2021/07/20/lexicons/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<p>spared by幸免于</p>
+<p>upheaval</p>
+<span id="more"></span>
+
+<p>maintain its work- force at full force</p>
+<p>help us maintain our level of excellence through this complicated time despite the new challenges that confront us all</p>
+<p> our current economic woes 经济困难</p>
+<p>we wish you well as we all plot our courses through the current difficulties.</p>
+<p>an abiding influence 持续的影响</p>
+<p>commenced the day-long event</p>
+<p>delivering the keynote address</p>
+<p>attends to the problems facing practitioners </p>
+<p>be caricatured as  an Ivory Tower academic被讽刺为象牙塔学术</p>
+<p>Consul General of Egypt 埃及总领事</p>
+<p>reiterate 重申</p>
+<p>crowd out 挤出</p>
+<p>cabinet内阁</p>
+<p>upper eche-lons of 高层</p>
+<p> wonk 专家</p>
+<p>newsletter 时事通讯</p>
+<p>liquidate 清盘</p>
+<p>scrutinize</p>
+<p>the July Politburo meeting</p>
+<p>catalyst</p>
+<p>economy tilting over</p>
+<p>extradition request</p>
+<p>stiff competition</p>
+<p>coerce强迫</p>
+<p>The comments sit awkwardly with China’s existing diplomatic disputes</p>
+<p>State Department 国务院</p>
+<p>span from</p>
+<p> after a volatile session that saw it swing between gains and losses </p>
+<p>put it on course for a bear market</p>
+<p>talk up the market 讨论/哄抬市场</p>
+<p>in the crosshairs of Beijing’s sweeping regulatory crackdowns 全面监管镇压的焦点</p>
+<p>venting of sentiment </p>
+<p>jawboning 嘘声</p>
+<p>regulatory onslaught 监管冲击</p>
+<p>property sectors房地产行业</p>
+<p> tighten its grip on </p>
+<p>exacerbate</p>
+<p>a pillar of support that</p>
+<p> anti-trust</p>
+<p>bailed out</p>
+<p>once priced in</p>
+<p> scrutiny</p>
+<p>sweep up</p>
+<p>a slew of </p>
+<p>auto-hailing</p>
+<p>the gauge slumped 8.2% </p>
+]]></content>
+      <categories>
+        <category>英文积累</category>
+      </categories>
+      <tags>
+        <tag>英文积累</tag>
       </tags>
   </entry>
   <entry>
@@ -2953,13 +2953,6 @@
       </tags>
   </entry>
   <entry>
-    <title>spring</title>
-    <url>/2021/10/06/spring/</url>
-    <content><![CDATA[<h2 id="bean生命周期"><a href="#bean生命周期" class="headerlink" title="bean生命周期"></a>bean生命周期</h2><p>1、需要初始化<span id="more"></span>bean时，factory调用createBean进行实例化。<br>2、获取BeanDefinition对象中的信息进行实例化。并且这一步仅仅是简单的实例化，并未进行依赖注入。<br>3、实例化对象被包装在BeanWrapper对象中，接着Spring根据BeanDefinition中的信息进行依赖注入。<br>4、 注入Aware接口紧接着，Spring会检测该对象是否实现了xxxAware接口，并将相关的xxxAware实例注入给bean。<br>5、BeanPostProcessor当经过上述几个步骤后，bean对象已经被正确构造，但如果你想要对象被使用前再进行一些自定义的处理，就可以通过BeanPostProcessor接口实现。<br>6、InitializingBean与init-method<br>7、DisposableBean和destroy-method和init-method一样，通过给destroy-method指定函数，就可以在bean销毁前执行指定的逻辑。</p>
-<p>keyword： factory createbean beandefinition wrapper aware postprocessor initializing destory</p>
-<h2 id><a href="#" class="headerlink" title></a></h2>]]></content>
-  </entry>
-  <entry>
     <title>spark</title>
     <url>/2021/04/05/spark/</url>
     <content><![CDATA[<br>
@@ -3211,6 +3204,13 @@
       <tags>
         <tag>大数据</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>spring</title>
+    <url>/2021/10/06/spring/</url>
+    <content><![CDATA[<h2 id="bean生命周期"><a href="#bean生命周期" class="headerlink" title="bean生命周期"></a>bean生命周期</h2><p>1、需要初始化<span id="more"></span>bean时，factory调用createBean进行实例化。<br>2、获取BeanDefinition对象中的信息进行实例化。并且这一步仅仅是简单的实例化，并未进行依赖注入。<br>3、实例化对象被包装在BeanWrapper对象中，接着Spring根据BeanDefinition中的信息进行依赖注入。<br>4、 注入Aware接口紧接着，Spring会检测该对象是否实现了xxxAware接口，并将相关的xxxAware实例注入给bean。<br>5、BeanPostProcessor当经过上述几个步骤后，bean对象已经被正确构造，但如果你想要对象被使用前再进行一些自定义的处理，就可以通过BeanPostProcessor接口实现。<br>6、InitializingBean与init-method<br>7、DisposableBean和destroy-method和init-method一样，通过给destroy-method指定函数，就可以在bean销毁前执行指定的逻辑。</p>
+<p>keyword： factory createbean beandefinition wrapper aware postprocessor initializing destory</p>
+<h2 id><a href="#" class="headerlink" title></a></h2>]]></content>
   </entry>
   <entry>
     <title>tensorflow</title>
@@ -5009,6 +5009,123 @@
     <content><![CDATA[<br>
 
 <br>
+
+<h4 id="要刷的几个题目"><a href="#要刷的几个题目" class="headerlink" title="要刷的几个题目"></a>要刷的几个题目</h4><span id="more"></span>
+
+<br>
+
+<br>
+
+
+
+<h4 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h4><ol>
+<li><p>进程实体：PCB 程序段 数据段。进程：进程实体运行的过程，动态的，系统资源分配和调度的单位。</p>
+</li>
+<li><p>PCB：进程描述信息：pid(进程标识符)，uid；进程管理控制信息：进程优先级，当前状态；资源分配清单：程序段、数据段指针，键盘、鼠标等资源；处理机cpu相关：寄存器值。</p>
+</li>
+<li><p>进程的组织：1链接方式–PCB分多个队列、os有队列的指针；2索引方式–建立几个索引表(索引表的每一项是属于该表的各个PCB的指针)、os有索引表指针</p>
+</li>
+<li><p>进程特性：动态性、并发性、独立性–独立获得资源、异步性、结构性</p>
+</li>
+<li><p>三种基本状态：运行、就绪、阻塞。还有两种：创建态、终止态(撤销pcb、回收系统资源等)。阻塞原语：等待资源；等待其他进程。唤醒原语：等待的事件发生。挂起状态，比如就绪挂起，那么<strong>创建态、阻塞挂起、运行态、就绪态</strong>的进程都有可能被调入到就绪挂起里。挂起的进程，进程除了pcb会被调入到外存中。</p>
+</li>
+<li><p>进程控制：对进程各个状态中切换进行控制。os提供了几种原语：功能–更新PCB、插入PCB到合适的队列、分配回收资源</p>
+</li>
+<li><p>原语：采用关中断和开中断实现，过程中不能被中断，这样的操作也是 原子操作。在 核心态执行。</p>
+</li>
+<li><p>进程通信：由于进程有自己的内存空间，所以之间的通信需要一定的共享机制。1共享存储，分为数据结构的共享(queue)和存储区域的共享(更快、高级)。2管道，即内存的一块缓冲区，连接着读写，半双工的通信。读写之间是阻塞的，没有写满不允许读，没有读空不允许写。3消息传递，分为直接和间接两种方式。直接就是每个进程有自己的消息队列，其他进程往这个队列里去发消息，间接则有个中间邮箱暂存消息，大家都往一个地方写，系统管理着信箱。</p>
+</li>
+<li><p>多线程及属性：来提高系统并发度。1进程就只作为资源分配的单元，而调度的基本单位是线程。2切换线程的系统开销很低，线程几乎没有系统资源，而是共享一个进程的资源，线程间的通信只要通过进程而不用系统干预。3多cpu ，各个线程可以占用不同的cpu。4线程有threadid，以及TCB。</p>
+</li>
+<li><p>线程实现方式：</p>
+<ol>
+<li><p>用户级线程：用户线程由应用程序通过线程库(pool)实现，切换也是用户态完成。os意识不到线程存在，对os是透明的，是多对一。(多cpu 的，我开了多个线程，如果是用户级的，能不能充分利用多核？–是不能的。) –&gt;切换效率高，但并发度就很低，一个线程被阻塞，整个进程都会被阻塞，多线程不能在多核上并行。</p>
+</li>
+<li><p>内核级线程：线程管理是os内核负责的，内核线程切换要核心态完成。用户的线程和核心线程是一一对应的。而内核级线程才是os分配cpu的单位。–&gt;并发能力强，管理成本高。</p>
+</li>
+<li><p>1和2的组合，n个用户的线程映射到m个内核线程上。n&gt;=m。</p>
+</li>
+<li><p>上面的总结，可以理解为是多线程模型。多对一。一对一。多对多。</p>
+</li>
+</ol>
+</li>
+<li><p>cpu调度：分为高级调度、中级和低级。高级(面向作业)：后备的作业队列中选择一个或多个作业，调入内存并分配资源，建立PCB，然后就可以去竞争cpu。中级：引入虚拟存储技术后，os会将空闲的进程调出到外存，即为挂起状态(有就绪挂起和阻塞挂起)，(PCB常驻内存)被os放在挂起队列里；中级调度是决定哪个挂起状态的进程重新调入内存。低级：即进程调度，从就绪队列里选择进程进入运行(是内存和cpu之间的，其他为内存和外存之间)。三种名称又是，作业调度、内存调度、进程调度。</p>
+</li>
+<li><p>进程调度：时机、方式、与进程切换。</p>
+<ol>
+<li><p>时机</p>
+<ol>
+<li>主动放弃cpu以及被动。主动：完成、异常、等待io。</li>
+<li>被动：时间片到了、优先级高的抢了、有其他需要先处理如io中断。</li>
+<li>不能调度：处理中断过程、原子操作过程、os内核程序临界区(临界区是指访问临界资源的那段代码，临界资源是必须要互斥地被访问的资源)中(某个进程正在访问内核的数据结构如PCB队列，此时会将此结构上锁，那么如果在此时进行调度，调度必然要访问这个PCB队列，而已被锁住，这就死锁了，此时要等进程对内核临界区访问结束然后再调度。如果是一般的非内核临界区，则可以直接剥夺进行调度。不会有系统隐患。)。</li>
+</ol>
+</li>
+<li><p>方式</p>
+<ol>
+<li><p>抢占式，分时操作和实时操作系统</p>
+</li>
+<li><p>非抢占，早起的批处理</p>
+</li>
+</ol>
+</li>
+<li><p>进程切换：</p>
+<ol>
+<li>调度选中的进程可能是刚刚暂停的进程，切换是进程让出cpu而另一个进程占用cpu。切换需要保存，pc、程序状态字、寄存器现场等</li>
+<li>广义的进程调度包括，选择一个进程以及进程切换</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>调度算法评价指标</p>
+<ol>
+<li>cpu利用率 =  忙碌时间/总时间</li>
+<li>系统吞吐量 = 总共完成的作业/总共的时间</li>
+<li>周转时间 = 完成时间 - 作业提交时间 ，os更加关注平均周转时间</li>
+<li>带权周转时间 = 周转时间/作业实际运行时间</li>
+<li>等待时间 = 所有等待时间之和</li>
+<li>响应时间 = 首次响应时间 - 提出请求时间</li>
+</ol>
+</li>
+<li><p>调度算法</p>
+<ol>
+<li><p>FCFS</p>
+<ol>
+<li>等待时间越长越先，可以用于作业调度也可以用于进程调度，非抢占式，公平、简单</li>
+<li>缺点：带权周转时间比较大，不利于短作业</li>
+<li>不会饥饿</li>
+</ol>
+</li>
+<li><p>SJF</p>
+<ol>
+<li>进程调度时候是，短进程优先。有抢占版本：最短剩余时间优先算法。默认做题是非抢占</li>
+<li>在所有的进程同时可运行时/几乎同时到达，SJF的平均等待和平均周转时间是最少的。但相比于FCFS，是要少的平均等待和平均周转</li>
+<li>不公平，利于短作业，会饥饿，且作业时间是用户可设置的</li>
+</ol>
+</li>
+<li><p>HRRN高响应比算法</p>
+<ol>
+<li>响应比= (等待时间+作业时间)/作业时间，非抢占</li>
+<li>不会饥饿</li>
+</ol>
+</li>
+<li><p>总结</p>
+<ol>
+<li><p>FCFS考虑了等待时间但不考虑作业时间，所以短作业不友好，SJF考虑了作业时间但是没考虑等待，所以不公平。=&gt;来了HRRN。</p>
+</li>
+<li><p>这三种，考虑了公平、系统性能，但是没有考虑响应时间及优先级，适用于批处理系统，但是不适用交互式。</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>调度算法二</p>
+<ol>
+<li>时间片轮转RR<br>1. </li>
+<li>优先级调度</li>
+<li>多级反馈队列</li>
+</ol>
+</li>
+</ol>
 ]]></content>
       <categories>
         <category>计算机</category>
@@ -6644,30 +6761,6 @@
       </tags>
   </entry>
   <entry>
-    <title>阶段性总结</title>
-    <url>/2021/06/29/%E9%98%B6%E6%AE%B5%E6%80%A7%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[<br>
-
-<br>
-
-<h4 id="看到的"><a href="#看到的" class="headerlink" title="看到的"></a>看到的</h4><span id="more"></span>
-
-<ol>
-<li>《三一恨别长沙–梁稳根 的内心独白》和《恨别长沙谎言曝光》。中联重科和三一的斗争，有国资、非法手段。</li>
-<li>到了后来，爷爷只有背影和沉默。只有零星几张吃饭的照片，很少娱乐，很少活动。人离世之时都是落寞的。万物带不走，唯一能缓解死亡降临恐怖的，只有爱和陪伴。相视无言。却留不住。只能想，都是要走的，我也是要走的，才能通透些继续这生活。和你面对死亡的，能有谁？父母来不及，孩子已出门，唯有伴侣。走时若是充实无遗憾的，心里也坦然。不枉岁月。</li>
-<li>让子弹飞： 站着还把钱赚了。</li>
-<li>中国知识分子招聘会</li>
-<li></li>
-</ol>
-]]></content>
-      <categories>
-        <category>随笔</category>
-      </categories>
-      <tags>
-        <tag>随笔</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>长期价值</title>
     <url>/2021/06/25/%E9%95%BF%E6%9C%9F%E4%BB%B7%E5%80%BC/</url>
     <content><![CDATA[<br>
@@ -6714,6 +6807,30 @@
 
 <p>长期思维是很大的区别之处。包括对基本概念的理解。</p>
 <p>抓住了长远，就能立足，而获得长久的不败，而非短期的冲高。</p>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>阶段性总结</title>
+    <url>/2021/06/29/%E9%98%B6%E6%AE%B5%E6%80%A7%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h4 id="看到的"><a href="#看到的" class="headerlink" title="看到的"></a>看到的</h4><span id="more"></span>
+
+<ol>
+<li>《三一恨别长沙–梁稳根 的内心独白》和《恨别长沙谎言曝光》。中联重科和三一的斗争，有国资、非法手段。</li>
+<li>到了后来，爷爷只有背影和沉默。只有零星几张吃饭的照片，很少娱乐，很少活动。人离世之时都是落寞的。万物带不走，唯一能缓解死亡降临恐怖的，只有爱和陪伴。相视无言。却留不住。只能想，都是要走的，我也是要走的，才能通透些继续这生活。和你面对死亡的，能有谁？父母来不及，孩子已出门，唯有伴侣。走时若是充实无遗憾的，心里也坦然。不枉岁月。</li>
+<li>让子弹飞： 站着还把钱赚了。</li>
+<li>中国知识分子招聘会</li>
+<li></li>
+</ol>
 ]]></content>
       <categories>
         <category>随笔</category>
