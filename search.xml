@@ -582,40 +582,6 @@
       </tags>
   </entry>
   <entry>
-    <title>CRF后续</title>
-    <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
-    <content><![CDATA[<br>
-
-<p>介绍下BiLSTM+CRF吧</p>
-<br>
-
-<span id="more"></span>
-
-
-
-<h4 id="Q1、为啥搞一个LSTM-CRF的hybrid-model"><a href="#Q1、为啥搞一个LSTM-CRF的hybrid-model" class="headerlink" title="Q1、为啥搞一个LSTM+CRF的hybrid model?"></a>Q1、为啥搞一个LSTM+CRF的hybrid model?</h4><p>用LSTM，整体的预测accuracy是不错indeed, 但是会出现上述的错误：在B之后再来一个B。这个错误在CRF中是不存在的，因为CRF的特征函数的存在就是为了对given序列观察学习各种特征（n-gram，窗口），这些特征就是在限定窗口size下的各种词之间的关系。然后一般都会学到这样的一条规律（特征）：B后面接E，不会出现E。这个限定特征会使得CRF的预测结果不出现上述例子的错误。</p>
-<p>那就把CRF接到LSTM上面，把LSTM在time<em>step上把每一个hidden</em>state的tensor输入给CRF，让LSTM负责在CRF的特征限定下，依照新的loss function，学习出一套新的非线性变换空间。</p>
-<h4 id="Q2、CRF-源码"><a href="#Q2、CRF-源码" class="headerlink" title="Q2、CRF++源码"></a>Q2、CRF++源码</h4><ul>
-<li>输入</li>
-</ul>
-<p>He reckons the current account deficit will narrow to only #1.8 billion in September .”代表一个训练句子xx，而CRF++要求将这样的句子拆成 <strong>每一个词一行并且是固定列数的数据</strong>，其中列除了原始输入，还可以包含一些其他信息，比如第二列包含了POS信息，最后一列是Label信息。而不同的训练序列与序列之间的相隔，就靠一个空白行来区分。</p>
-<ul>
-<li>特征模版</li>
-</ul>
-<p>1、“%x[row, column]” 代表获得<strong>当前指向位置向上或向下偏移|row|行</strong>，并指向第column列的值。</p>
-<p>2、CRF++中主要有两种特征模版，<strong>Unigram和Bigram 模版</strong>，注意Unigram和Bigram是<strong>相对于输出序列</strong>而言，而不是相对于输入序列。对于”U01:%x[0,1]”这样一个模版，上面例子的输入数据会产生如下的特征函数：</p>
-<p>3、</p>
-]]></content>
-      <categories>
-        <category>算法</category>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Decorator</title>
     <url>/2021/02/04/Decorator/</url>
     <content><![CDATA[<h2 id="functional-programming-concepts"><a href="#functional-programming-concepts" class="headerlink" title="functional programming concepts"></a><strong>functional programming concepts</strong></h2><p>分两类：</p>
@@ -656,6 +622,40 @@
       <tags>
         <tag>编程语言</tag>
         <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CRF后续</title>
+    <url>/2021/04/14/CRF%E5%90%8E%E7%BB%AD/</url>
+    <content><![CDATA[<br>
+
+<p>介绍下BiLSTM+CRF吧</p>
+<br>
+
+<span id="more"></span>
+
+
+
+<h4 id="Q1、为啥搞一个LSTM-CRF的hybrid-model"><a href="#Q1、为啥搞一个LSTM-CRF的hybrid-model" class="headerlink" title="Q1、为啥搞一个LSTM+CRF的hybrid model?"></a>Q1、为啥搞一个LSTM+CRF的hybrid model?</h4><p>用LSTM，整体的预测accuracy是不错indeed, 但是会出现上述的错误：在B之后再来一个B。这个错误在CRF中是不存在的，因为CRF的特征函数的存在就是为了对given序列观察学习各种特征（n-gram，窗口），这些特征就是在限定窗口size下的各种词之间的关系。然后一般都会学到这样的一条规律（特征）：B后面接E，不会出现E。这个限定特征会使得CRF的预测结果不出现上述例子的错误。</p>
+<p>那就把CRF接到LSTM上面，把LSTM在time<em>step上把每一个hidden</em>state的tensor输入给CRF，让LSTM负责在CRF的特征限定下，依照新的loss function，学习出一套新的非线性变换空间。</p>
+<h4 id="Q2、CRF-源码"><a href="#Q2、CRF-源码" class="headerlink" title="Q2、CRF++源码"></a>Q2、CRF++源码</h4><ul>
+<li>输入</li>
+</ul>
+<p>He reckons the current account deficit will narrow to only #1.8 billion in September .”代表一个训练句子xx，而CRF++要求将这样的句子拆成 <strong>每一个词一行并且是固定列数的数据</strong>，其中列除了原始输入，还可以包含一些其他信息，比如第二列包含了POS信息，最后一列是Label信息。而不同的训练序列与序列之间的相隔，就靠一个空白行来区分。</p>
+<ul>
+<li>特征模版</li>
+</ul>
+<p>1、“%x[row, column]” 代表获得<strong>当前指向位置向上或向下偏移|row|行</strong>，并指向第column列的值。</p>
+<p>2、CRF++中主要有两种特征模版，<strong>Unigram和Bigram 模版</strong>，注意Unigram和Bigram是<strong>相对于输出序列</strong>而言，而不是相对于输入序列。对于”U01:%x[0,1]”这样一个模版，上面例子的输入数据会产生如下的特征函数：</p>
+<p>3、</p>
+]]></content>
+      <categories>
+        <category>算法</category>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>ml</tag>
       </tags>
   </entry>
   <entry>
@@ -725,6 +725,11 @@
       </tags>
   </entry>
   <entry>
+    <title>GAN</title>
+    <url>/2021/10/06/GAN/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>GPT</title>
     <url>/2021/07/14/GPT/</url>
     <content><![CDATA[<br>
@@ -792,28 +797,6 @@
 <br>
 
 <h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>1、期限 2、参与度与报价广泛性 3、mlf的政策属性强 4、央行借款占比低，对整体负债成本影响小，传导有限。5、融资贵更多贵在风险成本和业务成本。而非资金成本。需要其他配套措施解决融资问题。6、存款利率不下，仍然参考基准存款利率。存贷差收缩，压低银行利润，扩大基差风险。银行需要下沉资质，增强风控能力。</p>
-]]></content>
-      <categories>
-        <category>金融经济</category>
-      </categories>
-      <tags>
-        <tag>金融经济</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>News投资逻辑摘抄</title>
-    <url>/2021/05/12/News%E6%8A%95%E8%B5%84%E9%80%BB%E8%BE%91%E6%91%98%E6%8A%84/</url>
-    <content><![CDATA[<br>
-<br>
-
-
-
-<h1 id="David-Swensen："><a href="#David-Swensen：" class="headerlink" title="David Swensen："></a>David Swensen：</h1><span id="more"></span>
-
-<p>1、Led by Tobin’s ideas, he stressed<strong>asset allocation rather than stock picking, or attempts to time the market</strong> — beyond the mechanical market timing that came with his policy of regularly rebalancing Yale’s portfolio. At the margin, that entailed <strong>buying more of assets that had done badly and selling some of those that had done well</strong>.</p>
-<p>2、With the public markets deeply liquid and exhaustively researched, there was no point in trying to beat them. But <strong>private markets were less efficient</strong>, and he could reasonably hope to find bargains if his team was smart enough. </p>
-<p>3、The first was that equities were indubitably better than bonds or cash for the longer term — and that “equities” should not be restricted merely to shares traded on public stock exchanges but should include <strong>any investment with a non-guaranteed upside for the investor</strong>. His second was that diversification was important. </p>
-<p>4、 He regularly attacked excessive fees in his later years. If his team couldn’t find any place where Yale’s long-term horizon might give them a chance to beat the market, he might even have left money in index funds.</p>
 ]]></content>
       <categories>
         <category>金融经济</category>
@@ -951,6 +934,28 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>News投资逻辑摘抄</title>
+    <url>/2021/05/12/News%E6%8A%95%E8%B5%84%E9%80%BB%E8%BE%91%E6%91%98%E6%8A%84/</url>
+    <content><![CDATA[<br>
+<br>
+
+
+
+<h1 id="David-Swensen："><a href="#David-Swensen：" class="headerlink" title="David Swensen："></a>David Swensen：</h1><span id="more"></span>
+
+<p>1、Led by Tobin’s ideas, he stressed<strong>asset allocation rather than stock picking, or attempts to time the market</strong> — beyond the mechanical market timing that came with his policy of regularly rebalancing Yale’s portfolio. At the margin, that entailed <strong>buying more of assets that had done badly and selling some of those that had done well</strong>.</p>
+<p>2、With the public markets deeply liquid and exhaustively researched, there was no point in trying to beat them. But <strong>private markets were less efficient</strong>, and he could reasonably hope to find bargains if his team was smart enough. </p>
+<p>3、The first was that equities were indubitably better than bonds or cash for the longer term — and that “equities” should not be restricted merely to shares traded on public stock exchanges but should include <strong>any investment with a non-guaranteed upside for the investor</strong>. His second was that diversification was important. </p>
+<p>4、 He regularly attacked excessive fees in his later years. If his team couldn’t find any place where Yale’s long-term horizon might give them a chance to beat the market, he might even have left money in index funds.</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
@@ -1198,34 +1203,6 @@
       </tags>
   </entry>
   <entry>
-    <title>bean解析及注册源码</title>
-    <url>/2021/03/11/bean%E8%A7%A3%E6%9E%90%E5%8F%8A%E6%B3%A8%E5%86%8C%E6%BA%90%E7%A0%81/</url>
-    <content><![CDATA[<br>
-
-<p>S1<code>xml文件等资源类 </code> – 对各种资源类的封装+encode</p>
-<span id="more"></span>
-<p><img src="https://upload-images.jianshu.io/upload_images/8716089-f03da4d523f26bbb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="resource.jpg"></p>
-<p>S2<code>读取xml文件</code> – 对xml文件的校验、load、read(这里的read调用BeanDefinitionDocumentReader)<br>主要在<code>XmlBeanDefinitionReader</code>中</p>
-<p>S3<code>解析属性(xml中标签)</code> –从xml到Bean<br>实现在<code>DefaultBeanDefinitionDocumentReader</code><br><code>doRegisterBeanDefinitions()</code> 中解析了<code>profile</code>属性，并且其中的<code>parseBeanDefinitions()</code>是解析xml的开始。</p>
-<p>根据不同的<code>namespace</code>和<code>nodename</code>，分别不同处理</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) &#123;</span><br><span class="line">	importBeanDefinitionResource(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) &#123;</span><br><span class="line">	processAliasRegistration(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) &#123;</span><br><span class="line">	processBeanDefinition(ele, delegate);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) &#123;</span><br><span class="line">	&#x2F;&#x2F; recurse</span><br><span class="line">	doRegisterBeanDefinitions(ele);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>处理过程涉及到<code>BeanDefinitionParserDelegate BeanDefinitionHolder BeanDefinitionReaderUtils XmlReaderContext</code></p>
-<blockquote>
-<p>delegate中对元素(属性)进行解析，结果放入holder中，此时holder已经包含了各种属性。再由Utils中将holder进行注册。最后由context将注册结果通知监听器。</p>
-</blockquote>
-<p>S4<code>注册</code></p>
-]]></content>
-      <categories>
-        <category>工程</category>
-        <category>spring</category>
-      </categories>
-      <tags>
-        <tag>工程</tag>
-        <tag>spring</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>c++tips上</title>
     <url>/2021/04/11/c-tips/</url>
     <content><![CDATA[<br>
@@ -1361,6 +1338,99 @@
       </tags>
   </entry>
   <entry>
+    <title>bean解析及注册源码</title>
+    <url>/2021/03/11/bean%E8%A7%A3%E6%9E%90%E5%8F%8A%E6%B3%A8%E5%86%8C%E6%BA%90%E7%A0%81/</url>
+    <content><![CDATA[<br>
+
+<p>S1<code>xml文件等资源类 </code> – 对各种资源类的封装+encode</p>
+<span id="more"></span>
+<p><img src="https://upload-images.jianshu.io/upload_images/8716089-f03da4d523f26bbb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="resource.jpg"></p>
+<p>S2<code>读取xml文件</code> – 对xml文件的校验、load、read(这里的read调用BeanDefinitionDocumentReader)<br>主要在<code>XmlBeanDefinitionReader</code>中</p>
+<p>S3<code>解析属性(xml中标签)</code> –从xml到Bean<br>实现在<code>DefaultBeanDefinitionDocumentReader</code><br><code>doRegisterBeanDefinitions()</code> 中解析了<code>profile</code>属性，并且其中的<code>parseBeanDefinitions()</code>是解析xml的开始。</p>
+<p>根据不同的<code>namespace</code>和<code>nodename</code>，分别不同处理</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) &#123;</span><br><span class="line">	importBeanDefinitionResource(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) &#123;</span><br><span class="line">	processAliasRegistration(ele);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) &#123;</span><br><span class="line">	processBeanDefinition(ele, delegate);</span><br><span class="line">&#125;</span><br><span class="line">else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) &#123;</span><br><span class="line">	&#x2F;&#x2F; recurse</span><br><span class="line">	doRegisterBeanDefinitions(ele);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>处理过程涉及到<code>BeanDefinitionParserDelegate BeanDefinitionHolder BeanDefinitionReaderUtils XmlReaderContext</code></p>
+<blockquote>
+<p>delegate中对元素(属性)进行解析，结果放入holder中，此时holder已经包含了各种属性。再由Utils中将holder进行注册。最后由context将注册结果通知监听器。</p>
+</blockquote>
+<p>S4<code>注册</code></p>
+]]></content>
+      <categories>
+        <category>工程</category>
+        <category>spring</category>
+      </categories>
+      <tags>
+        <tag>工程</tag>
+        <tag>spring</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>c++感受</title>
+    <url>/2021/06/19/c-%E6%84%9F%E5%8F%97/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><span id="more"></span>
+
+<br>
+
+<p>1、面向过程、面向对象、泛型编程。</p>
+<p>过程是topdown思维，像递归，或者动态规划里的转移方程，将问题拆解成子问题，直到可以解决。而问题规模是从大问题到子问题的唯一区别，那么通过递归解决问题规模上的转化。</p>
+<p>过程里，有 模块 对应为class 、 调用 对应为message–通信 、records 对应为 objects 、 procedure对应着成员函数。关于数据，过程编程里的数据，直到需要才有，而对象编程里，数据是已经初始化，存放在内存。 </p>
+<p>对象则是需要将系统拆分考虑。对象自身，也就需要考虑构造、析构、new&amp;delete、this、成员变量、成员函数，以及一些operator、重载和重写。访问级别、static、以及const。别名 – typedef。对象之间的关系，则需要考虑继承多态、以及关系，是is 还是 has。</p>
+<p>有意思的是，function object。其实也只是正常的class，重载operator ()，可以传入到泛型函数里。函数相关还有成员函数指针，也算语法糖。而引用和指针、深浅拷贝的问题，也都是语法层面的问题，本质从内存管理上去考虑就很容易理解。</p>
+<p>函数有几种，一种是只有一个实现，一种是多种实现方式，但是input不变，另一种是input的类型也在变化。对应就可以通过默认参数、重写以及template模板，来实现。</p>
+<p>2、</p>
+]]></content>
+      <categories>
+        <category>工程</category>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>工程</tag>
+        <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ctr的负样本</title>
+    <url>/2021/08/02/ctr%E7%9A%84%E8%B4%9F%E6%A0%B7%E6%9C%AC/</url>
+    <content><![CDATA[<br>
+
+
+
+<h3 id="样本"><a href="#样本" class="headerlink" title="样本"></a>样本</h3><span id="more"></span>
+
+<ul>
+<li>RLNF: Reinforcement Learning based Noise Filtering for Click-Through Rate Prediction</li>
+<li><ol>
+<li>几种提升ctr模型的思路<ol>
+<li>新的模型结构</li>
+<li>incorporating feature interactions</li>
+<li>可解释性</li>
+<li>数据和行为的稀疏性问题</li>
+<li>用户兴趣爱好随时间变迁(时间 维度)</li>
+<li>样本不平衡性</li>
+</ol>
+</li>
+<li>RLNF的步骤<ol>
+<li>s1根据特征向量生成action a(是否选择)；s2根据很多的a生成reward；s3根据reward生成；s4所有负样本中选择部分a为选择的N，用N和正样本来训练ctr模型==&gt;这样交替地进行noise filter和ctr model的训练</li>
+</ol>
+</li>
+<li></li>
+</ol>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>论文</category>
+      </categories>
+      <tags>
+        <tag>论文</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>cuda编程</title>
     <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B/</url>
     <content><![CDATA[<br>
@@ -1428,34 +1498,6 @@
       </tags>
   </entry>
   <entry>
-    <title>c++感受</title>
-    <url>/2021/06/19/c-%E6%84%9F%E5%8F%97/</url>
-    <content><![CDATA[<br>
-
-<br>
-
-<h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><span id="more"></span>
-
-<br>
-
-<p>1、面向过程、面向对象、泛型编程。</p>
-<p>过程是topdown思维，像递归，或者动态规划里的转移方程，将问题拆解成子问题，直到可以解决。而问题规模是从大问题到子问题的唯一区别，那么通过递归解决问题规模上的转化。</p>
-<p>过程里，有 模块 对应为class 、 调用 对应为message–通信 、records 对应为 objects 、 procedure对应着成员函数。关于数据，过程编程里的数据，直到需要才有，而对象编程里，数据是已经初始化，存放在内存。 </p>
-<p>对象则是需要将系统拆分考虑。对象自身，也就需要考虑构造、析构、new&amp;delete、this、成员变量、成员函数，以及一些operator、重载和重写。访问级别、static、以及const。别名 – typedef。对象之间的关系，则需要考虑继承多态、以及关系，是is 还是 has。</p>
-<p>有意思的是，function object。其实也只是正常的class，重载operator ()，可以传入到泛型函数里。函数相关还有成员函数指针，也算语法糖。而引用和指针、深浅拷贝的问题，也都是语法层面的问题，本质从内存管理上去考虑就很容易理解。</p>
-<p>函数有几种，一种是只有一个实现，一种是多种实现方式，但是input不变，另一种是input的类型也在变化。对应就可以通过默认参数、重写以及template模板，来实现。</p>
-<p>2、</p>
-]]></content>
-      <categories>
-        <category>工程</category>
-        <category>c++</category>
-      </categories>
-      <tags>
-        <tag>工程</tag>
-        <tag>c++</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>cuda编程模型</title>
     <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/</url>
     <content><![CDATA[]]></content>
@@ -1467,43 +1509,6 @@
         <tag>工程</tag>
         <tag>gpu</tag>
         <tag>cuda</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ctr的负样本</title>
-    <url>/2021/08/02/ctr%E7%9A%84%E8%B4%9F%E6%A0%B7%E6%9C%AC/</url>
-    <content><![CDATA[<br>
-
-
-
-<h3 id="样本"><a href="#样本" class="headerlink" title="样本"></a>样本</h3><span id="more"></span>
-
-<ul>
-<li>RLNF: Reinforcement Learning based Noise Filtering for Click-Through Rate Prediction</li>
-<li><ol>
-<li>几种提升ctr模型的思路<ol>
-<li>新的模型结构</li>
-<li>incorporating feature interactions</li>
-<li>可解释性</li>
-<li>数据和行为的稀疏性问题</li>
-<li>用户兴趣爱好随时间变迁(时间 维度)</li>
-<li>样本不平衡性</li>
-</ol>
-</li>
-<li>RLNF的步骤<ol>
-<li>s1根据特征向量生成action a(是否选择)；s2根据很多的a生成reward；s3根据reward生成；s4所有负样本中选择部分a为选择的N，用N和正样本来训练ctr模型==&gt;这样交替地进行noise filter和ctr model的训练</li>
-</ol>
-</li>
-<li></li>
-</ol>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>论文</category>
-      </categories>
-      <tags>
-        <tag>论文</tag>
       </tags>
   </entry>
   <entry>
@@ -1533,6 +1538,48 @@
       <tags>
         <tag>工程</tag>
         <tag>训诫</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dl技巧</title>
+    <url>/2021/10/06/dl%E6%8A%80%E5%B7%A7/</url>
+    <content><![CDATA[<br>
+
+<h2 id="加速"><a href="#加速" class="headerlink" title="加速"></a>加速</h2><ul>
+<li>minibatch</li>
+</ul>
+<span id="more"></span>
+
+<p>batch将一个batch里的example组成matrix进行运算。<br>GPU使同时运算。GPU+minibatch</p>
+<h2 id="提升performance"><a href="#提升performance" class="headerlink" title="提升performance"></a>提升performance</h2><h2 id="bn"><a href="#bn" class="headerlink" title="bn"></a>bn</h2><p>1、bn是因为，1 线性变换加上激活的非线性变换，导致中间层的输入远离初始分布，后面的网络由于每次输入分布变化，导致网络的学习比较慢。2 由于一些激活函数求导随着层数增加，乘积越来越小，导致梯度接近0，模型近似饱和。又有情况是，w的梯度越来越大，w值也越来越大。此时可以改变激活函数为非饱和激活函数如Relu，也可以通过让激活函数的输入分布保持在一个稳定状态，尽可能避免它们陷入梯度饱和区，这也就是Normalization的思路。</p>
+<p>即，一个是分布变化，一个是梯度问题。</p>
+<p>2、解决：<br>1 白化，通过使得输入特征的均值为0，方差为1或者相同，来保证分布的稳定并去除特征相关性，从而加速收敛<br>2 bn ： 白化的缺点是计算量并且改变了特征的分布导致信息丢失，所以引入了bn– 简化、进化版的白化。</p>
+<p>3、bn<br><a href="https://zhuanlan.zhihu.com/p/34879333">bn原理、效果测试</a><br><a href="https://zhuanlan.zhihu.com/p/33173246">bn ln wn</a></p>
+<p>4、 test上bn<br>无偏估计、每个层的bn进行指数</p>
+<p>5、 优点<br>1分布稳定，避免梯度消失，加速收敛 2对网络参数不敏感 3引入随机噪声，正则化效果</p>
+<p>尽管每一个batch中的数据都是从总体样本中抽样得到，但不同mini-batch的均值与方差会有所不同，这就为网络的学习过程中增加了随机噪音，与Dropout通过关闭神经元给网络训练带来噪音类似，在一定程度上对模型起到了正则化的效果。原作者通过也证明了网络加入BN后，可以丢弃Dropout，模型也同样具有很好的泛化效果。</p>
+<h2 id="trick"><a href="#trick" class="headerlink" title="trick"></a>trick</h2><p>lr：<br>learning rate ，推荐了解 cosine learning rate</p>
+<p>weight：<br>weight decay。</p>
+<p>loss：<br>当你的模型还不错的时候，可以试着做数据增广和改损失函数锦上添花了。</p>
+<p>全连接：<br>1、能用全卷积的任务，少用全连接层，参数量小。<br>2、highway net：可以考虑将全连接层（MLP）替换成Highway Network,我尝试对结果有一点提升，建议作为最后提升模型的手段，原理很简单，就是给输出加了一个gate来控制信息的流动</p>
+<p>参数初始化：<br>1、uniform均匀分布初始化：w = np.random.uniform(low=-scale, high=scale, size=[n_in,n_out])<br>    Xavier初始法，适用于普通激活函数(tanh,sigmoid)：scale = np.sqrt(3/n)<br>    He初始化，适用于ReLU：scale = np.sqrt(6/n)<br>2、normal高斯分布初始化：w = np.random.randn(n_in,n_out) * stdev # stdev为高斯分布的标准差，均值设为0<br>    Xavier初始法，适用于普通激活函数 (tanh,sigmoid)：stdev = np.sqrt(n)He初始化，适用于ReLU：stdev = np.sqrt(2/n)<br>3、svd初始化：对RNN有比较好的效果。<br>4、LSTM 的forget gate的bias,用1.0或者更大的值做初始化</p>
+<p>batch_size：<br>embdding size,一般从128上下开始调整. batch size,一般从128左右开始调整.batch size合适最重要,并不是越大越好.</p>
+<p>数据预处理：<br>bn、pca白化</p>
+<p>激活函数：<br>sigmoid函数在-4到4的区间里，才有较大的梯度。之外的区间，梯度接近0。输入0均值，sigmoid函数的输出不是0均值的。<br>把输出限制成0-1之外,尽量不要用sigmoid,可以用tanh或者relu之类</p>
+<p>ensemble：<br>cv<br>不同模型线性融合</p>
+<p>优化器：<br>用ada系列先跑,最后快收敛的时候,更换成sgd继续训练.同样也会有提升.据说adadelta一般在分类问题上效果比较好，adam在生成问题上效果比较好。<br>sgd的话,可以选择从1.0或者0.1的学习率开始,隔一段时间,在验证集上检查一下,如果cost没有下降,就对学习率减半. 我看过很多论文都这么搞</p>
+<p>dropout：<br>dropout对小数据防止过拟合有很好的效果,值一般设为0.5<br>小数据上dropout+sgd在我的大部分实验中，效果提升都非常明显<br>因此可能的话，建议一定要尝试一下。 dropout的位置比较有讲究, 对于RNN,建议放到输入-&gt;RNN与RNN-&gt;输出的位置</p>
+<p>梯度：<br>要做梯度归一化,即算出来的梯度除以minibatch size<br>clip c(梯度裁剪): 限制最大梯度,其实是value = sqrt(w1^2+w2^2….),如果value超过了阈值,就算一个衰减系系数,让value的值等于阈值: 5,10,15<br>RNN 不加 gradient clipping，导致训练一段时间以后 loss 突然变成 Nan。</p>
+<p>正则：<br>一轮加正则，一轮不加正则，反复进行。</p>
+<p>数据集：<br>判断测试集靠不靠谱，包括采样/数据分布的线上一致性、时效性、标注正确率、评测方差/置信度<br>除了标准和采样问题外，数据问题上还可以组合大量预处理策略和训练策略</p>
+<h2 id="性能关注"><a href="#性能关注" class="headerlink" title="性能关注"></a>性能关注</h2><p>运行速度，准确率，召回率，auc，显存利用率，显存占用，cpu利用率，内存占用，并发路数</p>
+<h2 id="业务场景和模型是否合适"><a href="#业务场景和模型是否合适" class="headerlink" title="业务场景和模型是否合适"></a>业务场景和模型是否合适</h2><p>陌生社交和graphsage的相似top推荐思路的逻辑不恰</p>
+<h2 id="dropout"><a href="#dropout" class="headerlink" title="dropout"></a>dropout</h2><p>当一个复杂的前馈神经网络被训练在小的数据集时，容易造成过拟合。为了防止过拟合，可以通过阻止特征检测器的共同作用来提高神经网络的性能。</p>
+<p>1、取平均，相当于训练了很多个模型然后投票<br>2、正则化<br>3、避免共适应、共线性</p>
+<h2 id><a href="#" class="headerlink" title></a></h2>]]></content>
+      <tags>
+        <tag>算法</tag>
+        <tag>dl</tag>
       </tags>
   </entry>
   <entry>
@@ -1692,6 +1739,30 @@
       </categories>
       <tags>
         <tag>dubbo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>elasticsearch</title>
+    <url>/2021/04/27/elasticsearch/</url>
+    <content><![CDATA[<br>
+
+<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、搜索引擎或者elk(es、logstash、kibana)系统，都是根据内容中的关键字建立倒排索引即反向索引，便于搜索。</p>
+<span id="more"></span>
+
+
+
+<p>2、 在 Lucene 的基础上进行封装，实现了分布式搜索引擎。</p>
+<p>3、es的索引、类型和文档的概念比较重要，类似于 MySQL 中的数据库、表和行。</p>
+<p>4、Elasticsearch 也是 Master-slave 架构，也实现了数据的分片和备份。写入index和type时是和master打交道，然后同步到slave，但是写入doc数据，不需要如此。为了提高性能，写数据是采取routing，将写入压力分散。</p>
+<p>5、</p>
+<p>Reference:</p>
+<p><a href="https://zhuanlan.zhihu.com/p/62892586">https://zhuanlan.zhihu.com/p/62892586</a></p>
+]]></content>
+      <categories>
+        <category>es</category>
+      </categories>
+      <tags>
+        <tag>es</tag>
       </tags>
   </entry>
   <entry>
@@ -1888,27 +1959,77 @@
       </tags>
   </entry>
   <entry>
-    <title>elasticsearch</title>
-    <url>/2021/04/27/elasticsearch/</url>
+    <title>hive</title>
+    <url>/2021/03/03/hive/</url>
     <content><![CDATA[<br>
 
-<h2 id="相关笔记"><a href="#相关笔记" class="headerlink" title="相关笔记"></a>相关笔记</h2><p>1、搜索引擎或者elk(es、logstash、kibana)系统，都是根据内容中的关键字建立倒排索引即反向索引，便于搜索。</p>
+
+<ul>
+<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
 <span id="more"></span>
+<blockquote>
+<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
+</blockquote>
+</li>
+<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
+</li>
+<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
+</li>
+<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
+</li>
+<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
+</li>
+<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
+</li>
+<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
+</li>
+<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
+</li>
+</ul>
+<ul>
+<li> Making Multiple Passes over the Same Data<blockquote>
+<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
+</blockquote>
+</li>
+</ul>
+<p>因此如下方式更加高效,并且可开启并行：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
 
-
-
-<p>2、 在 Lucene 的基础上进行封装，实现了分布式搜索引擎。</p>
-<p>3、es的索引、类型和文档的概念比较重要，类似于 MySQL 中的数据库、表和行。</p>
-<p>4、Elasticsearch 也是 Master-slave 架构，也实现了数据的分片和备份。写入index和type时是和master打交道，然后同步到slave，但是写入doc数据，不需要如此。为了提高性能，写数据是采取routing，将写入压力分散。</p>
-<p>5、</p>
-<p>Reference:</p>
-<p><a href="https://zhuanlan.zhihu.com/p/62892586">https://zhuanlan.zhihu.com/p/62892586</a></p>
+<ul>
+<li><p>日期处理<br>查看N天前的日期：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
+<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
+<li><p>left outer join</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
+<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
+</li>
+<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
+</li>
+<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
+<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
+</li>
+<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
+</li>
+<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
+<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></li>
+<li>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></li>
+</ul>
 ]]></content>
       <categories>
-        <category>es</category>
+        <category>大数据</category>
       </categories>
       <tags>
-        <tag>es</tag>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -1994,142 +2115,6 @@
       </tags>
   </entry>
   <entry>
-    <title>hive</title>
-    <url>/2021/03/03/hive/</url>
-    <content><![CDATA[<br>
-
-
-<ul>
-<li><p>组件架构：<br>hiveserver2（beeline）,hive,metadb</p>
-<span id="more"></span>
-<blockquote>
-<p>Execution Engine – The component which executes the execution plan created by the compiler. The plan is a DAG of stages. The execution engine manages the dependencies between these different stages of the plan and executes these stages on the appropriate system components.</p>
-</blockquote>
-</li>
-<li><p>连接hiveserver2  <br>GUI CLI JDBC (beeline)</p>
-</li>
-<li><p>数据源<br>用kafka，sqoop等获得data，放入hdfs，这些数据各种结构都有。<br>关系数据库的表，MongoDB 或json数据，或日志</p>
-</li>
-<li><p>执行hql<br>背后运行的是mapreduce or Tez jobs(类似于pig latin脚本执行pig)<br><code>insert into test values(&quot;wangyuq&quot;,&quot;123&quot;);</code><br>查看tracking url</p>
-</li>
-<li><p>stage<br>将你的数据移到目的位置之前，将会staing 那儿一段时间。staging文件最终丢弃。</p>
-</li>
-<li><p>比对<br>pig是对非结构化数据处理的好的etl。<br>hive不是关系数据库，只是维护存储在HDFS的数据的metadata，使得对大数据操作就像sql操作表一样，只不过hql和sql稍有出入。使我们能用sql来执行mr。可以对hdfs数据进行query。<br>hive使用metastore存表。hive默认derby但是可自定义更换。</p>
-</li>
-<li><p>劣<br>hive不能承诺优化，只是简单，因此hive不能支持实时，性能差<br>index view有限制（partition bucket 弥补）<br>和sql 的datatype不完全一样</p>
-</li>
-<li><p>与hdfs关系<br>hdfs里有hive，data在hdfs上，schema在metastore里。<br>load语句： 将hdfs搬运到hive，hdfs不再有该数据。只是将真正的data转到了hive目录下。</p>
-</li>
-</ul>
-<ul>
-<li> Making Multiple Passes over the Same Data<blockquote>
-<p>Hive has a special syntax for producing multiple aggregations from a single pass through a source of data, rather than rescanning it for each aggregation. This change can save considerable processing time for large input data sets. </p>
-</blockquote>
-</li>
-</ul>
-<p>因此如下方式更加高效,并且可开启并行：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FROM pv_users</span><br><span class="line">    INSERT OVERWRITE TABLE pv_gender_sum</span><br><span class="line">        SELECT pv_users.gender, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.gender</span><br><span class="line"></span><br><span class="line">    INSERT OVERWRITE DIRECTORY &#39;&#x2F;user&#x2F;data&#x2F;tmp&#x2F;pv_age_sum&#39;</span><br><span class="line">        SELECT pv_users.age, count_distinct(pv_users.userid)</span><br><span class="line">        GROUP BY pv_users.age;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set hive.exec.parallel&#x3D;true;   &#x2F;&#x2F;打开任务并行执行</span><br><span class="line">set hive.exec.parallel.thread.number&#x3D;16; &#x2F;&#x2F;同一个sql允许最大并行度，默认为8。</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>日期处理<br>查看N天前的日期：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select from_unixtime(unix_timestamp(&#39;20111102&#39;,&#39;yyyyMMdd&#39;) - N*86400,&#39;yyyyMMdd&#39;) from t_lxw_test1 limit 1;  </span><br></pre></td></tr></table></figure>
-<p>获取两个日期之间的天数/秒数/分钟数等等：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select ( unix_timestamp(&#39;2011-11-02&#39;,&#39;yyyy-MM-dd&#39;)-unix_timestamp(&#39;2011-11-01&#39;,&#39;yyyy-MM-dd&#39;) ) &#x2F; 86400  from t_lxw_test limit 1; </span><br></pre></td></tr></table></figure></li>
-<li><p>left outer join</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 1</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;    </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;   and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--query 2</span><br><span class="line">select count(id) from  </span><br><span class="line">(select id  from   a  left outer join   b  </span><br><span class="line">on a.id&#x3D;b.id and  b.date&#x3D;&#39;2017-10-27&#39;  and a.date&#x3D;&#39;2017-07-24&#39;  </span><br><span class="line">where to_date(a.adate) &gt;&#x3D; &#39;2017-10-27&#39;  </span><br><span class="line">) a </span><br></pre></td></tr></table></figure>
-<p>区别？where 后面跟的是过滤条件，query 1 中的a.date=’2017-07-24’, 在table scan之前就会Partition Pruner 过滤分区，所以只有’2017-07-24’下的数据会和b进行join。<br>而query 2中会读入所有partition下的数据，再和b join，并且根据join的关联条件只有a.date=’2017-07-24’  的时候才会真正执行join，其余情况下又由于是left outer join, 右面会留NULL</p>
-</li>
-<li><p><a href="http://beadooper.com/?page_id=313">配置文件</a></p>
-</li>
-<li><p> <a href="http://superlxw1234.iteye.com/blog/1751216">正则</a><br>java中的正则匹配即可:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name rlike &#39;^[\\u4e00-\\u9fa5]+$&#39;</span><br><span class="line">select mobile from phone where mobile rlike &#39;^\\d+$&#39; ;  </span><br></pre></td></tr></table></figure></li>
-<li><p><a href="http://superlxw1234.iteye.com/blog/1582880">控制hive任务中的map数和reduce数</a></p>
-</li>
-<li><p><a href="https://github.com/hbutani/SQLWindowing"> SQLWindowing</a></p>
-</li>
-<li><p><a href="http://blog.csdn.net/yeweiouyang/article/details/42082663">hdfs目录创建hive表,指定分区</a></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE EXTERNAL TABLE if not exists push_log(</span><br><span class="line">     hostid STRING, dayid STRING</span><br><span class="line">     plmn STRING)</span><br><span class="line"> COMMENT &#39; log table&#39;</span><br><span class="line"> PARTITIONED BY (hostid STRING, dayid STRING) </span><br><span class="line"> ROW FORMAT DELIMITED FIELDS TERMINATED BY &#39;\001&#39;</span><br><span class="line"> STORED AS TEXTFILE</span><br><span class="line"> LOCATION &#39;&#x2F;user&#x2F;data&#x2F;push&#39;;</span><br><span class="line">alter table push_log add partition(hostid&#x3D;&#39;$hostid&#39;, dayid&#x3D;&#39;$dayid&#39;) location &#39;&#x2F;user&#x2F;data&#x2F;push&#x2F;$hostid&#x2F;$dayid&#39;;</span><br></pre></td></tr></table></figure>
-<p>testtext 数据<code>wer 46 weree   78 wer 89 rr  89</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table d_part(name string)  partitioned by(value string) row format delimited fields terminated by &#39;\t&#39;  lines terminated by &#39;\n&#39; stored as textfile;</span><br><span class="line"></span><br><span class="line">set hive.exec.dynamic.partition&#x3D;true;</span><br><span class="line">set hive.exec.dynamic.partition.mode&#x3D;nonstrick;</span><br><span class="line"></span><br><span class="line">insert overwrite table d_part partition(value) select name,addr as value from testtext;</span><br><span class="line"></span><br><span class="line">select * from d_part;</span><br><span class="line">show partitions d_part;</span><br></pre></td></tr></table></figure></li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hive&gt; create table d_part2(</span><br><span class="line">    &gt; name string</span><br><span class="line">    &gt; )</span><br><span class="line">    &gt; partitioned by(value string,dt string)</span><br><span class="line">    &gt; row format delimited fields terminated by &#39;\t&#39; </span><br><span class="line">    &gt; lines terminated by &#39;\n&#39;</span><br><span class="line">    &gt; stored as textfile;</span><br><span class="line">hive&gt; insert overwrite table d_part2 partition(value,dt)</span><br><span class="line">    &gt; select &#39;test&#39; as name,  </span><br><span class="line">    &gt; addr as value,</span><br><span class="line">    &gt; name as dt</span><br><span class="line">    &gt; from testtext;</span><br><span class="line">show partitions d_part2;</span><br></pre></td></tr></table></figure>
-<ul>
-<li><a href="http://superlxw1234.iteye.com/blog/1568739">hive中转义特殊字符</a></li>
-<li>schema tool<br><a href="https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html">https://www.cloudera.com/documentation/enterprise/5-4-x/topics/cdh_ig_hive_schema_tool.html</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>大数据</category>
-      </categories>
-      <tags>
-        <tag>大数据</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>juc</title>
-    <url>/2021/04/05/juc/</url>
-    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
-<span id="more"></span>
-
-
-<ul>
-<li><p>线程池</p>
-<ul>
-<li>阻塞队列<ul>
-<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
-<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
-</ul>
-</li>
-<li>任务类型<ul>
-<li>CPU密集型任务<ul>
-<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
-</ul>
-</li>
-<li>IO密集型任务<ul>
-<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
-</ul>
-</li>
-<li>混合<ul>
-<li>分别用不同的线程池去处理</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>4类<ul>
-<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>乐观锁 悲观锁</p>
-<ul>
-<li>悲观<ul>
-<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
-</ul>
-</li>
-<li>乐观<ul>
-<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
-<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>编程语言</category>
-        <category>java</category>
-        <category>并发</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>java</tag>
-        <tag>并发</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>lexicons</title>
     <url>/2021/07/20/lexicons/</url>
     <content><![CDATA[<br>
@@ -2195,6 +2180,68 @@
       </tags>
   </entry>
   <entry>
+    <title>juc</title>
+    <url>/2021/04/05/juc/</url>
+    <content><![CDATA[<p>线程池、各种锁、高并发解决方案相关</p>
+<span id="more"></span>
+
+
+<ul>
+<li><p>线程池</p>
+<ul>
+<li>阻塞队列<ul>
+<li>任务队列中没有任务时阻塞获取任务的线程，使得线程进入wait状态，释放cpu资源。</li>
+<li>有任务时才唤醒对应线程从队列中取出消息进行执行。</li>
+</ul>
+</li>
+<li>任务类型<ul>
+<li>CPU密集型任务<ul>
+<li>尽量使用较小的线程池，一般为CPU核心数+1</li>
+</ul>
+</li>
+<li>IO密集型任务<ul>
+<li>可以使用稍大的线程池，一般为2*CPU核心数。</li>
+</ul>
+</li>
+<li>混合<ul>
+<li>分别用不同的线程池去处理</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>4类<ul>
+<li>newCachedThreadPool, newFixedThreadPool, newScheduledThreadPool, newSingleThreadExecutor</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>乐观锁 悲观锁</p>
+<ul>
+<li>悲观<ul>
+<li>db里的行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</li>
+</ul>
+</li>
+<li>乐观<ul>
+<li>在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制</li>
+<li>乐观锁适用于多读的应用类型，这样可以提高吞吐量</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程语言</category>
+        <category>java</category>
+        <category>并发</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>java</tag>
+        <tag>并发</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>linux&amp;mac命令</title>
     <url>/2021/04/13/linux%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[<br> 
@@ -2243,6 +2290,11 @@
         <tag>mac</tag>
         <tag>cheetsheet</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>listwise</title>
+    <url>/2021/10/06/listwise/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>macd</title>
@@ -2901,6 +2953,13 @@
       </tags>
   </entry>
   <entry>
+    <title>spring</title>
+    <url>/2021/10/06/spring/</url>
+    <content><![CDATA[<h2 id="bean生命周期"><a href="#bean生命周期" class="headerlink" title="bean生命周期"></a>bean生命周期</h2><p>1、需要初始化<span id="more"></span>bean时，factory调用createBean进行实例化。<br>2、获取BeanDefinition对象中的信息进行实例化。并且这一步仅仅是简单的实例化，并未进行依赖注入。<br>3、实例化对象被包装在BeanWrapper对象中，接着Spring根据BeanDefinition中的信息进行依赖注入。<br>4、 注入Aware接口紧接着，Spring会检测该对象是否实现了xxxAware接口，并将相关的xxxAware实例注入给bean。<br>5、BeanPostProcessor当经过上述几个步骤后，bean对象已经被正确构造，但如果你想要对象被使用前再进行一些自定义的处理，就可以通过BeanPostProcessor接口实现。<br>6、InitializingBean与init-method<br>7、DisposableBean和destroy-method和init-method一样，通过给destroy-method指定函数，就可以在bean销毁前执行指定的逻辑。</p>
+<p>keyword： factory createbean beandefinition wrapper aware postprocessor initializing destory</p>
+<h2 id><a href="#" class="headerlink" title></a></h2>]]></content>
+  </entry>
+  <entry>
     <title>spark</title>
     <url>/2021/04/05/spark/</url>
     <content><![CDATA[<br>
@@ -3205,12 +3264,28 @@
 <span id="more"></span>
 
 <p>transformer、命令整理、配置个虚拟账户，开始开发自己有思考的代码</p>
-<br>
-
-<br>
-
-
-
+<ul>
+<li><p>工作问题repo</p>
+</li>
+<li><p>读论语</p>
+</li>
+<li><p>阶段性总结</p>
+</li>
+<li><p>投资逻辑</p>
+</li>
+<li><p>News投资逻辑摘抄</p>
+</li>
+<li><p>行为分析</p>
+</li>
+<li><p>c++-tips</p>
+</li>
+<li><p>debug训诫</p>
+</li>
+<li><p>Report读后感</p>
+</li>
+<li><p>transformer</p>
+</li>
+</ul>
 <h3 id="系统"><a href="#系统" class="headerlink" title="系统"></a>系统</h3><ul>
 <li>获得历史每一笔买卖，然后想办法做一些分析。每天的分时图、每一定比例的涨幅中累积的量是多少、统计出所有的筹码分布 – (所有买卖出来了 持仓自然出来了)、每一个价位上的成交笔数、做一些阈值过滤后的成交图形</li>
 </ul>
@@ -4122,9 +4197,128 @@
       </tags>
   </entry>
   <entry>
+    <title>历史中国宪制</title>
+    <url>/2021/10/06/%E5%8E%86%E5%8F%B2%E4%B8%AD%E5%9B%BD%E5%AE%AA%E5%88%B6/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>回溯</title>
     <url>/2021/04/13/%E5%9B%9E%E6%BA%AF/</url>
     <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>图算法</title>
+    <url>/2021/10/06/%E5%9B%BE%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h5 id="问题与概念域："><a href="#问题与概念域：" class="headerlink" title="问题与概念域："></a>问题与概念域<span id="more"></span>：</h5><p>{</p>
+<ul>
+<li><p>重叠社区，非重叠社区，nested</p>
+</li>
+<li><p>nodes 属于多个 communities</p>
+</li>
+<li><p>如何生成 graph(network)？ 即有了nodes的set，如何定义edge？</p>
+</li>
+<li><p>有graph如何生成能够generate这个network的 model？</p>
+</li>
+</ul>
+<p>}</p>
+<h5 id="Community-Affiliation-Graph-AGM"><a href="#Community-Affiliation-Graph-AGM" class="headerlink" title="Community-Affiliation Graph: AGM"></a>Community-Affiliation Graph: AGM</h5><p>{</p>
+<ul>
+<li>community c</li>
+<li>probability p ( each community has a single p)</li>
+<li>memberships m</li>
+<li>nodes v<br>=&gt;how to generate network？</li>
+</ul>
+<ol>
+<li>对每个在community A中的nodes对，我们将两者以probability Pa 连接。(只要nodes对有相同的community那么两者就会以一定概率连接)</li>
+<li>计算edge probability</li>
+</ol>
+<p>}</p>
+<h5 id="BIGCLAM："><a href="#BIGCLAM：" class="headerlink" title="BIGCLAM："></a>BIGCLAM：</h5><p>{</p>
+<ul>
+<li><p>memberships have strength，越大则代表越活跃，0则非member</p>
+</li>
+<li><p>community membership strength matrix F：<br>行为nodes，列为communities</p>
+</li>
+<li><p>只有一个共同community，计算同一个community中nodes对连接的概率：1-exp(-F(nodea)*F(nodeb))；share多个communities，计算则从反面考虑1-(1-p1)(1-p2)…(即计算至少有一个community将nodes对连接的概率)</p>
+</li>
+<li><p>给定一个network G(V,E) 如何找到F，使得network的极大似然最大(极大似然的计算公式：有边的概率和无边的概率连×)？即 l(F) = log P(G|F),给定F条件下G的极大似然函数求对数形式。1.计算gradient 2.梯度下降，对每一行计算l对该行F的梯度，以学习步长更新该行F，迭代 3.如果该行F&lt;0，则令其为0</p>
+</li>
+<li><p>但是计算每行F的偏导是linear time，非常慢。<br>对属于node u的邻节点，和不属于u的邻节点的F都出现在公式中，每次计算偏导都需要对所有node n个 进行遍历。</p>
+</li>
+<li><p>改进：将所有node的F的和 cache，那么非邻节点部分的计算则转化为和减去邻节点，这样只需要遍历u的邻节点的F 即可计算偏导再进行迭代，加速明显。</p>
+</li>
+<li><p>数据：BIGCLAM 5min处理300k节点的nets，其他需要10days，能够处理100M条边的连接。</p>
+</li>
+</ul>
+<p>}</p>
+<h5 id="Detecting-cluster："><a href="#Detecting-cluster：" class="headerlink" title="Detecting cluster："></a>Detecting cluster：</h5><p>{</p>
+<ul>
+<li><p>Goal: given network, find densely linked clusters(output: set of nodes in same cluster)</p>
+</li>
+<li><p>应用场景：<br>query - to - adveritser （许多广告都属于类似的几个query）<br>actor - to -movie （subset of actors belong to a subset of movies）<br>social circles，circles of trust （找到set of my family ，set of my classmates等等network的子集）</p>
+</li>
+<li><p>how to define a good cluster？<br>最大化cluster内部的连接数量<br>最小化cluster之间的链接数量<br>即为 关于edges的cut函数</p>
+</li>
+<li><p>cut：(对于有权无权图来说都可用，无权则设所有权都为1) 是set of edges with only one node in the cluster  cut(S) = 所有一个节点属于S另一个指向另一cluster的edge的weight和<br>=&gt;最小cut？最优cut？</p>
+</li>
+<li><p>引入Conductance–Graph Partitioning Criteria：</p>
+</li>
+</ul>
+<ol>
+<li>给定set A ，Conductance = cut(A) / min(vol(A) , 2m-vol(A))，其中<br>vol(A) = di的和 (i是A的node，di : degree of node i)，m是graph的edges总数。<br>注意这里的degree会对edges重复计算，因为是基于nodes的degree。</li>
+<li>min意味着，选择的cluster A的所有degree之和应当小于m/2，即总edges一半。否则如果A过大，那对这个比直接过影响太大。即相对于group自身的density来说group和其余network部分的连接。<br>这个比值越低，意味着cut越好。</li>
+</ol>
+<ul>
+<li>为什么使用这个criteria？<br>实践证明能够产生更多balanced partitions<br>但是计算最优cut是np问题。</li>
+</ul>
+<p>}</p>
+<h5 id="Spectral-Graph-Partitioning："><a href="#Spectral-Graph-Partitioning：" class="headerlink" title="Spectral Graph Partitioning："></a>Spectral Graph Partitioning：</h5><p>{</p>
+<ul>
+<li><p>从邻接矩阵来看，cluster会是什么样子？一块数字比较大，一块几乎是0。数字较大表明nodes之间关联强，属于同一个cluster。行列皆为nodes。</p>
+</li>
+<li><p>spectrum是邻接矩阵特征值的集合。那么和graph有什么关系？(考虑最简单的情况，graph有两个component，每个component中每个node的degree都为d)<br>intuition：如果一个特征值有两个特征向量，则这两个子图分离；如果两个特征值相近，则两个字图之间有连接但非常弱。</p>
+</li>
+<li><p>邻接矩阵重要性质：对称，特征值为实数且正交</p>
+</li>
+<li><p>Degree matrix：D= [dii] dii是node i的degree<br>Laplacian matrix： L = D - A。<br>性质：L *x =0 ；每行每列和为0 ；特征值为0</p>
+</li>
+<li><p>对一个对称矩阵M第二小的特征值公式：math证明略。化简后问题转为找到最小化 (xi - xj)^2之和的 x ，i、j为一个cluster中的node。</p>
+</li>
+<li><p>将partition(A,B)表达为一个向量，即属于A时，y为+1，属于B为-1。将 最小化 (xi - xj)^2之和 转为找x使得 (yi-yj)^2之和 最小。yi只能在-1，+1中取值。=&gt;不能准确解决，将y松弛。恰好即为第二小的特征值。</p>
+</li>
+<li><p>Rayleigh Theorem<br>总结：最优化cut的问题，即时最小化第二小特征值的问题，即时寻找参数 x的问题，而x又是第二小特征值的特征向量。x被称作Fiedler vector</p>
+</li>
+<li><p>最后，根据L计算出的第二小特征值及特征向量进行分组，如何cluster？即如何选择splitting point的问题。排序，split at 0，分成正负两类。</p>
+</li>
+<li><p>有降维的意思。x就能够涵盖cluster的信息即graph中所有nodes的信息，比L小得多。</p>
+</li>
+<li><p>多个cluster 如何？<br>k-way spectral  clustering:</p>
+</li>
+</ul>
+<ol>
+<li>迭代bi-partitioning</li>
+<li>使用多个特征向量，构成一个矩阵，使用一种聚类方式(kmeans等)进行对这个特征向量构成的矩阵聚类(每个node被特征向量中对应的值表示 i：（x1i, x2i ,x3i…）x1,x2…为特征向量)（实践效果很好）</li>
+</ol>
+<p>}</p>
+<h5 id="Trawling："><a href="#Trawling：" class="headerlink" title="Trawling："></a>Trawling：</h5><p>{</p>
+<ul>
+<li><p>找到graph中的小的community？</p>
+</li>
+<li><p>定义task：<br>given：left 有 s个nodes，每个links all nodes on the right (fully connected)；right 有 t个nodes。identify all  the 完全二部子图(complete bipartite subgraphs)</p>
+</li>
+<li><p>frequent itemsets：<br>找到所有subsets T of at least f  times bought  together by users。这个问题和完全二部子图的关联？=&gt;  frequent itemsets = complete bipartite subgraphs</p>
+</li>
+<li><p>可以把一个graph转成itemsets，graph中出边指向的node即为set中的items，起始点即可视为为user的basket。完全二部子图是整个graph的一部分，可用频繁物品集表示。</p>
+</li>
+</ul>
+<p>}</p>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
   </entry>
   <entry>
     <title>学习模型的模式</title>
@@ -5233,6 +5427,99 @@
       </tags>
   </entry>
   <entry>
+    <title>海量数据</title>
+    <url>/2021/10/06/%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE/</url>
+    <content><![CDATA[<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ul>
+<li>存储<span id="more"></span>、运算(排序等)</li>
+</ul>
+<h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><ul>
+<li><p>stl 容器</p>
+<ul>
+<li>序列式</li>
+<li>关联式 <ul>
+<li>类比 关联式数据库</li>
+<li>非关联数据库，document里也是kv</li>
+<li>底层<ul>
+<li>红黑树<ul>
+<li>set/map/multiset/multimap<ul>
+<li>multi即允许重复</li>
+<li>insert_equal()而非insert_unique()</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>hashtable <ul>
+<li>hash_set/hash_map/hash_multiset/hash_multimap</li>
+<li>HashSet实现了Set接口，HashMap实现了Map接口，HashSet扩展了HashMap，底层存储相同</li>
+<li>hashtable和hashmap ： 前者继承Dictionary类、synchronized、不允许键或值为 null、Enumerator是fail-safe</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>​    </p>
+<ul>
+<li>hashcode<ul>
+<li>equals为true，hashcode一定相等，反之不成立</li>
+<li>(key == null) ? 0 : (h = key.hashCode()) ^ (h &gt;&gt;&gt; 16)   </li>
+</ul>
+</li>
+</ul>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><ul>
+<li><p>分而治之/hash映射 + hashmap统计 + 堆/快速/归并排序；</p>
+<ul>
+<li><p>负载均衡算法</p>
+<ul>
+<li><p>轮循算法（Round Robin）、哈希算法（HASH）、最少连接算法（Least Connection）、响应速度算法（Response Time）、加权法（Weighted）</p>
+</li>
+<li><p>hash </p>
+<ul>
+<li><p>取余</p>
+</li>
+<li><p>一致性</p>
+<ul>
+<li>分布式系统负载均衡的首选算法</li>
+<li>Hash 算法的一个衡量指标是单调性（ Monotonicity ）： 新增的key被hash到新的机子上</li>
+<li>圆圈</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>topk</p>
+<ul>
+<li>堆排序<ul>
+<li>N个无重值topk的复杂度，N*O(logK)</li>
+<li>TOP10小，用最大堆，TOP10大，用最小堆</li>
+</ul>
+</li>
+<li>trie tree</li>
+</ul>
+</li>
+<li><p>同一个key在两台机子</p>
+<ul>
+<li>全hash，同一个key到一台。然后分布式架构处理，如MapReduce，最后合并</li>
+<li>暴力，每台都算出来，再加和</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>双层桶划分</li>
+<li>Bloom filter/Bitmap</li>
+<li>Trie树/数据库/倒排索引</li>
+<li>外排序</li>
+<li>分布式处理之Hadoop/Mapreduce</li>
+</ul>
+]]></content>
+  </entry>
+  <entry>
     <title>牛猫2108</title>
     <url>/2021/08/05/%E7%89%9B%E7%8C%AB2108/</url>
     <content><![CDATA[<h4 id="日子"><a href="#日子" class="headerlink" title="日子"></a>日子<span id="more"></span></h4><br>
@@ -5614,9 +5901,7 @@
   <entry>
     <title>缠0811-0914分析</title>
     <url>/2021/09/14/%E7%BC%A00811-0914%E5%88%86%E6%9E%90/</url>
-    <content><![CDATA[<span id="more"></span>
-
-<p>我想理清楚他的思路。尤其从8月11到现在的节点，为什么他选择这些股票。</p>
+    <content><![CDATA[<p>我想理清楚他的思路<span id="more"></span>。尤其从8月11到现在的节点，为什么他选择这些股票。</p>
 <p>他对宏观的把握以及对于行业到个股的选择。再到对k线的分析。</p>
 <br>
 
@@ -6359,6 +6644,30 @@
       </tags>
   </entry>
   <entry>
+    <title>阶段性总结</title>
+    <url>/2021/06/29/%E9%98%B6%E6%AE%B5%E6%80%A7%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<h4 id="看到的"><a href="#看到的" class="headerlink" title="看到的"></a>看到的</h4><span id="more"></span>
+
+<ol>
+<li>《三一恨别长沙–梁稳根 的内心独白》和《恨别长沙谎言曝光》。中联重科和三一的斗争，有国资、非法手段。</li>
+<li>到了后来，爷爷只有背影和沉默。只有零星几张吃饭的照片，很少娱乐，很少活动。人离世之时都是落寞的。万物带不走，唯一能缓解死亡降临恐怖的，只有爱和陪伴。相视无言。却留不住。只能想，都是要走的，我也是要走的，才能通透些继续这生活。和你面对死亡的，能有谁？父母来不及，孩子已出门，唯有伴侣。走时若是充实无遗憾的，心里也坦然。不枉岁月。</li>
+<li>让子弹飞： 站着还把钱赚了。</li>
+<li>中国知识分子招聘会</li>
+<li></li>
+</ol>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>长期价值</title>
     <url>/2021/06/25/%E9%95%BF%E6%9C%9F%E4%BB%B7%E5%80%BC/</url>
     <content><![CDATA[<br>
@@ -6405,30 +6714,6 @@
 
 <p>长期思维是很大的区别之处。包括对基本概念的理解。</p>
 <p>抓住了长远，就能立足，而获得长久的不败，而非短期的冲高。</p>
-]]></content>
-      <categories>
-        <category>随笔</category>
-      </categories>
-      <tags>
-        <tag>随笔</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>阶段性总结</title>
-    <url>/2021/06/29/%E9%98%B6%E6%AE%B5%E6%80%A7%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[<br>
-
-<br>
-
-<h4 id="看到的"><a href="#看到的" class="headerlink" title="看到的"></a>看到的</h4><span id="more"></span>
-
-<ol>
-<li>《三一恨别长沙–梁稳根 的内心独白》和《恨别长沙谎言曝光》。中联重科和三一的斗争，有国资、非法手段。</li>
-<li>到了后来，爷爷只有背影和沉默。只有零星几张吃饭的照片，很少娱乐，很少活动。人离世之时都是落寞的。万物带不走，唯一能缓解死亡降临恐怖的，只有爱和陪伴。相视无言。却留不住。只能想，都是要走的，我也是要走的，才能通透些继续这生活。和你面对死亡的，能有谁？父母来不及，孩子已出门，唯有伴侣。走时若是充实无遗憾的，心里也坦然。不枉岁月。</li>
-<li>让子弹飞： 站着还把钱赚了。</li>
-<li>中国知识分子招聘会</li>
-<li></li>
-</ol>
 ]]></content>
       <categories>
         <category>随笔</category>
@@ -6485,6 +6770,55 @@
 </ul>
 <ul>
 <li>感受野<br>如果两个3<em>3和一个5</em>5对原始输入后卷积都得到了1<em>1的输出<br>那么哪个filter好呢？<br>从计算量和参数个数来看，选择多层卷积，而每个卷积为3</em>3的更好。</li>
+</ul>
+<ul>
+<li>为什么NLP和Speech的很多问题也可以用CNN解出来？为什么AlphaGo里也用了CNN？这几个不相关的问题的相似性在哪里？</li>
+</ul>
+<p>CNN抓住此共性的手段主要有四个：局部连接／权值共享／池化操作／多层次结构。<br>如果每一个点的处理使用相同的Filter，则为全卷积，如果使用不同的Filter，则为Local-Conv。</p>
+<p>人脸在不同的区域存在不同的特征（眼睛／鼻子／嘴的分布位置相对固定），当不存在全局的局部特征分布时，Local-Conv更适合特征的提取。</p>
+<ul>
+<li>用贝叶斯机率说明Dropout的原理</li>
+</ul>
+<p>从训练集有替换采样 构造 k 个不同的数据集,然后在训练集上训练模型 i。<br>Dropout的目标是在指数 级数量的神经网络上近似这个过程。</p>
+<ul>
+<li>在n维空间中，以下哪一个方法最适用于异常点检测？</li>
+</ul>
+<p>Mahalonobis 距离是基于卡方分布的多变量异常的程度的统计量</p>
+<ul>
+<li>共线性</li>
+</ul>
+<p>vif检测<br>正则、删除</p>
+<ul>
+<li>异常点</li>
+</ul>
+<p>卡方分布</p>
+<ul>
+<li>聚类</li>
+</ul>
+<p>划分聚类 k-means、k-medoids、k-modes、k-medians、kernel k-means<br>层次聚类  Agglomerative 、divisive、BIRCH、ROCK、Chameleon、HAC<br>密度聚类 DBSCAN、OPTICS、HDBScan<br>网格聚类 STING<br>模型聚类 GMM<br>图聚类 Spectral Clustering（谱聚类）</p>
+<ul>
+<li>使用SVM模型遇到了欠拟合的问题，以下哪个选项能提高模型性能？</li>
+</ul>
+<p>增加 c gamma。<br>c越大，支持向量和分离平面距离越小，要求越严格。<br>gamma越大，空间维度越高。</p>
+<ul>
+<li><p>说明如何用支持向量机实现深度学习(列出相关数学公式)</p>
+</li>
+<li><p>广义线性模型是怎被应用在深度学习中?</p>
+</li>
+</ul>
+<p>深度学习从统计学角度，可以看做递归的广义线性模型</p>
+<ul>
+<li>Weights Initialization. 不同的方式，造成的后果。为什么会造成这样的结果。</li>
+</ul>
+<p>几种主要的权值初始化方法： lecun_uniform /  glorot_normal / he_normal / batch_normal</p>
+<ul>
+<li><p>为什么网络够深(Neurons 足够多)的时候，总是可以避开较差Local Optima？</p>
+</li>
+<li><p>Loss. 有哪些定义方式（基于什么？）， 有哪些优化方式，怎么优化，各自的好处，以及解释。</p>
+</li>
+</ul>
+<p>Cross-Entropy / MSE / K-L散度</p>
+<ul>
 <li>backbone</li>
 <li>hdcnn</li>
 <li>cascade</li>

@@ -16,7 +16,7 @@
 <meta property="og:description" content="无中心、碎片知识点">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-04-05T11:27:02.000Z">
-<meta property="article:modified_time" content="2021-08-30T06:00:10.252Z">
+<meta property="article:modified_time" content="2021-10-06T07:36:37.871Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="零散知识点">
 <meta name="twitter:card" content="summary">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">191.6k</span>
+    总字数 <span class="post-count">195.7k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,7 +186,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：1.7k字 | 预计阅读时长：6分钟
+    字数：2.3k字 | 预计阅读时长：8分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -211,6 +211,55 @@
 </ul>
 <ul>
 <li>感受野<br>如果两个3<em>3和一个5</em>5对原始输入后卷积都得到了1<em>1的输出<br>那么哪个filter好呢？<br>从计算量和参数个数来看，选择多层卷积，而每个卷积为3</em>3的更好。</li>
+</ul>
+<ul>
+<li>为什么NLP和Speech的很多问题也可以用CNN解出来？为什么AlphaGo里也用了CNN？这几个不相关的问题的相似性在哪里？</li>
+</ul>
+<p>CNN抓住此共性的手段主要有四个：局部连接／权值共享／池化操作／多层次结构。<br>如果每一个点的处理使用相同的Filter，则为全卷积，如果使用不同的Filter，则为Local-Conv。</p>
+<p>人脸在不同的区域存在不同的特征（眼睛／鼻子／嘴的分布位置相对固定），当不存在全局的局部特征分布时，Local-Conv更适合特征的提取。</p>
+<ul>
+<li>用贝叶斯机率说明Dropout的原理</li>
+</ul>
+<p>从训练集有替换采样 构造 k 个不同的数据集,然后在训练集上训练模型 i。<br>Dropout的目标是在指数 级数量的神经网络上近似这个过程。</p>
+<ul>
+<li>在n维空间中，以下哪一个方法最适用于异常点检测？</li>
+</ul>
+<p>Mahalonobis 距离是基于卡方分布的多变量异常的程度的统计量</p>
+<ul>
+<li>共线性</li>
+</ul>
+<p>vif检测<br>正则、删除</p>
+<ul>
+<li>异常点</li>
+</ul>
+<p>卡方分布</p>
+<ul>
+<li>聚类</li>
+</ul>
+<p>划分聚类 k-means、k-medoids、k-modes、k-medians、kernel k-means<br>层次聚类  Agglomerative 、divisive、BIRCH、ROCK、Chameleon、HAC<br>密度聚类 DBSCAN、OPTICS、HDBScan<br>网格聚类 STING<br>模型聚类 GMM<br>图聚类 Spectral Clustering（谱聚类）</p>
+<ul>
+<li>使用SVM模型遇到了欠拟合的问题，以下哪个选项能提高模型性能？</li>
+</ul>
+<p>增加 c gamma。<br>c越大，支持向量和分离平面距离越小，要求越严格。<br>gamma越大，空间维度越高。</p>
+<ul>
+<li><p>说明如何用支持向量机实现深度学习(列出相关数学公式)</p>
+</li>
+<li><p>广义线性模型是怎被应用在深度学习中?</p>
+</li>
+</ul>
+<p>深度学习从统计学角度，可以看做递归的广义线性模型</p>
+<ul>
+<li>Weights Initialization. 不同的方式，造成的后果。为什么会造成这样的结果。</li>
+</ul>
+<p>几种主要的权值初始化方法： lecun_uniform /  glorot_normal / he_normal / batch_normal</p>
+<ul>
+<li><p>为什么网络够深(Neurons 足够多)的时候，总是可以避开较差Local Optima？</p>
+</li>
+<li><p>Loss. 有哪些定义方式（基于什么？）， 有哪些优化方式，怎么优化，各自的好处，以及解释。</p>
+</li>
+</ul>
+<p>Cross-Entropy / MSE / K-L散度</p>
+<ul>
 <li>backbone</li>
 <li>hdcnn</li>
 <li>cascade</li>
@@ -541,11 +590,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color3">论文</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -557,10 +610,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">论文</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">训诫</a>
               </li>
              
@@ -569,15 +618,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">大数据</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">英文积累</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -586,10 +639,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">并发</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">英文积累</a>
               </li>
              
               <li class="article-tag-list-item">
