@@ -89,6 +89,60 @@
       </tags>
   </entry>
   <entry>
+    <title>Apriori_fptree</title>
+    <url>/2021/03/11/Apriori-fptree/</url>
+    <content><![CDATA[<h2 id="Apriori"><a href="#Apriori" class="headerlink" title="Apriori"></a>Apriori</h2><ul>
+<li>input<br>{ID1:[item1,item2…],ID2:[item3,item2…],…}</li>
+</ul>
+<span id="more"></span>
+<ul>
+<li><p>output<br>item1-&gt;item2,item3…</p>
+</li>
+<li><p>math<br>频率及条件概率的简单应用<br>支持度: 频数/样本总量<br>置信度: 条件概率<br>如果子集不为频繁集则超集一定不为；反之如果超集是频繁集则子集均为频繁集。</p>
+</li>
+<li><p>parameters<br><code>minSupport</code><br><code>minConf</code></p>
+</li>
+<li><p>过程<br>1-4完成了频繁集的搜寻，5及之后产生规则。</p>
+</li>
+</ul>
+<p>1、<code>list</code>存放每个用户的  <code>itemset</code>，生成[[],[]]存放所有item并排序，<code>map(frozenset, C1)</code><br>2、第一轮遍历，生成一个<code>list</code>存放所有支持度大于<code>minSupport</code>，大于则<code>insert(0,key)</code>。遍历的函数<code>scanD</code>所生成<code>list</code>的元素是<code>frozenset</code>。如果<code>can.issubset(tid)</code>且<code>！ssCnt.has_key(can)</code>则加入到<code>supportData</code>。<br>3、list存放所有频繁物品集，<code>supportData</code>存放所有计算过的物品集的支持度，以<code>frozenset</code>作为<code>key</code>。两者更新的过程是在<code>apriori</code>中循环调用<code>aprioriGen</code>和<code>scanD </code>，再更新。直到<code>scanD</code>得到的频繁物品集为空。<br>4、<code>aprioriGen</code>的过程，两层循环，遍历上一个(即物品集中个数为目前需要产生的个数-1)频繁物品集，<code>L1 = list(Lk[i])[:k-2];L2 = list(Lk[j])[:k-2]</code>取前k-2项比较，若相同则<code>retList.append(Lk[i] | Lk[j])</code>将物品集union。是一个merging过程。</p>
+<p>5、如果频繁集<code>frozenset</code>中item多于2，先<code>rulesFromConseq</code>再<code>calcConf</code>。<code>rulesFromConseq</code>是个递归过程，</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        if (len(Hmp1) &gt; 1):   #至少需要两个元素才能够merge</span><br><span class="line">            rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
+<p>这里一个问题是，如果<code>len(Hmp1) =1</code>，但是<code>len(freqSet) &gt; (len(Hmp1[0]) + 1)</code>仍然成立，因此修改为：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        if(len(H) &gt; 1):</span><br><span class="line">            Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
+
+<br>
+
+
+<h2 id="fptree"><a href="#fptree" class="headerlink" title="fptree"></a>fptree</h2><ul>
+<li><p>概念<br>闭项：超集的支持度为s，子集的支持度都不超过s。<br>条件模式基： 即一个item追溯到root的所有路径<br>条件fp树 ： 即根据条件模式基创建的tree<br><code>myCondTree, myHead = createTree(condPattBases, minSup)</code></p>
+</li>
+<li><p>准备<br><code>headertable</code> : <code>dict</code>，<code>value</code>为<code>[count,treeNode]</code><br><code>treeNode</code> : <code>class</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def __init__(self, nameValue, numOccur, parentNode):</span><br><span class="line">     self.name &#x3D; nameValue</span><br><span class="line">     self.count &#x3D; numOccur</span><br><span class="line">     self.nodeLink &#x3D; None</span><br><span class="line">     self.parent &#x3D; parentNode      </span><br><span class="line">     self.children &#x3D; &#123;&#125; </span><br></pre></td></tr></table></figure>
+<p>主要方法：<code>createTree</code> <code>updateTree</code>  <code>mineTree</code><br>辅助方法：<code>updateHeader</code> <code>findPrefixPath</code> <code>ascendTree</code></p>
+</li>
+<li><p>过程</p>
+</li>
+</ul>
+<ol>
+<li><code>createTree</code>首先第一次遍历计算<code>count</code>，<code>headerTable[item] = headerTable.get(item, 0) + dataSet[trans]</code>将<code>count</code>简单赋值为1。注意到这里的dataSet类型。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def createInitSet(dataSet):</span><br><span class="line">    retDict &#x3D; &#123;&#125;</span><br><span class="line">    for trans in dataSet:</span><br><span class="line">        retDict[frozenset(trans)] &#x3D; 1</span><br><span class="line">    return retDict</span><br></pre></td></tr></table></figure>
+获得<code>freqItemSet = set(headerTable.keys())</code>后第二次遍历。先对item排序，<code>orderedItems = [v[0] for v in sorted(localD.items(), key=lambda p: p[1], reverse=True)] </code>，再<code>updateTree(orderedItems, retTree, headerTable, count)</code>。</li>
+<li><code>updateTree</code>，这里就是普通的对树的操作，也是递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if len(items) &gt; 1:#call updateTree() with remaining ordered items</span><br><span class="line">        updateTree(items[1::], inTree.children[items[0]], headerTable, count)</span><br></pre></td></tr></table></figure>
+唯一注意之处，需要<code>updateHeader</code>。</li>
+<li><code>mineTree</code>和<code>Apriori</code>中的<code>rulesFromConseq </code>一样较复杂，包含递归。先生成条件模式基，再生成conditional-fptree，再递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if myHead !&#x3D; None:                  </span><br><span class="line">   mineTree(myCondTree, myHead, minSup, newFreqSet, freqItemList)</span><br></pre></td></tr></table></figure>
+循环递归mineTree的过程即生成规则过程，直到频繁2项集都得到。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>算法</category>
+        <category>ml</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>ml</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CRF</title>
     <url>/2021/03/09/CRF/</url>
     <content><![CDATA[<br>
@@ -212,60 +266,6 @@
 <p><a href="http://www.ai.mit.edu/courses/6.891-nlp/ASSIGNMENT1/t11.1.pdf">http://www.ai.mit.edu/courses/6.891-nlp/ASSIGNMENT1/t11.1.pdf</a></p>
 <p><a href="https://www.cnblogs.com/en-heng/p/6201893.html">https://www.cnblogs.com/en-heng/p/6201893.html</a></p>
 <p><a href="https://blog.csdn.net/aws3217150/article/details/68935789">https://blog.csdn.net/aws3217150/article/details/68935789</a></p>
-]]></content>
-      <categories>
-        <category>算法</category>
-        <category>ml</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>ml</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apriori_fptree</title>
-    <url>/2021/03/11/Apriori-fptree/</url>
-    <content><![CDATA[<h2 id="Apriori"><a href="#Apriori" class="headerlink" title="Apriori"></a>Apriori</h2><ul>
-<li>input<br>{ID1:[item1,item2…],ID2:[item3,item2…],…}</li>
-</ul>
-<span id="more"></span>
-<ul>
-<li><p>output<br>item1-&gt;item2,item3…</p>
-</li>
-<li><p>math<br>频率及条件概率的简单应用<br>支持度: 频数/样本总量<br>置信度: 条件概率<br>如果子集不为频繁集则超集一定不为；反之如果超集是频繁集则子集均为频繁集。</p>
-</li>
-<li><p>parameters<br><code>minSupport</code><br><code>minConf</code></p>
-</li>
-<li><p>过程<br>1-4完成了频繁集的搜寻，5及之后产生规则。</p>
-</li>
-</ul>
-<p>1、<code>list</code>存放每个用户的  <code>itemset</code>，生成[[],[]]存放所有item并排序，<code>map(frozenset, C1)</code><br>2、第一轮遍历，生成一个<code>list</code>存放所有支持度大于<code>minSupport</code>，大于则<code>insert(0,key)</code>。遍历的函数<code>scanD</code>所生成<code>list</code>的元素是<code>frozenset</code>。如果<code>can.issubset(tid)</code>且<code>！ssCnt.has_key(can)</code>则加入到<code>supportData</code>。<br>3、list存放所有频繁物品集，<code>supportData</code>存放所有计算过的物品集的支持度，以<code>frozenset</code>作为<code>key</code>。两者更新的过程是在<code>apriori</code>中循环调用<code>aprioriGen</code>和<code>scanD </code>，再更新。直到<code>scanD</code>得到的频繁物品集为空。<br>4、<code>aprioriGen</code>的过程，两层循环，遍历上一个(即物品集中个数为目前需要产生的个数-1)频繁物品集，<code>L1 = list(Lk[i])[:k-2];L2 = list(Lk[j])[:k-2]</code>取前k-2项比较，若相同则<code>retList.append(Lk[i] | Lk[j])</code>将物品集union。是一个merging过程。</p>
-<p>5、如果频繁集<code>frozenset</code>中item多于2，先<code>rulesFromConseq</code>再<code>calcConf</code>。<code>rulesFromConseq</code>是个递归过程，</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        if (len(Hmp1) &gt; 1):   #至少需要两个元素才能够merge</span><br><span class="line">            rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
-<p>这里一个问题是，如果<code>len(Hmp1) =1</code>，但是<code>len(freqSet) &gt; (len(Hmp1[0]) + 1)</code>仍然成立，因此修改为：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def rulesFromConseq(freqSet, H, supportData, brl, minConf&#x3D;0.7):</span><br><span class="line">    m &#x3D; len(H[0])</span><br><span class="line">    if (len(freqSet) &gt; (m + 1)): #停止条件</span><br><span class="line">        if(len(H) &gt; 1):</span><br><span class="line">            Hmp1 &#x3D; aprioriGen(H, m+1)</span><br><span class="line">        Hmp1 &#x3D; calcConf(freqSet, Hmp1, supportData, brl, minConf)</span><br><span class="line">        rulesFromConseq(freqSet, Hmp1, supportData, brl, minConf)</span><br></pre></td></tr></table></figure>
-
-<br>
-
-
-<h2 id="fptree"><a href="#fptree" class="headerlink" title="fptree"></a>fptree</h2><ul>
-<li><p>概念<br>闭项：超集的支持度为s，子集的支持度都不超过s。<br>条件模式基： 即一个item追溯到root的所有路径<br>条件fp树 ： 即根据条件模式基创建的tree<br><code>myCondTree, myHead = createTree(condPattBases, minSup)</code></p>
-</li>
-<li><p>准备<br><code>headertable</code> : <code>dict</code>，<code>value</code>为<code>[count,treeNode]</code><br><code>treeNode</code> : <code>class</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def __init__(self, nameValue, numOccur, parentNode):</span><br><span class="line">     self.name &#x3D; nameValue</span><br><span class="line">     self.count &#x3D; numOccur</span><br><span class="line">     self.nodeLink &#x3D; None</span><br><span class="line">     self.parent &#x3D; parentNode      </span><br><span class="line">     self.children &#x3D; &#123;&#125; </span><br></pre></td></tr></table></figure>
-<p>主要方法：<code>createTree</code> <code>updateTree</code>  <code>mineTree</code><br>辅助方法：<code>updateHeader</code> <code>findPrefixPath</code> <code>ascendTree</code></p>
-</li>
-<li><p>过程</p>
-</li>
-</ul>
-<ol>
-<li><code>createTree</code>首先第一次遍历计算<code>count</code>，<code>headerTable[item] = headerTable.get(item, 0) + dataSet[trans]</code>将<code>count</code>简单赋值为1。注意到这里的dataSet类型。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def createInitSet(dataSet):</span><br><span class="line">    retDict &#x3D; &#123;&#125;</span><br><span class="line">    for trans in dataSet:</span><br><span class="line">        retDict[frozenset(trans)] &#x3D; 1</span><br><span class="line">    return retDict</span><br></pre></td></tr></table></figure>
-获得<code>freqItemSet = set(headerTable.keys())</code>后第二次遍历。先对item排序，<code>orderedItems = [v[0] for v in sorted(localD.items(), key=lambda p: p[1], reverse=True)] </code>，再<code>updateTree(orderedItems, retTree, headerTable, count)</code>。</li>
-<li><code>updateTree</code>，这里就是普通的对树的操作，也是递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if len(items) &gt; 1:#call updateTree() with remaining ordered items</span><br><span class="line">        updateTree(items[1::], inTree.children[items[0]], headerTable, count)</span><br></pre></td></tr></table></figure>
-唯一注意之处，需要<code>updateHeader</code>。</li>
-<li><code>mineTree</code>和<code>Apriori</code>中的<code>rulesFromConseq </code>一样较复杂，包含递归。先生成条件模式基，再生成conditional-fptree，再递归。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if myHead !&#x3D; None:                  </span><br><span class="line">   mineTree(myCondTree, myHead, minSup, newFreqSet, freqItemList)</span><br></pre></td></tr></table></figure>
-循环递归mineTree的过程即生成规则过程，直到频繁2项集都得到。</li>
-</ol>
 ]]></content>
       <categories>
         <category>算法</category>
@@ -423,6 +423,49 @@
       </tags>
   </entry>
   <entry>
+    <title>Decorator</title>
+    <url>/2021/02/04/Decorator/</url>
+    <content><![CDATA[<h2 id="functional-programming-concepts"><a href="#functional-programming-concepts" class="headerlink" title="functional programming concepts"></a><strong>functional programming concepts</strong></h2><p>分两类：</p>
+<ul>
+<li>Function decorators</li>
+<li>Class decorators<span id="more"></span></li>
+</ul>
+<blockquote>
+<p>A decorator in Python is any callable Python object that is used to <strong>modify a function or a class</strong>. A reference to a function “func” or a class “C” is passed to a decorator and the decorator returns a modified function or class. The modified functions or classes usually contain calls to the original function “func” or class “C”. </p>
+</blockquote>
+<h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a><strong>show me the code</strong></h2><ul>
+<li><p><em>参数检查</em></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def argument_test_natural_number(f):</span><br><span class="line">    def helper(x):</span><br><span class="line">        if type(x) &#x3D;&#x3D; int and x &gt; 0:</span><br><span class="line">            return f(x)</span><br><span class="line">        else:</span><br><span class="line">            raise Exception(&quot;Argument is not an integer&quot;)</span><br><span class="line">    return helper</span><br><span class="line">    </span><br><span class="line">@argument_test_natural_number</span><br><span class="line">def factorial(n):</span><br><span class="line">    if n &#x3D;&#x3D; 1:</span><br><span class="line">        return 1</span><br><span class="line">    else:</span><br><span class="line">        return n * factorial(n-1)</span><br><span class="line"></span><br><span class="line">for i in range(1,10):</span><br><span class="line">	print(i, factorial(i))</span><br><span class="line"></span><br><span class="line">print(factorial(-1))</span><br></pre></td></tr></table></figure></li>
+<li><p><em>统计次数</em></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def call_counter(func):</span><br><span class="line">    def helper(*args, **kwargs):</span><br><span class="line">        helper.calls +&#x3D; 1</span><br><span class="line">        return func(*args, **kwargs)</span><br><span class="line">    helper.calls &#x3D; 0</span><br><span class="line"></span><br><span class="line">    return helper</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def succ(x):</span><br><span class="line">    return x + 1</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def mul1(x, y&#x3D;1):</span><br><span class="line">    return x*y + 1</span><br><span class="line"></span><br><span class="line">print(succ.calls)</span><br><span class="line">for i in range(10):</span><br><span class="line">    succ(i)</span><br><span class="line">mul1(3, 4)</span><br><span class="line">mul1(4)</span><br><span class="line">mul1(y&#x3D;3, x&#x3D;2)</span><br><span class="line">    </span><br><span class="line">print(succ.calls)</span><br><span class="line">print(mul1.calls)</span><br></pre></td></tr></table></figure></li>
+<li><p><em>含参数的decorator</em></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(expr):</span><br><span class="line">    def greeting_decorator(func):</span><br><span class="line">        def function_wrapper(x):</span><br><span class="line">            print(expr + &quot;, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">            func(x)</span><br><span class="line">        return function_wrapper</span><br><span class="line">    return greeting_decorator</span><br><span class="line"></span><br><span class="line">@greeting(&quot;-wyq-&quot;)</span><br><span class="line">def foo(x):</span><br><span class="line">    print(42)</span><br><span class="line"></span><br><span class="line">foo(&quot;Hi&quot;)</span><br></pre></td></tr></table></figure></li>
+<li><p><em>using import 要注意变量的域</em></p>
+</li>
+</ul>
+<p>greeting_decorator.py  没用functools的版本</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(func):</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    function_wrapper.__name__ &#x3D; func.__name__</span><br><span class="line">    function_wrapper.__doc__ &#x3D; func.__doc__</span><br><span class="line">    function_wrapper.__module__ &#x3D; func.__module__</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
+<p>anotherfile.py:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from greeting_decorator import greeting</span><br><span class="line"></span><br><span class="line">@greeting</span><br><span class="line">def f(x):</span><br><span class="line">    &quot;&quot;&quot; just some silly function &quot;&quot;&quot;</span><br><span class="line">    return x + 4</span><br><span class="line"></span><br><span class="line">f(10)</span><br><span class="line">print(&quot;function name: &quot; + f.__name__)</span><br><span class="line">print(&quot;docstring: &quot; + f.__doc__)</span><br><span class="line">print(&quot;module name: &quot; + f.__module__)</span><br></pre></td></tr></table></figure>
+<p>greeting_decorator.py</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from functools import wraps</span><br><span class="line"></span><br><span class="line">def greeting(func):</span><br><span class="line">    @wraps(func)</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
+<p>否则将返回</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function name: function_wrapper</span><br><span class="line">docstring:  function_wrapper of greeting </span><br><span class="line">module name: greeting_decorator</span><br></pre></td></tr></table></figure>
+<ul>
+<li><em><code>__call__</code></em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Fibonacci:</span><br><span class="line">    def __init__(self):</span><br><span class="line">        self.cache &#x3D; &#123;&#125;</span><br><span class="line">    def __call__(self, n):</span><br><span class="line">        if n not in self.cache:</span><br><span class="line">            if n &#x3D;&#x3D; 0:</span><br><span class="line">                self.cache[0] &#x3D; 0</span><br><span class="line">            elif n &#x3D;&#x3D; 1:</span><br><span class="line">                self.cache[1] &#x3D; 1</span><br><span class="line">            else:</span><br><span class="line">                self.cache[n] &#x3D; self.__call__(n-1) + self.__call__(n-2)</span><br><span class="line">        return self.cache[n]</span><br><span class="line"></span><br><span class="line">fib &#x3D; Fibonacci()</span><br><span class="line"></span><br><span class="line">for i in range(15):</span><br><span class="line">    print(fib(i), end&#x3D;&quot;, &quot;)</span><br></pre></td></tr></table></figure></li>
+<li><em>using class</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class decorator2:</span><br><span class="line">    </span><br><span class="line">    def __init__(self, f):</span><br><span class="line">        self.f &#x3D; f</span><br><span class="line">        </span><br><span class="line">    def __call__(self):</span><br><span class="line">        print(&quot;Decorating&quot;, self.f.__name__)</span><br><span class="line">        self.f()</span><br><span class="line"></span><br><span class="line">@decorator2</span><br><span class="line">def foo():</span><br><span class="line">    print(&quot;inside foo()&quot;)</span><br><span class="line"></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure></li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程语言</category>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DeepFm</title>
     <url>/2021/03/08/DeepFm/</url>
     <content><![CDATA[<br>
@@ -489,49 +532,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Decorator</title>
-    <url>/2021/02/04/Decorator/</url>
-    <content><![CDATA[<h2 id="functional-programming-concepts"><a href="#functional-programming-concepts" class="headerlink" title="functional programming concepts"></a><strong>functional programming concepts</strong></h2><p>分两类：</p>
-<ul>
-<li>Function decorators</li>
-<li>Class decorators<span id="more"></span></li>
-</ul>
-<blockquote>
-<p>A decorator in Python is any callable Python object that is used to <strong>modify a function or a class</strong>. A reference to a function “func” or a class “C” is passed to a decorator and the decorator returns a modified function or class. The modified functions or classes usually contain calls to the original function “func” or class “C”. </p>
-</blockquote>
-<h2 id="show-me-the-code"><a href="#show-me-the-code" class="headerlink" title="show me the code"></a><strong>show me the code</strong></h2><ul>
-<li><p><em>参数检查</em></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def argument_test_natural_number(f):</span><br><span class="line">    def helper(x):</span><br><span class="line">        if type(x) &#x3D;&#x3D; int and x &gt; 0:</span><br><span class="line">            return f(x)</span><br><span class="line">        else:</span><br><span class="line">            raise Exception(&quot;Argument is not an integer&quot;)</span><br><span class="line">    return helper</span><br><span class="line">    </span><br><span class="line">@argument_test_natural_number</span><br><span class="line">def factorial(n):</span><br><span class="line">    if n &#x3D;&#x3D; 1:</span><br><span class="line">        return 1</span><br><span class="line">    else:</span><br><span class="line">        return n * factorial(n-1)</span><br><span class="line"></span><br><span class="line">for i in range(1,10):</span><br><span class="line">	print(i, factorial(i))</span><br><span class="line"></span><br><span class="line">print(factorial(-1))</span><br></pre></td></tr></table></figure></li>
-<li><p><em>统计次数</em></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def call_counter(func):</span><br><span class="line">    def helper(*args, **kwargs):</span><br><span class="line">        helper.calls +&#x3D; 1</span><br><span class="line">        return func(*args, **kwargs)</span><br><span class="line">    helper.calls &#x3D; 0</span><br><span class="line"></span><br><span class="line">    return helper</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def succ(x):</span><br><span class="line">    return x + 1</span><br><span class="line"></span><br><span class="line">@call_counter</span><br><span class="line">def mul1(x, y&#x3D;1):</span><br><span class="line">    return x*y + 1</span><br><span class="line"></span><br><span class="line">print(succ.calls)</span><br><span class="line">for i in range(10):</span><br><span class="line">    succ(i)</span><br><span class="line">mul1(3, 4)</span><br><span class="line">mul1(4)</span><br><span class="line">mul1(y&#x3D;3, x&#x3D;2)</span><br><span class="line">    </span><br><span class="line">print(succ.calls)</span><br><span class="line">print(mul1.calls)</span><br></pre></td></tr></table></figure></li>
-<li><p><em>含参数的decorator</em></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(expr):</span><br><span class="line">    def greeting_decorator(func):</span><br><span class="line">        def function_wrapper(x):</span><br><span class="line">            print(expr + &quot;, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">            func(x)</span><br><span class="line">        return function_wrapper</span><br><span class="line">    return greeting_decorator</span><br><span class="line"></span><br><span class="line">@greeting(&quot;-wyq-&quot;)</span><br><span class="line">def foo(x):</span><br><span class="line">    print(42)</span><br><span class="line"></span><br><span class="line">foo(&quot;Hi&quot;)</span><br></pre></td></tr></table></figure></li>
-<li><p><em>using import 要注意变量的域</em></p>
-</li>
-</ul>
-<p>greeting_decorator.py  没用functools的版本</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def greeting(func):</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    function_wrapper.__name__ &#x3D; func.__name__</span><br><span class="line">    function_wrapper.__doc__ &#x3D; func.__doc__</span><br><span class="line">    function_wrapper.__module__ &#x3D; func.__module__</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
-<p>anotherfile.py:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from greeting_decorator import greeting</span><br><span class="line"></span><br><span class="line">@greeting</span><br><span class="line">def f(x):</span><br><span class="line">    &quot;&quot;&quot; just some silly function &quot;&quot;&quot;</span><br><span class="line">    return x + 4</span><br><span class="line"></span><br><span class="line">f(10)</span><br><span class="line">print(&quot;function name: &quot; + f.__name__)</span><br><span class="line">print(&quot;docstring: &quot; + f.__doc__)</span><br><span class="line">print(&quot;module name: &quot; + f.__module__)</span><br></pre></td></tr></table></figure>
-<p>greeting_decorator.py</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from functools import wraps</span><br><span class="line"></span><br><span class="line">def greeting(func):</span><br><span class="line">    @wraps(func)</span><br><span class="line">    def function_wrapper(x):</span><br><span class="line">        &quot;&quot;&quot; function_wrapper of greeting &quot;&quot;&quot;</span><br><span class="line">        print(&quot;Hi, &quot; + func.__name__ + &quot; returns:&quot;)</span><br><span class="line">        return func(x)</span><br><span class="line">    return function_wrapper</span><br></pre></td></tr></table></figure>
-<p>否则将返回</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function name: function_wrapper</span><br><span class="line">docstring:  function_wrapper of greeting </span><br><span class="line">module name: greeting_decorator</span><br></pre></td></tr></table></figure>
-<ul>
-<li><em><code>__call__</code></em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Fibonacci:</span><br><span class="line">    def __init__(self):</span><br><span class="line">        self.cache &#x3D; &#123;&#125;</span><br><span class="line">    def __call__(self, n):</span><br><span class="line">        if n not in self.cache:</span><br><span class="line">            if n &#x3D;&#x3D; 0:</span><br><span class="line">                self.cache[0] &#x3D; 0</span><br><span class="line">            elif n &#x3D;&#x3D; 1:</span><br><span class="line">                self.cache[1] &#x3D; 1</span><br><span class="line">            else:</span><br><span class="line">                self.cache[n] &#x3D; self.__call__(n-1) + self.__call__(n-2)</span><br><span class="line">        return self.cache[n]</span><br><span class="line"></span><br><span class="line">fib &#x3D; Fibonacci()</span><br><span class="line"></span><br><span class="line">for i in range(15):</span><br><span class="line">    print(fib(i), end&#x3D;&quot;, &quot;)</span><br></pre></td></tr></table></figure></li>
-<li><em>using class</em><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class decorator2:</span><br><span class="line">    </span><br><span class="line">    def __init__(self, f):</span><br><span class="line">        self.f &#x3D; f</span><br><span class="line">        </span><br><span class="line">    def __call__(self):</span><br><span class="line">        print(&quot;Decorating&quot;, self.f.__name__)</span><br><span class="line">        self.f()</span><br><span class="line"></span><br><span class="line">@decorator2</span><br><span class="line">def foo():</span><br><span class="line">    print(&quot;inside foo()&quot;)</span><br><span class="line"></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure></li>
-</ul>
-]]></content>
-      <categories>
-        <category>编程语言</category>
-        <category>python</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>python</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>GAN</title>
     <url>/2021/10/06/GAN/</url>
     <content><![CDATA[]]></content>
@@ -559,57 +559,6 @@
       </categories>
       <tags>
         <tag>dl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>LPR</title>
-    <url>/2021/05/09/LPR/</url>
-    <content><![CDATA[<br>
-
-<h3 id="LPR"><a href="#LPR" class="headerlink" title="LPR"></a>LPR</h3><br>
-
-<p>目的，替换贷款利率在贷款定价中发挥基准作用。</p>
-<br>
-
-<h4 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h4><p>1】利率市场化改革</p>
-<p>​    开始LPR的13年，也取消了贷款利率的下限。</p>
-<span id="more"></span>
-
-<p>​    没有起到作用：</p>
-<p>​        1、政策属性强，盯住的是贷款基准利率而不是货币市场利率 – 盯住MLF 投放规模大、期限合适、使用频率高、央行选定的中期政策利率</p>
-<p>​        2、中小行参与度低 ，报价和lpr的使用方面都只有少量银行参与 – 加入银行</p>
-<p>​        3、只有1年期限的报价，对其他期限的利率无法提供参照 – 增加5y期</p>
-<br>    
-
-<p>意义-新增贷款盯住LPR，LPR盯住MLF。MLF由央行市场化招标形成，兼具灵活(相对于贷款基准利率)和稳定性(相对于货币市场利率)。</p>
-<p>提高了LPR的市场化程度，淡化了贷款基准利率影响，促进解决货币市场化利率和贷款基准利率并存的 利率双轨制问题。推动贷款利率市场化改革。</p>
-<br>
-
-<p>2】提高利率传导效率</p>
-<p>18年通过MLF等扩张性操作投放了流动性后，货币市场利率下降后，贷款利率并没有随之下降。价格型传导机制受阻。</p>
-<p>欧美经验中，市场化利率传导路径：</p>
-<p>央行制定政策利率（欧元区利率走廊、降准、MLF、美国公开市场操作、隔夜逆回购等操作）-&gt;货币市场利率（同业拆借、回购）-&gt;存款利率（银行的负债分为存款性和借款性，两者具有替代性。如货币市场利率低时瑞银对存款征收年费）-&gt;货币市场利率和存款利率导致负债成本降低，决定了银行的贷款利率（贷款的成本加成定价模型FTP 贷款利率=资金成本+风险成本+业务成本+合理利润）</p>
-<br>
-
-<p>传导成立条件：1存款和 同业负债的替代性（监管机构对银行负债结构的考核使得替代性弱，有专门针对存款的考核如存贷比&lt;=3/4、同业负债占比&lt;1/3。因为借款占比更高时则有流动性和交叉风险。处于对稳定性考虑，银行人才稀缺，放开这样的约束不太现实。） 2银行内部完善的FTP（我国存在双轨制，银行内部存在资产负债部和金融市场部，资产负债部进行存贷款定价，参考存贷款基准利率，然后将多余的资金给金融市场部交易，金融市场参考货币市场利率。货币市场作为后发一方对于存贷款利率影响较小）。我国不满足。</p>
-<br>
-
-<p>在我国不太可行的欧美路线，央行考虑跳过欧美传导的路径。通过MLF影响LPR，然后LPR传导给贷款利率。”子午谷奇谋“。1、增加了利率的可控性，货币调控向价格型转变创造空间 2增加了MLF中期货币政策利率的影响力，完善了短期利率走廊+中期政策利率的调控框架</p>
-<br>
-
-<p>3】降低实体经济融资成本</p>
-<p>货币政策传导受阻，中小企业融资问题仍然突出；贷款基准利率环境下，协同保留贷款利率0.9倍隐性下限。</p>
-<p>改革后的LPR报价方式，相较于4.35%，新增贷款的基准利率的确有所下降。</p>
-<p>基准利率是贷款客户和银行讨价还价的锚，基准利率下降使得企业议价能力上升。并使得银行难以再设置隐形下限。</p>
-<br>
-
-<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>1、期限 2、参与度与报价广泛性 3、mlf的政策属性强 4、央行借款占比低，对整体负债成本影响小，传导有限。5、融资贵更多贵在风险成本和业务成本。而非资金成本。需要其他配套措施解决融资问题。6、存款利率不下，仍然参考基准存款利率。存贷差收缩，压低银行利润，扩大基差风险。银行需要下沉资质，增强风控能力。</p>
-]]></content>
-      <categories>
-        <category>金融经济</category>
-      </categories>
-      <tags>
-        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
@@ -741,6 +690,57 @@
       </categories>
       <tags>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LPR</title>
+    <url>/2021/05/09/LPR/</url>
+    <content><![CDATA[<br>
+
+<h3 id="LPR"><a href="#LPR" class="headerlink" title="LPR"></a>LPR</h3><br>
+
+<p>目的，替换贷款利率在贷款定价中发挥基准作用。</p>
+<br>
+
+<h4 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h4><p>1】利率市场化改革</p>
+<p>​    开始LPR的13年，也取消了贷款利率的下限。</p>
+<span id="more"></span>
+
+<p>​    没有起到作用：</p>
+<p>​        1、政策属性强，盯住的是贷款基准利率而不是货币市场利率 – 盯住MLF 投放规模大、期限合适、使用频率高、央行选定的中期政策利率</p>
+<p>​        2、中小行参与度低 ，报价和lpr的使用方面都只有少量银行参与 – 加入银行</p>
+<p>​        3、只有1年期限的报价，对其他期限的利率无法提供参照 – 增加5y期</p>
+<br>    
+
+<p>意义-新增贷款盯住LPR，LPR盯住MLF。MLF由央行市场化招标形成，兼具灵活(相对于贷款基准利率)和稳定性(相对于货币市场利率)。</p>
+<p>提高了LPR的市场化程度，淡化了贷款基准利率影响，促进解决货币市场化利率和贷款基准利率并存的 利率双轨制问题。推动贷款利率市场化改革。</p>
+<br>
+
+<p>2】提高利率传导效率</p>
+<p>18年通过MLF等扩张性操作投放了流动性后，货币市场利率下降后，贷款利率并没有随之下降。价格型传导机制受阻。</p>
+<p>欧美经验中，市场化利率传导路径：</p>
+<p>央行制定政策利率（欧元区利率走廊、降准、MLF、美国公开市场操作、隔夜逆回购等操作）-&gt;货币市场利率（同业拆借、回购）-&gt;存款利率（银行的负债分为存款性和借款性，两者具有替代性。如货币市场利率低时瑞银对存款征收年费）-&gt;货币市场利率和存款利率导致负债成本降低，决定了银行的贷款利率（贷款的成本加成定价模型FTP 贷款利率=资金成本+风险成本+业务成本+合理利润）</p>
+<br>
+
+<p>传导成立条件：1存款和 同业负债的替代性（监管机构对银行负债结构的考核使得替代性弱，有专门针对存款的考核如存贷比&lt;=3/4、同业负债占比&lt;1/3。因为借款占比更高时则有流动性和交叉风险。处于对稳定性考虑，银行人才稀缺，放开这样的约束不太现实。） 2银行内部完善的FTP（我国存在双轨制，银行内部存在资产负债部和金融市场部，资产负债部进行存贷款定价，参考存贷款基准利率，然后将多余的资金给金融市场部交易，金融市场参考货币市场利率。货币市场作为后发一方对于存贷款利率影响较小）。我国不满足。</p>
+<br>
+
+<p>在我国不太可行的欧美路线，央行考虑跳过欧美传导的路径。通过MLF影响LPR，然后LPR传导给贷款利率。”子午谷奇谋“。1、增加了利率的可控性，货币调控向价格型转变创造空间 2增加了MLF中期货币政策利率的影响力，完善了短期利率走廊+中期政策利率的调控框架</p>
+<br>
+
+<p>3】降低实体经济融资成本</p>
+<p>货币政策传导受阻，中小企业融资问题仍然突出；贷款基准利率环境下，协同保留贷款利率0.9倍隐性下限。</p>
+<p>改革后的LPR报价方式，相较于4.35%，新增贷款的基准利率的确有所下降。</p>
+<p>基准利率是贷款客户和银行讨价还价的锚，基准利率下降使得企业议价能力上升。并使得银行难以再设置隐形下限。</p>
+<br>
+
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>1、期限 2、参与度与报价广泛性 3、mlf的政策属性强 4、央行借款占比低，对整体负债成本影响小，传导有限。5、融资贵更多贵在风险成本和业务成本。而非资金成本。需要其他配套措施解决融资问题。6、存款利率不下，仍然参考基准存款利率。存贷差收缩，压低银行利润，扩大基差风险。银行需要下沉资质，增强风控能力。</p>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
@@ -1201,6 +1201,43 @@
       </tags>
   </entry>
   <entry>
+    <title>ctr的负样本</title>
+    <url>/2021/08/02/ctr%E7%9A%84%E8%B4%9F%E6%A0%B7%E6%9C%AC/</url>
+    <content><![CDATA[<br>
+
+
+
+<h3 id="样本"><a href="#样本" class="headerlink" title="样本"></a>样本</h3><span id="more"></span>
+
+<ul>
+<li>RLNF: Reinforcement Learning based Noise Filtering for Click-Through Rate Prediction</li>
+<li><ol>
+<li>几种提升ctr模型的思路<ol>
+<li>新的模型结构</li>
+<li>incorporating feature interactions</li>
+<li>可解释性</li>
+<li>数据和行为的稀疏性问题</li>
+<li>用户兴趣爱好随时间变迁(时间 维度)</li>
+<li>样本不平衡性</li>
+</ol>
+</li>
+<li>RLNF的步骤<ol>
+<li>s1根据特征向量生成action a(是否选择)；s2根据很多的a生成reward；s3根据reward生成；s4所有负样本中选择部分a为选择的N，用N和正样本来训练ctr模型==&gt;这样交替地进行noise filter和ctr model的训练</li>
+</ol>
+</li>
+<li></li>
+</ol>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>论文</category>
+      </categories>
+      <tags>
+        <tag>论文</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>cuda编程</title>
     <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B/</url>
     <content><![CDATA[<br>
@@ -1268,43 +1305,6 @@
       </tags>
   </entry>
   <entry>
-    <title>ctr的负样本</title>
-    <url>/2021/08/02/ctr%E7%9A%84%E8%B4%9F%E6%A0%B7%E6%9C%AC/</url>
-    <content><![CDATA[<br>
-
-
-
-<h3 id="样本"><a href="#样本" class="headerlink" title="样本"></a>样本</h3><span id="more"></span>
-
-<ul>
-<li>RLNF: Reinforcement Learning based Noise Filtering for Click-Through Rate Prediction</li>
-<li><ol>
-<li>几种提升ctr模型的思路<ol>
-<li>新的模型结构</li>
-<li>incorporating feature interactions</li>
-<li>可解释性</li>
-<li>数据和行为的稀疏性问题</li>
-<li>用户兴趣爱好随时间变迁(时间 维度)</li>
-<li>样本不平衡性</li>
-</ol>
-</li>
-<li>RLNF的步骤<ol>
-<li>s1根据特征向量生成action a(是否选择)；s2根据很多的a生成reward；s3根据reward生成；s4所有负样本中选择部分a为选择的N，用N和正样本来训练ctr模型==&gt;这样交替地进行noise filter和ctr model的训练</li>
-</ol>
-</li>
-<li></li>
-</ol>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>论文</category>
-      </categories>
-      <tags>
-        <tag>论文</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>cuda编程模型</title>
     <url>/2021/04/12/cuda%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/</url>
     <content><![CDATA[]]></content>
@@ -1316,35 +1316,6 @@
         <tag>工程</tag>
         <tag>gpu</tag>
         <tag>cuda</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>debug训诫</title>
-    <url>/2021/05/26/debug%E8%AE%AD%E8%AF%AB/</url>
-    <content><![CDATA[<br>
-
-<br>
-
-<p>1、感觉很难，错误都在细节。</p>
-<span id="more"></span>
-
-<p>2、error好好看。</p>
-<p>3、并不是难。而是繁复。改动处有很多。但少量。</p>
-<p>4、改了一处，考虑是否对其他地方有影响。等到发现问题，又难以和之前的改动联系起来。导致锁定时间不能更快。</p>
-<p>5、除了业务逻辑，还有 nil 数组越界 除以0 之类的小错误</p>
-<p>6、还有你用的接口，虽然是别人提供的，但未必正确 – check功能即可。mock数据。即业务数据是否准确。</p>
-<p>7、能配置的 是否都尽量配置化了。方便线上出问题不用发版。</p>
-<p>8、日志和性能监控的，时间打点</p>
-<p>9、kibana用法：性能上、error上</p>
-<p>10、更多时间消耗在：定位，不仔细地排查到，而是根据感觉、设想找到错误的地方然后改动，结果又需要进一步排查。这个使得时间成倍地被消耗。</p>
-]]></content>
-      <categories>
-        <category>工程</category>
-        <category>训诫</category>
-      </categories>
-      <tags>
-        <tag>工程</tag>
-        <tag>训诫</tag>
       </tags>
   </entry>
   <entry>
@@ -1387,6 +1358,105 @@
       <tags>
         <tag>算法</tag>
         <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>debug训诫</title>
+    <url>/2021/05/26/debug%E8%AE%AD%E8%AF%AB/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+<p>1、感觉很难，错误都在细节。</p>
+<span id="more"></span>
+
+<p>2、error好好看。</p>
+<p>3、并不是难。而是繁复。改动处有很多。但少量。</p>
+<p>4、改了一处，考虑是否对其他地方有影响。等到发现问题，又难以和之前的改动联系起来。导致锁定时间不能更快。</p>
+<p>5、除了业务逻辑，还有 nil 数组越界 除以0 之类的小错误</p>
+<p>6、还有你用的接口，虽然是别人提供的，但未必正确 – check功能即可。mock数据。即业务数据是否准确。</p>
+<p>7、能配置的 是否都尽量配置化了。方便线上出问题不用发版。</p>
+<p>8、日志和性能监控的，时间打点</p>
+<p>9、kibana用法：性能上、error上</p>
+<p>10、更多时间消耗在：定位，不仔细地排查到，而是根据感觉、设想找到错误的地方然后改动，结果又需要进一步排查。这个使得时间成倍地被消耗。</p>
+]]></content>
+      <categories>
+        <category>工程</category>
+        <category>训诫</category>
+      </categories>
+      <tags>
+        <tag>工程</tag>
+        <tag>训诫</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dssm</title>
+    <url>/2021/03/08/dssm/</url>
+    <content><![CDATA[<h4 id="DSSM"><a href="#DSSM" class="headerlink" title="DSSM"></a>DSSM</h4><ul>
+<li><p>任务<br>用来预测两个句子的语义相似度，又可以获得某句子的低维语义Embedding向量。</p>
+<span id="more"></span></li>
+<li><p>场景<br>DSSM 模型的最大特点就是 Query 和 Document 是两个独立的子网络，后来这一特色被移植到推荐算法的召回环节，即对用户端（User）和物品端（Item）分别构建独立的子网络塔式结构。<br>两个子网络产生的 Embedding 向量可以独自获取及缓存。</p>
+</li>
+</ul>
+<p>当模型训练完成时，物品的 Embedding 是可以保存成词表的，线上应用的时候只需要查找对应的 Embedding 即可。因此线上只需要计算 （用户，上下文） 一侧的 Embedding，基于 Annoy 或 Faiss 技术索引得到用户偏好的候选集。</p>
+<ul>
+<li>word hashing<br>word hashing方法是用来减少输入向量的维度，该方法基于字母的n-gram。给定一个单词（good），我们首先增加词的开始和结束部分（#good#），然后将该词转换为字母 [公式] -gram的形式（假设为trigrams：#go，goo，ood，od#）。最后该词使用字母 n-gram的向量来表示。</li>
+</ul>
+<p>这种方法的问题在于有可能造成冲突，因为两个不同的词可能有相同的n-gram向量来表示。与原始的ont-hot向量表示的词典大小相比，word hashing明显降低了向量表示的维度。</p>
+<ul>
+<li>优点</li>
+</ul>
+<p>1、解决了LSA、LDA、Autoencoder等方法存在的一个最大的问题：字典爆炸（导致计算复杂度非常高），因为在英文单词中，词的数量可能是没有限制的，但是字母n-gram的数量通常是有限的.<br>2、基于词的特征表示比较难处理新词，字母的 n-gram可以有效表示，鲁棒性较强<br>3、使用有监督方法，优化语义embedding的映射问题<br>4、省去了人工的特征工程</p>
+<ul>
+<li>缺点</li>
+</ul>
+<p>1、word hashing可能造成冲突<br>2、DSSM采用了词袋模型，损失了上下文信息<br>3、在排序中，搜索引擎的排序由多种因素决定，由于用户点击时doc的排名越靠前，点击的概率就越大，如果仅仅用点击来判断是否为正负样本，噪声比较大，难以收敛<br>4、对于中文而言，处理方式与英文有很多不一样的地方。中文往往需要进行分词，但是我们可以仿照英文的处理方式，将中文的最小粒度看作是单字（在某些文献里看到过用偏旁部首，笔画，拼音等方法）</p>
+<ul>
+<li><p>扩展<br>对DSSM的优化出现了很多的变种，有CNN-DSSM，LSTM-DSSM，MV-DSSM等。</p>
+</li>
+<li><p>trick<br><img src="/2021/03/08/dssm/trick.png" alt="trick"></p>
+</li>
+</ul>
+<hr>
+<ul>
+<li>架构<br><img src="/2021/03/08/dssm/dssm.png" alt="dssm"></li>
+</ul>
+]]></content>
+      <categories>
+        <category>dl</category>
+      </categories>
+      <tags>
+        <tag>dl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>dubbo-spi</title>
+    <url>/2021/01/31/dubbo-spi/</url>
+    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
+<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
+<span id="more"></span>
+
+<p><strong>dubbo spi</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
+<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
+<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
+<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
+<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
+<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
+<p><strong>step3</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
+<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
+<p>todo</p>
+]]></content>
+      <categories>
+        <category>dubbo</category>
+      </categories>
+      <tags>
+        <tag>dubbo</tag>
       </tags>
   </entry>
   <entry>
@@ -1476,46 +1546,6 @@
       </categories>
       <tags>
         <tag>dubbo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>dssm</title>
-    <url>/2021/03/08/dssm/</url>
-    <content><![CDATA[<h4 id="DSSM"><a href="#DSSM" class="headerlink" title="DSSM"></a>DSSM</h4><ul>
-<li><p>任务<br>用来预测两个句子的语义相似度，又可以获得某句子的低维语义Embedding向量。</p>
-<span id="more"></span></li>
-<li><p>场景<br>DSSM 模型的最大特点就是 Query 和 Document 是两个独立的子网络，后来这一特色被移植到推荐算法的召回环节，即对用户端（User）和物品端（Item）分别构建独立的子网络塔式结构。<br>两个子网络产生的 Embedding 向量可以独自获取及缓存。</p>
-</li>
-</ul>
-<p>当模型训练完成时，物品的 Embedding 是可以保存成词表的，线上应用的时候只需要查找对应的 Embedding 即可。因此线上只需要计算 （用户，上下文） 一侧的 Embedding，基于 Annoy 或 Faiss 技术索引得到用户偏好的候选集。</p>
-<ul>
-<li>word hashing<br>word hashing方法是用来减少输入向量的维度，该方法基于字母的n-gram。给定一个单词（good），我们首先增加词的开始和结束部分（#good#），然后将该词转换为字母 [公式] -gram的形式（假设为trigrams：#go，goo，ood，od#）。最后该词使用字母 n-gram的向量来表示。</li>
-</ul>
-<p>这种方法的问题在于有可能造成冲突，因为两个不同的词可能有相同的n-gram向量来表示。与原始的ont-hot向量表示的词典大小相比，word hashing明显降低了向量表示的维度。</p>
-<ul>
-<li>优点</li>
-</ul>
-<p>1、解决了LSA、LDA、Autoencoder等方法存在的一个最大的问题：字典爆炸（导致计算复杂度非常高），因为在英文单词中，词的数量可能是没有限制的，但是字母n-gram的数量通常是有限的.<br>2、基于词的特征表示比较难处理新词，字母的 n-gram可以有效表示，鲁棒性较强<br>3、使用有监督方法，优化语义embedding的映射问题<br>4、省去了人工的特征工程</p>
-<ul>
-<li>缺点</li>
-</ul>
-<p>1、word hashing可能造成冲突<br>2、DSSM采用了词袋模型，损失了上下文信息<br>3、在排序中，搜索引擎的排序由多种因素决定，由于用户点击时doc的排名越靠前，点击的概率就越大，如果仅仅用点击来判断是否为正负样本，噪声比较大，难以收敛<br>4、对于中文而言，处理方式与英文有很多不一样的地方。中文往往需要进行分词，但是我们可以仿照英文的处理方式，将中文的最小粒度看作是单字（在某些文献里看到过用偏旁部首，笔画，拼音等方法）</p>
-<ul>
-<li><p>扩展<br>对DSSM的优化出现了很多的变种，有CNN-DSSM，LSTM-DSSM，MV-DSSM等。</p>
-</li>
-<li><p>trick<br><img src="/2021/03/08/dssm/trick.png" alt="trick"></p>
-</li>
-</ul>
-<hr>
-<ul>
-<li>架构<br><img src="/2021/03/08/dssm/dssm.png" alt="dssm"></li>
-</ul>
-]]></content>
-      <categories>
-        <category>dl</category>
-      </categories>
-      <tags>
-        <tag>dl</tag>
       </tags>
   </entry>
   <entry>
@@ -1733,36 +1763,6 @@
       </categories>
       <tags>
         <tag>流处理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>dubbo-spi</title>
-    <url>/2021/01/31/dubbo-spi/</url>
-    <content><![CDATA[<h2 id="spi"><a href="#spi" class="headerlink" title="spi"></a>spi</h2><p><img src="/2021/01/31/dubbo-spi/jdbc.png" alt="jdbc实现"></p>
-<p><strong>SPI 的缺点</strong><br>JDK 标准的 SPI 会一次性加载实例化扩展点的所有实现，JDK 启动的时候会一次性全部加载。<br>1如果有的扩展点实现初始化很耗时或者如果有些实现类并没有用到， 会很浪费资源。<br>2如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到。</p>
-<span id="more"></span>
-
-<p><strong>dubbo spi</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Protocol  p &#x3D; ExtensionLoader.getExtensionLoader(xxx.class).getAdaptiveExtension();</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getExtension(name);</span><br><span class="line">ExtensionLoader.getExtensionLoader(xxx.class).getActivateExtension(url, key);</span><br></pre></td></tr></table></figure>
-<p><code>protocol</code>会在运行的时候判断一下应该选用这个Protocol接口的哪个实现类来实例化对象。<br>动态的根据配置去找到对应的实现类。如果你没有配置，那就走默认的实现类。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SPI(&quot;dubbo&quot;)  </span><br><span class="line">public interface Protocol &#123;  </span><br><span class="line">      </span><br><span class="line">    int getDefaultPort();  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Exporter&lt;T&gt; export(Invoker&lt;T&gt; invoker) throws RpcException;  </span><br><span class="line">  </span><br><span class="line">    @Adaptive  </span><br><span class="line">    &lt;T&gt; Invoker&lt;T&gt; refer(Class&lt;T&gt; type, URL url) throws RpcException;  </span><br><span class="line"></span><br><span class="line">    void destroy();  </span><br><span class="line">  </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">dubbo&#x3D;org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</span><br></pre></td></tr></table></figure>
-<p><code>@SPI(“dubbo”)</code>：通过 SPI 机制来提供实现类，实现类是通过 dubbo 作为默认 key 去配置文件里找到的，配置文件名称与接口全限定名一样的，通过 dubbo 作为 key 可以找到默认的实现类就是 org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol</p>
-<p><code>@Adaptive</code>：如果想要动态替换掉默认的实现类，需要使用 @Adaptive 。表示动态代理实现。在运行的时候会针对 Protocol 生成<code>代理类</code>，这个代理类的那俩方法里面会有<code>代理代码</code>，代理代码会在运行的时候动态根据 url 中的 protocol 来获取那个 key，默认是 dubbo，自己指定则获取相应的实现。</p>
-<h2 id="扩展dubbo组件"><a href="#扩展dubbo组件" class="headerlink" title="扩展dubbo组件"></a>扩展dubbo组件</h2><p><strong>step1</strong><br><img src="/2021/01/31/dubbo-spi/implement.png" alt="自定义方法"></p>
-<p><strong>step2</strong><br><img src="/2021/01/31/dubbo-spi/properties.png" alt="添加配置"></p>
-<p><strong>step3</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class App </span><br><span class="line">&#123;</span><br><span class="line">    public static void main( String[] args )</span><br><span class="line">    &#123;</span><br><span class="line">&#x2F;&#x2F;        调用方代码</span><br><span class="line">    	Protocol protocol &#x3D; ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(&quot;myProtocol&quot;);</span><br><span class="line">    	System.out.println(protocol.getDefaultPort());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="实现原理探析"><a href="#实现原理探析" class="headerlink" title="实现原理探析"></a>实现原理探析</h2><p>getExtension方法获取一个SPI接口的扩展类实例的流程: 分为解析配置文件、加载并缓存扩展类、创建并加工(属性注入与层层包装)扩展类实例 几个步骤。</p>
-<p>通过getAdaptiveExtension方法的流程可以发现，要想获得一个SPI接口的自适应扩展类实例，有2种方式：<br>1在SPI接口的配置文件中配置具有@Adaptive注解的扩展类，在执行解析SPI接口配置文件方法getExtensionClasses时，它会调用loadClass方法，该方法判断扩展类是否具有@Adaptive注解，如果有，则将该类Class缓存到ExtensionLoader的字段“cachedAdaptiveClass”中，然后直接实例化该Class的实例并进行自动装配；<br>2如果未配置@Adaptive修饰的扩展类，则Dubbo会使用字节码技术创建一个自适应扩展类，前提是SPI接口上至少有一个被@Adaptive注解的方法；</p>
-<p>todo</p>
-]]></content>
-      <categories>
-        <category>dubbo</category>
-      </categories>
-      <tags>
-        <tag>dubbo</tag>
       </tags>
   </entry>
   <entry>
@@ -4438,75 +4438,6 @@
       </tags>
   </entry>
   <entry>
-    <title>投资大佬</title>
-    <url>/2021/07/28/%E6%8A%95%E8%B5%84%E5%A4%A7%E4%BD%AC/</url>
-    <content><![CDATA[<br>
-
-<br>
-
-
-
-<h3 id="网站、资源"><a href="#网站、资源" class="headerlink" title="网站、资源"></a>网站、资源</h3><ol>
-<li>reuters</li>
-<li>中国基金报</li>
-<li></li>
-</ol>
-<br>
-
-<h3 id="人物和组织"><a href="#人物和组织" class="headerlink" title="人物和组织"></a>人物和组织</h3><br>
-
-<span id="more"></span>
-
-<ul>
-<li>television business news program</li>
-<li><ol>
-<li>asia-squawk-box</li>
-</ol>
-</li>
-</ul>
-<ul>
-<li>Senior officials</li>
-<li><ol>
-<li>State Department spokesman Ned Price</li>
-<li>Secretary of State Antony Blinken</li>
-<li>China’s Vice Premier Liu He</li>
-<li>U.S. Treasury Secretary Janet Yellen</li>
-<li> Chinese Foreign Minister Wang Yi, Vice Foreign Minister Xie Feng</li>
-<li>U.S. Defense Secretary Lloyd Austin </li>
-<li> Secretary of State Antony Blinken</li>
-<li><strong>Zoltan Pozsar</strong></li>
-</ol>
-</li>
-</ul>
-<ul>
-<li>investment group</li>
-<li><ol>
-<li>Bespoke Investment Group </li>
-<li>Oanda Asia Pacific Pte.</li>
-<li><a href="https://research-doc.credit-suisse.com/docView?language=ENG&amp;format=PDF&amp;sourceid=em&amp;document_id=1083870621&amp;serialid=7Y4SC5R3JwuWssYSE1+HK0YN0zn1kYEHLQF0NHLEWx0=&amp;cspId=null">https://research-doc.credit-suisse.com/docView?language=ENG&amp;format=PDF&amp;sourceid=em&amp;document_id=1083870621&amp;serialid=7Y4SC5R3JwuWssYSE1%2BHK0YN0zn1kYEHLQF0NHLEWx0%3D&amp;cspId=null</a>  <strong>credit suisse</strong></li>
-</ol>
-</li>
-</ul>
-<ul>
-<li>famous investors</li>
-<li><ol>
-<li>Kelvin Tay of UBS Global Wealth Management</li>
-<li>Lorraine Tan , Morningstar’s director of equity research for Asia</li>
-<li>Du Kejun,  fund manager at Beijing Gelei Asset Management Center LP</li>
-<li>Dai Ming, a Shanghai-based fund manager at Huichen Asset Management</li>
-<li><strong>桥水的达里奥</strong></li>
-</ol>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>金融经济</category>
-      </categories>
-      <tags>
-        <tag>金融经济</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>推荐系统</title>
     <url>/2021/04/05/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/</url>
     <content><![CDATA[<br>
@@ -4614,6 +4545,75 @@
       </categories>
       <tags>
         <tag>推荐系统</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>投资大佬</title>
+    <url>/2021/07/28/%E6%8A%95%E8%B5%84%E5%A4%A7%E4%BD%AC/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+
+
+<h3 id="网站、资源"><a href="#网站、资源" class="headerlink" title="网站、资源"></a>网站、资源</h3><ol>
+<li>reuters</li>
+<li>中国基金报</li>
+<li></li>
+</ol>
+<br>
+
+<h3 id="人物和组织"><a href="#人物和组织" class="headerlink" title="人物和组织"></a>人物和组织</h3><br>
+
+<span id="more"></span>
+
+<ul>
+<li>television business news program</li>
+<li><ol>
+<li>asia-squawk-box</li>
+</ol>
+</li>
+</ul>
+<ul>
+<li>Senior officials</li>
+<li><ol>
+<li>State Department spokesman Ned Price</li>
+<li>Secretary of State Antony Blinken</li>
+<li>China’s Vice Premier Liu He</li>
+<li>U.S. Treasury Secretary Janet Yellen</li>
+<li> Chinese Foreign Minister Wang Yi, Vice Foreign Minister Xie Feng</li>
+<li>U.S. Defense Secretary Lloyd Austin </li>
+<li> Secretary of State Antony Blinken</li>
+<li><strong>Zoltan Pozsar</strong></li>
+</ol>
+</li>
+</ul>
+<ul>
+<li>investment group</li>
+<li><ol>
+<li>Bespoke Investment Group </li>
+<li>Oanda Asia Pacific Pte.</li>
+<li><a href="https://research-doc.credit-suisse.com/docView?language=ENG&amp;format=PDF&amp;sourceid=em&amp;document_id=1083870621&amp;serialid=7Y4SC5R3JwuWssYSE1+HK0YN0zn1kYEHLQF0NHLEWx0=&amp;cspId=null">https://research-doc.credit-suisse.com/docView?language=ENG&amp;format=PDF&amp;sourceid=em&amp;document_id=1083870621&amp;serialid=7Y4SC5R3JwuWssYSE1%2BHK0YN0zn1kYEHLQF0NHLEWx0%3D&amp;cspId=null</a>  <strong>credit suisse</strong></li>
+</ol>
+</li>
+</ul>
+<ul>
+<li>famous investors</li>
+<li><ol>
+<li>Kelvin Tay of UBS Global Wealth Management</li>
+<li>Lorraine Tan , Morningstar’s director of equity research for Asia</li>
+<li>Du Kejun,  fund manager at Beijing Gelei Asset Management Center LP</li>
+<li>Dai Ming, a Shanghai-based fund manager at Huichen Asset Management</li>
+<li><strong>桥水的达里奥</strong></li>
+</ol>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>金融经济</category>
+      </categories>
+      <tags>
+        <tag>金融经济</tag>
       </tags>
   </entry>
   <entry>
@@ -5492,6 +5492,26 @@
 ]]></content>
   </entry>
   <entry>
+    <title>积分</title>
+    <url>/2021/08/04/%E7%A7%AF%E5%88%86/</url>
+    <content><![CDATA[<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结<span id="more"></span></h3><br>
+
+<h4 id="二重积分"><a href="#二重积分" class="headerlink" title="二重积分"></a>二重积分</h4><br>
+
+<ol>
+<li>性质上的、换坐标系的</li>
+<li>形心简化</li>
+<li>被积区间的拆分、补全、放缩，以及根据区间来触发思路</li>
+<li>不等式相关，略难。 – 被积函数的放缩(泰勒、对称性的不等式、积分中值定理)、区间</li>
+<li>能看出来凑微分 （定积分）</li>
+<li>换元</li>
+<li>应用：体积(h*dσ)</li>
+<li>把对称性、不等关系(稍微变化以下，但是还是平方不等式)、提取公因式，整合到一个题目的不等式证明里，本身就有些难想到了。再加上形式很隐蔽，不够容易联想。</li>
+<li></li>
+</ol>
+]]></content>
+  </entry>
+  <entry>
     <title>统计角度看ml</title>
     <url>/2021/03/11/%E7%BB%9F%E8%AE%A1%E8%A7%92%E5%BA%A6%E7%9C%8Bml/</url>
     <content><![CDATA[<br>
@@ -5517,26 +5537,6 @@
       <tags>
         <tag>ml</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>积分</title>
-    <url>/2021/08/04/%E7%A7%AF%E5%88%86/</url>
-    <content><![CDATA[<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结<span id="more"></span></h3><br>
-
-<h4 id="二重积分"><a href="#二重积分" class="headerlink" title="二重积分"></a>二重积分</h4><br>
-
-<ol>
-<li>性质上的、换坐标系的</li>
-<li>形心简化</li>
-<li>被积区间的拆分、补全、放缩，以及根据区间来触发思路</li>
-<li>不等式相关，略难。 – 被积函数的放缩(泰勒、对称性的不等式、积分中值定理)、区间</li>
-<li>能看出来凑微分 （定积分）</li>
-<li>换元</li>
-<li>应用：体积(h*dσ)</li>
-<li>把对称性、不等关系(稍微变化以下，但是还是平方不等式)、提取公因式，整合到一个题目的不等式证明里，本身就有些难想到了。再加上形式很隐蔽，不够容易联想。</li>
-<li></li>
-</ol>
-]]></content>
   </entry>
   <entry>
     <title>编译tensorflow</title>
@@ -7745,108 +7745,6 @@
       </tags>
   </entry>
   <entry>
-    <title>读论语</title>
-    <url>/2021/05/25/%E8%AF%BB%E8%AE%BA%E8%AF%AD/</url>
-    <content><![CDATA[<br>
-
-<br>
-
-
-
-<h4 id="自己的理解"><a href="#自己的理解" class="headerlink" title="自己的理解"></a>自己的理解</h4><span id="more"></span>
-
-<p>投资的用处相对大些。</p>
-<p>有关于人性的智慧。</p>
-<blockquote>
-<p>子曰：“学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？</p>
-</blockquote>
-<p>之指代道，圣人之道。时有按时、当时、时常、时运、时机等解。而字，你、你的、须臾、像、并列、假设、词缀与语气等解。这里当取并列之意。</p>
-<p>《说文系传统论》写道，“悦，犹说也，拭也，解脱也。若人心有郁结能解释之也”。</p>
-<p>学之、时习之，即闻道、见道，并且，按时付之于行动、时常付之于行动，成习惯。如同天下遇知己。都是解脱郁结的事情。正如，“天行健，君子以自强不息”，“君子敏于行”。</p>
-<p>人，有人民、别人、人才之解。这里当指所有人。知，有了解、识别、交情、感觉、主持、智慧、有学识等解。而，如同第一句，取并列之意，而不取转折。愠为，内心燥热，即心不平静、情绪郁结或起伏。</p>
-<p>即人们，不了解天地之道、不知道圣人之道，且内心无所执、没什么郁结，也是个君子世界。</p>
-<p>整句话是说，要么学而时习，要么不知不愠，都可以让世界更朝着君子世界发展。不知不愠也是君子境界。君子不缺朋友，四海皆有友朋。</p>
-<blockquote>
-<p>有子曰:“其为人也孝弟而好犯上者，鲜矣；不好犯上而好作乱者，未之有也。君子务本，本立而道生。孝弟也者，其为仁之本与!”</p>
-</blockquote>
-<blockquote>
-<p>子曰:“巧言令色，鲜矣仁！”</p>
-</blockquote>
-<p>讷于言的训诫。巧、令都为擅长之意。重视“纸上谈兵”(说话)，“涂脂抹粉”(粉饰)，只有空壳，这样的人，大概率不是君子。</p>
-<blockquote>
-<p>曾子曰“吾日三省吾身:为人谋而不忠乎?与朋友交而不信乎?传不习乎?”</p>
-</blockquote>
-<p>具体所复盘的内容。因人而异，因时而异。</p>
-<p>彼时重视忠信与习道。当下，几乎是没有的。背信弃义而谋得利益，并且狐朋狗友夜夜笙歌，也是大把人在。但终究无法有厚度。所谓富而不仁，所见大多如此。看人心之所向。所向财富，利益，则复盘的，就都和谋得的手段相关。</p>
-<p>当下的世界，并非君子世界。也无法和而不同。当下德草，随“时”风而偃，不随君子德风。不尚德的世界，就是齐。还没到鲁。因为现在有法律，维护私人财产，维护物质，而无约束德行。</p>
-<p>子曰:“道千乘之国,敬事而信，节用而爱人，使民以时。”</p>
-<p>子曰：“弟子入则孝，出则弟，谨而信，泛爱众，而亲仁。行有余力，则以学文。”</p>
-<p>子夏曰：“贤贤易色；事父母，能竭其力；事君，能致其身；与朋友交，言而有信。虽曰未学，吾必谓之学矣。”</p>
-<p>子曰：“君子不重则不威，学则不固。主忠信，无友不如己者，过则勿惮改。”<br>曾子曰：“慎终追远，民德归厚矣。”<br>子禽问于子贡曰：“夫子至于是邦也，必闻其政，求之与，抑与之与？”子贡曰：“夫子温、良、恭、俭、让以得之。夫子之求之也，其诸异乎人之求之与？”</p>
-<blockquote>
-<p>子曰：“父在，观其志。父没，观其行；三年无改于父之道，可谓孝矣。”</p>
-</blockquote>
-<p>不讲孝。是情。对人有情，则在乎她的志趣，在乎她的行事，并尽量应和。</p>
-<p>有子曰：“礼之用，和为贵。先王之道，斯为美，小大由之。有所不行，知和而和，不以礼节之，亦不可行也。”<br>有子曰：“信近于义，言可复也。恭近于礼，远耻辱也。因不失其亲，亦可宗也。”</p>
-<blockquote>
-<p>子曰：“君子食无求饱，居无求安，敏于事而慎于言，就有道而正焉。可谓好学也已。”</p>
-</blockquote>
-<p>君子，即无郁结、不执之人。有食有居即可，不求更好。而对于言行，却有要求，”精神洁癖“。要求自己更加敏捷、谨慎，对照着道，”拨乱反正“。当下也一样，好学的人，工作狂，必然对外在的种种不予重视。</p>
-<p>所思所念，皆在于道。或者在于知识、科学、客观世界、真理。而也因此不会对旁人有所侵犯，也不会纠结于得到别人的利益。</p>
-<p>但是资本主义就是得到别人的利益。副产物是竞争带来的技术进步。</p>
-<blockquote>
-<p>子贡曰：“贫而无谄，富而无骄，何如？”子曰：“可也。未若贫而乐，富而好礼者也。”子贡曰：“《诗》云：‘如切如磋，如琢如磨’，其斯之谓与？”子曰：“赐也，始可与言《诗》已矣，告诸往而知来者。”</p>
-</blockquote>
-<p>不被”困“，不被贫富所控。不如即使窘困而乐在其中，即使富足而能有所节制。能够出离自己的当下，而保持君子之道。固守、时习。</p>
-<p>切磋琢磨，一个典故就是贾岛的推敲。若能琢磨，则必不会谄骄。而越加琢磨，反而会寻得其乐。告往知来，即为联系。赐能够看到琢磨为”不困“的本质。</p>
-<blockquote>
-<p>子曰：“为政以德，譬如北辰，居其所而众星共之。”</p>
-</blockquote>
-<p>这个德不是虚幻的。不同位置，不同处境的人，有不同的德的标准。甚至每个人都不同。关键不在于德是什么。</p>
-<p>当然有最基本的。即贫富的”不困“。贫富，不止物质上。任何有对比和差距的方面，都要”不困“。在于固守与琢磨，才能真的不受困。</p>
-<blockquote>
-<p>子曰：“《诗》三百，一言以蔽之，曰：‘思无邪’。”</p>
-</blockquote>
-<p>当下都是邪。现实都是邪。要求无邪，几乎是天堂。天堂一定是淳朴挚真的。当下能无邪么。</p>
-<p>对弱势的人，真的要让利的话，也是可笑。</p>
-<p>子曰：“道之以政，齐之以刑，民免而无耻。道之以德，齐之以礼，有耻且格。”</p>
-<p>子曰：“吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。”</p>
-<p>孟懿子问孝，子曰：“无违。”樊迟御，子告之曰：“孟孙问孝于我，我对曰‘无违’。”樊迟曰：“何谓也？”子曰：“生，事之以礼；死，葬之以礼，祭之以礼。”</p>
-<p>孟武伯问孝。子曰：“父母唯其疾之忧。”</p>
-<p>子游问孝，子曰：“今之孝者，是谓能养。至于犬马，皆能有养。不敬，何以别乎？”</p>
-<p>子夏问孝。子曰：“色难。有事，弟子服其劳；有酒食，先生馔，曾是以为孝乎？”</p>
-<p>子曰：“吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。”<br>子曰：“视其所以，观其所由，察其所安，人焉廋哉？人焉廋哉？”</p>
-<blockquote>
-<p>子曰：“温故而知新，可以为师矣。”</p>
-</blockquote>
-<p>为人师的，不温故不行，不知新不行。上级也一样。</p>
-<p>当然老板，又是另一路径。</p>
-<p>子曰：“君子不器。”<br>子贡问君子。子曰：“先行其言而后从之。”<br>子曰：“君子周而不比，小人比而不周。”<br>子曰：“学而不思则罔，思而不学则殆。”<br>子曰：“攻乎异端，斯害也已！”<br>子曰：“由，诲汝，知之乎！知之为知之，不知为不知，是知也。”<br>子张学干禄。子曰：“多闻阙疑，慎言其余，则寡尤；多见阙殆，慎行其余，则寡悔。言寡尤，行寡悔，禄在其中矣。”<br>哀公问曰：“何为则民服？”孔子对曰：“举直错诸枉，则民服；举枉错诸直，则民不服。”<br>季康子问：“使民敬、忠以劝，如之何？”子曰：“临之以庄，则敬；孝慈，则忠；举善而教不能，则劝。”<br>或谓孔子曰：“子奚不为政？”子曰：“《书》云：‘孝乎惟孝，友于兄弟，施于有政。’是亦为政，奚其为为政？”<br>子曰：“人而无信，不知其可也。大车无輗，小车无軏，其何以行之哉？”<br>子张问：“十世可知也？”子曰：“殷因于夏礼，所损益，可知也；周因于殷礼，所损益，可知也。其或继周者，虽百世，可知也。”<br>子曰：“非其鬼而祭之，谄也；见义不为，无勇也。”<br>八佾篇<br>孔子谓季氏:“八佾舞于庭，是可忍也，孰不可忍也?”<br>三家者以《雍》彻,子曰：‘相维辟公，天子穆穆’，奚取于三家之堂？”<br>子曰：“人而不仁，如礼何？人而不仁，如乐何？”<br>林放问礼之本,子曰：“大哉问！礼，与其奢也，宁俭；丧，与其易也，宁戚。”<br>子曰：“夷狄之有君，不如诸夏之亡也。”<br>季氏旅于泰山。子谓冉有曰：“女弗能救与？”对曰：“不能。”子曰：“呜呼！曾谓泰山不如林放乎？”<br>子曰：“君子无所争，必也射乎！揖让而升，下而饮。其争也君子。”<br>子夏问曰：“‘巧笑倩兮，美目盼兮，素以为绚兮’何谓也？”子曰：“绘事后素。”曰：“礼后乎？”子曰：“起予者商也，始可与言《诗》已矣。”<br>子曰：“夏礼，吾能言之，杞不足征也；殷礼吾能言之，宋不足征也。文献不足故也，足则吾能征之矣。”<br>子曰：“禘自既灌而往者，吾不欲观之矣。”<br>或问禘之说。子曰：“不知也。知其说者之于天下也，其如示诸斯乎！”指其掌。<br>祭如在，祭神如神在。子曰：“吾不与祭，如不祭。”<br>王孙贾问曰：“‘与其媚于奥，宁媚于灶’，何谓也？”子曰：“不然，获罪于天，无所祷也。”<br>子曰：“周监于二代，郁郁乎文哉！吾从周。”<br>子入太庙，每事问。或曰：“孰谓鄹人之子知礼乎？入太庙，每事问。”子闻之，曰：“是礼也。”<br>子曰：“射不主皮，为力不同科，古之道也。”<br>子贡欲去告朔之饩羊，子曰：“赐也！尔爱其羊，我爱其礼。”<br>子曰：“事君尽礼，人以为谄也。”<br>定公问：“君使臣，臣事君，如之何？”孔子对曰：“君使臣以礼，臣事君以忠。”<br>子曰：“《关雎》，乐而不淫，哀而不伤。”<br>哀公问社于宰我。宰我对曰：“夏后氏以松，殷人以柏，周人以栗，曰：使民战栗。”子闻之，曰：“成事不说，遂事不谏，既往不咎。”<br>子曰：“管仲之器小哉！”或曰：“管仲俭乎？”曰：“管氏有三归，官事不摄，焉得俭？”“然则管仲知礼乎？”曰：“邦君树塞门，管氏亦树塞门；邦君为两君之好，有反坫。管氏亦有反坫，管氏而知礼，孰不知礼？”<br>子语鲁大师乐，曰：“乐其可知也。始作，翕如也；从之，纯如也，皦如也，绎如也，以成。”<br>仪封人请见，曰：“君子之至于斯也，吾未尝不得见也。”从者见之。出曰：“二三子何患于丧乎？天下之无道也久矣，天将以夫子为木铎。”<br>子谓《韶》：“尽美矣，又尽善也。”谓《武》：“尽美矣，未尽善也。”<br>子曰：“居上不宽，为礼不敬，临丧不哀，吾何以观之哉！”<br>里仁篇<br>子曰：“里仁为美。择不处仁，焉得知？”<br>子曰：“不仁者不可以久处约，不可以长处乐。仁者安仁，知者利仁。”<br>子曰：“唯仁者能好人，能恶人。”<br>子曰：“苟志於仁矣，无恶也。”<br>子曰：“富与贵，是人之所欲也；不以其道得之，不处也。贫与贱，是人之所恶也；不以其道得之，不去也。君子去仁，恶乎成名？君子无终食之间违仁，造次必于是，颠沛必于是。”<br>子曰：“我未见好仁者，恶不仁者。好仁者，无以尚之；恶不仁者，其为仁矣，不使不仁者加乎其身。有能一日用其力于仁矣乎？我未见力不足者。盖有之矣，我未见也。”<br>子曰：“人之过也，各于其党。观过，斯知仁矣。”</p>
-<blockquote>
-<p>子曰：“朝闻道，夕死可矣。”</p>
-</blockquote>
-<p>闻道，并固守，时习之。</p>
-<p>子曰：“士志于道，而耻恶衣恶食者，未足与议也。”<br>子曰：“君子之于天下也，无适也，无莫也，义之与比。”<br>子曰：“君子怀德，小人怀土；君子怀刑，小人怀惠。”<br>子曰：“放于利而行，多怨。”<br>子曰：“能以礼让为国乎？何有？不能以礼让为国，如礼何？”<br>子曰：“不患无位，患所以立。不患莫己知，求为可知也。”<br>子曰：“参乎！吾道一以贯之。”曾子曰：“唯。”子出，门人问曰：“何谓也？”曾子曰：“夫子之道，忠恕而已矣。”<br>子曰：“君子喻于义，小人喻于利。”<br>子曰：“见贤思齐焉，见不贤而内自省也。”<br>子曰：“事父母几谏，见志不从，又敬不违，劳而不怨。”<br>子曰：“父母在，不远游，游必有方。”<br>子曰：“三年无改于父之道，可谓孝矣。<br>子曰：“父母之年，不可不知也。一则以喜，一则以惧。<br>子曰．“古者言之不出，耻躬之不逮也。<br>子曰：“以约失之者鲜矣。</p>
-<p>子曰：“德不孤，必有邻。”<br>子游曰：“事君数，斯辱矣；朋友数，斯疏矣。<br>公冶长篇<br>子谓公冶长：“可妻也，虽在缧绁之中，非其罪也！”以其子妻之。<br>子谓南容：“邦有道不废；邦无道免于刑戮。”以其兄之子妻之。<br>子谓子贱：“君子哉若人！鲁无君子者，斯焉取斯？”<br>子贡问曰：“赐也何如？”子曰：“女，器也。”曰：“何器也？”曰：“瑚琏也。”<br>或曰：“雍也仁而不佞。”子曰：“焉用佞？御人以口给，屡憎于人。不知其仁，焉用佞？”<br>子使漆雕开仕，对曰：“吾斯之未能信。”子说。<br>子曰：“道不行，乘桴浮于海，从我者其由与？”子路闻之喜，子曰：“由也好勇过我，无所取材。”<br>孟武伯问：“子路仁乎？”子曰：“不知也。”又问，子曰：“由也，千乘之国，可使治其赋也，不知其仁也。”“求也何如？”子曰：“求也，千室之邑、百乘之家，可使为之宰也，不知其仁也。”“赤也何如？”子曰：“赤也，束带立于朝，可使与宾客言也，不知其仁也。”<br>子谓子贡曰：“女与回也孰愈？”对曰：“赐也何敢望回？回也闻一以知十，赐也闻一以知二。”子曰：“弗如也，吾与女弗如也！”<br>宰予昼寝，子曰：“朽木不可雕也，粪土之墙不可杇也，于予与何诛？”子曰：“始吾于人也，听其言而信其行；今吾于人也，听其言而观其行。于予与改是。”<br>子曰：“吾未见刚者。”或对曰：“申枨。”子曰：“枨也欲，焉得刚。”<br>子贡曰：“我不欲人之加诸我也，吾亦欲无加诸人。”子曰：“赐也，非尔所及也。”<br>子贡曰：“夫子之文章，可得而闻也；夫子之言性与天道，不可得而闻也。”<br>子路有闻，未之能行，唯恐有闻。<br>子贡问曰：“孔文子何以谓之‘文’也？”子曰：“敏而好学，不耻下问，是以谓之‘文’也。”<br>子谓子产：“有君子之道四焉：其行己也恭，其事上也敬，其养民也惠，其使民也义。”<br>子曰：“晏平仲善与人交，久而敬之。”<br>子曰：“臧文仲居蔡，山节藻棁，何如其知也？”<br>子张问曰：“令尹子文三仕为令尹，无喜色，三已之无愠色，旧令尹之政必以告新令尹，何如？”子曰：“忠矣。”曰：“仁矣乎？”曰：“未知，焉得仁？”“崔子弑齐君，陈文子有马十乘，弃而违之。至于他邦，则曰：‘犹吾大夫崔子也。’违之。之一邦，则又曰：‘犹吾大夫崔子也。’违之，何如？”子曰：“清矣。”曰：“仁矣乎？”曰：“未知，焉得仁？”<br>季文子三思而后行，子闻之曰：“再斯可矣。”<br>子曰：“宁武子，邦有道，则知；邦无道，则愚。其知可及也，其愚不可及也。”<br>子在陈，曰：“归与！归与！吾党之小子狂简，斐然成章，不知所以裁之。”<br>子曰：“伯夷、叔齐不念旧恶，怨是用希。”<br>子曰：“孰谓微生高直？或乞醯焉，乞诸其邻而与之。”<br>子曰：“巧言、令色、足恭，左丘明耻之，丘亦耻之。匿怨而友其人，左丘明耻之，丘亦耻之。”<br>颜渊、季路侍，子曰：“盍各言尔志？”子路曰：“愿车马、衣轻裘与朋友共，敝之而无憾。”颜渊曰：“愿无伐善，无施劳。”子路曰：“愿闻子之志。”子曰：“老者安之，朋友信之，少者怀之。”<br>子曰：“已矣乎！吾未见能见其过而内自讼者也。”<br>子曰：“十室之邑，必有忠信如丘者焉，不如丘之好学也。”<br>雍也篇<br>子曰：“雍也可使南面。”<br>仲弓问子桑伯子，子曰：“可也简。”仲弓曰：“居敬而行简，以临其民，不亦可乎？居简而行简，无乃大简乎？”子曰：“雍之言然。”<br>哀公问：“弟子孰为好学？”孔子对曰：“有颜回者好学，不迁怒，不贰过，不幸短命死矣，今也则亡，未闻好学者也。”<br>子华使于齐，冉子为其母请粟，子曰：“与之釜。”请益，曰：“与之庾。”冉子与之粟五秉。子曰：“赤之适齐也，乘肥马，衣轻裘。吾闻之也，君子周急不继富。”<br>原思为之宰，与之粟九百，辞。子曰：“毋以与尔邻里乡党乎！”<br>子谓仲弓曰：“犁牛之子骍且角，虽欲勿用，山川其舍诸？”<br>子曰：“回也，其心三月不违仁，其余则日月至焉而已矣。”<br>季康子问：“仲由可使从政也与？”子曰：“由也果，于从政乎何有？”曰：“赐也可使从政也与？”曰：“赐也达，于从政乎何有？”曰：“求也可使从政也与？”曰：“求也艺，于从政乎何有？”</p>
-<p>季氏使闵子骞为费宰，闵子骞曰：“善为我辞焉。如有复我者，则吾必在汶上矣。”</p>
-<p>伯牛有疾，子问之，自牖执其手，曰：“亡之，命矣夫！斯人也而有斯疾也！斯人也而有斯疾也！”<br>子曰：“贤哉回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。贤哉，回也！”<br>冉求曰：“非不说子之道，力不足也。”子曰：“力不足者，中道而废，今女画。”<br>子谓子夏曰：“女为君子儒，毋为小人儒。”<br>子游为武城宰，子曰：“女得人焉尔乎？”曰：“有澹台灭明者，行不由径，非公事，未尝至于偃之室也。”<br>子曰：“孟之反不伐，奔而殿，将入门，策其马曰：‘非敢后也，马不进也。’”<br>子曰：“不有祝鮀之佞，而有宋朝之美，难乎免于今之世矣。”<br>子曰：“谁能出不由户？何莫由斯道也？”<br>子曰：“质胜文则野，文胜质则史。文质彬彬，然后君子。”<br>子曰：“人之生也直，罔之生也幸而免。”<br>子曰：“知之者不如好之者；好之者不如乐之者。”<br>子曰：“中人以上，可以语上也；中人以下，不可以语上也。”<br>樊迟问知，子曰：“务民之义，敬鬼神而远之，可谓知矣。”问仁，曰：“仁者先难而后获，可谓仁矣。”<br>子曰：“知者乐水，仁者乐山。知者动，仁者静。知者乐，仁者寿。”<br>子曰：“齐一变至于鲁，鲁一变至于道。”<br>子曰：“觚不觚，觚哉！觚哉！”<br>宰我问曰：“仁者，虽告之曰：‘井有仁焉。’其从之也？”子曰：“何为其然也？君子可逝也，不可陷也；可欺也，不可罔也。”<br>子曰：“君子博学于文，约之以礼，亦可以弗畔矣夫。”<br>子见南子，子路不说，夫子矢之曰：“予所否者，天厌之！天厌之！”<br>子曰：“中庸之为德也，其至矣乎！民鲜久矣。”<br>子贡曰：“如有博施于民而能济众，何如？可谓仁乎？”子曰：“何事于仁，必也圣乎！尧、舜其犹病诸！夫仁者，己欲立而立人，己欲达而达人。能近取譬，可谓仁之方也已。”<br>述而篇<br>子曰：“述而不作，信而好古，窃比于我老彭。”<br>子曰：“默而识之，学而不厌，诲人不倦，何有于我哉？”<br>子曰：“德之不修，学之不讲，闻义不能徙，不善不能改，是吾忧也。”<br>子之燕居，申申如也，夭夭如也。<br>子曰：“甚矣，吾衰也！久矣，吾不复梦见周公。”<br>子曰：“志于道，据于德，依于仁，游于艺。”<br>子曰：“自行束脩以上，吾未尝无诲焉。”<br>子曰：“不愤不启，不悱不发，举一隅不以三隅反，则不复也。”<br>子食于有丧者之侧，未尝饱也。<br>子于是日哭，则不歌。<br>子谓颜渊曰：“用之则行，舍之则藏，惟我与尔有是夫！”子路曰：“子行三军，则谁与？”子曰：“暴虎冯河，死而无悔者，吾不与也。必也临事而惧，好谋而成者也。”<br>子曰：“富而可求也，虽执鞭之士，吾亦为之。如不可求，从吾所好。”<br>子之所慎：齐，战，疾。<br>子在齐闻《韶》，三月不知肉味，曰：“不图为乐之至于斯也。”<br>冉有曰：“夫子为卫君乎？”子贡曰：“诺，吾将问之。”入，曰：“伯夷、叔齐何人也？”曰：“古之贤人也。”曰：“怨乎？”曰：“求仁而得仁，又何怨？”出，曰：“夫子不为也。”<br>子曰：“饭疏食饮水，曲肱而枕之，乐亦在其中矣。不义而富且贵，于我如浮云。”<br>子曰：“加我数年，五十以学《易》，可以无大过矣。”<br>子所雅言，《诗》、《书》、执礼，皆雅言也。<br>叶公问孔子于子路，子路不对。子曰：“女奚不曰：其为人也，发愤忘食，乐以忘忧，不知老之将至云尔。”<br>子曰：“我非生而知之者，好古，敏以求之者也。”<br>子不语：怪、力、乱、神。<br>子曰：“三人行，必有我师焉。择其善者而从之，其不善者而改之。”<br>子曰：“天生德于予，桓魋其如予何？”<br>子曰：“二三子以我为隐乎？吾无隐乎尔！吾无行而不与二三子者，是丘也。”<br>子以四教：文，行，忠，信。<br>子曰：“圣人，吾不得而见之矣；得见君子者，斯可矣。”子曰：“善人，吾不得而见之矣，得见有恒者斯可矣。亡而为有，虚而为盈，约而为泰，难乎有恒乎。”<br>子钓而不纲，弋不射宿。<br>子曰：“盖有不知而作之者，我无是也。多闻，择其善者而从之；多见而识之，知之次也。”<br>互乡难与言，童子见，门人惑。子曰：“与其进也，不与其退也，唯何甚？人洁己以进，与其洁也，不保其往也。”<br>子曰：“仁远乎哉？我欲仁，斯仁至矣。”<br>陈司败问：“昭公知礼乎？”孔子曰：“知礼。”孔子退，揖巫马期而进之，曰：“吾闻君子不党，君子亦党乎？君取于吴，为同姓，谓之吴孟子。君而知礼，孰不知礼？”巫马期以告，子曰：“丘也幸，苟有过，人必知之。”<br>子与人歌而善，必使反之，而后和之。<br>子曰：“文，莫吾犹人也。躬行君子，则吾未之有得。”<br>子曰：“若圣与仁，则吾岂敢？抑为之不厌，诲人不倦，则可谓云尔已矣。”公西华曰：“正唯弟子不能学也。”<br>子疾病，子路请祷。子曰：“有诸？”子路对曰：“有之。《诔》曰：‘祷尔于上下神祇。’”子曰：“丘之祷久矣。”<br>子曰：“奢则不孙，俭则固。与其不孙也，宁固。”<br>子曰：“君子坦荡荡，小人长戚戚。”<br>子温而厉，威而不猛，恭而安。<br>泰伯篇<br>子曰：“泰伯，其可谓至德也已矣。三以天下让，民无得而称焉。”<br>子曰：“恭而无礼则劳；慎而无礼则葸；勇而无礼则乱；直而无礼则绞。君子笃于亲，则民兴于仁；故旧不遗，则民不偷。”<br>曾子有疾，召门弟子曰：“启予足，启予手。《诗》云：‘战战兢兢，如临深渊，如履薄冰。’而今而后，吾知免夫，小子！”<br>曾子有疾，孟敬子问之。曾子言曰：“鸟之将死，其鸣也哀；人之将死，其言也善。君子所贵乎道者三：动容貌，斯远暴慢矣；正颜色，斯近信矣；出辞气，斯远鄙倍矣。笾豆之事，则有司存。”<br>曾子曰：“以能问于不能；以多问于寡；有若无，实若虚，犯而不校。昔者吾友尝从事于斯矣。”<br>曾子曰：“可以托六尺之孤，可以寄百里之命，临大节而不可夺也。君子人与？君子人也。”<br>曾子曰：“士不可以不弘毅，任重而道远。仁以为己任，不亦重乎？死而后已，不亦远乎？”<br>子曰：“兴于《诗》，立于礼，成于乐。”<br>子曰：“民可使由之，不可使知之。”<br>子曰：“好勇疾贫，乱也。人而不仁，疾之已甚，乱也。”<br>子曰：“如有周公之才之美，使骄且吝，其余不足观也已。”<br>子曰：“三年学，不至于谷，不易得也。”<br>子曰：“笃信好学，守死善道。危邦不入，乱邦不居。天下有道则见，无道则隐。邦有道，贫且贱焉，耻也；邦无道，富且贵焉，耻也。”<br>子曰：“不在其位，不谋其政。”<br>子曰：“师挚之始，《关雎》之乱，洋洋乎盈耳哉！”<br>子曰：“狂而不直，侗而不愿，悾悾而不信，吾不知之矣。”<br>子曰：“学如不及，犹恐失之。”<br>子曰：“巍巍乎！舜、禹之有天下也而不与焉。”<br>子曰：“大哉尧之为君也！巍巍乎，唯天为大，唯尧则之。荡荡乎，民无能名焉。巍巍乎其有成功也，焕乎其有文章！”<br>舜有臣五人而天下治。武王曰：“予有乱臣十人。”孔子曰：“才难，不其然乎？唐虞之际，于斯为盛；有妇人焉，九人而已。三分天下有其二，以服事殷。周之德，其可谓至德也已矣。”<br>子曰：“禹，吾无间然矣。菲饮食，而致孝乎鬼神；恶衣服，而致美乎黻冕；卑宫室，而尽力乎沟洫。禹，吾无间然矣！”<br>子罕篇<br>子罕言利与命与仁。<br>达巷党人曰：“大哉孔子！博学而无所成名。”子闻之，谓门弟子曰：“吾何执？执御乎，执射乎？吾执御矣。”<br>子曰：“麻冕，礼也；今也纯，俭，吾从众。拜下，礼也；今拜乎上，泰也；虽违众，吾从下。”<br>子绝四：毋意、毋必、毋固、毋我。<br>子畏于匡，曰：“文王既没，文不在兹乎？天之将丧斯文也，后死者不得与于斯文也；天之未丧斯文也，匡人其如予何？”<br>太宰问于子贡曰：“夫子圣者与，何其多能也？”子贡曰：“固天纵之将圣，又多能也。”子闻之，曰：“太宰知我乎？吾少也贱，故多能鄙事。君子多乎哉？不多也。”<br>牢曰：“子云：‘吾不试，故艺。’”<br>子曰：“吾有知乎哉？无知也。有鄙夫问于我，空空如也。我叩其两端而竭焉。”<br>子曰：“凤鸟不至，河不出图，吾已矣夫！”<br>子见齐衰者、冕衣裳者与瞽者，见之，虽少，必作，过之必趋。<br>颜渊喟然叹曰：“仰之弥高，钻之弥坚。瞻之在前，忽焉在后。夫子循循然善诱人，博我以文，约我以礼，欲罢不能。既竭吾才，如有所立卓尔，虽欲从之，末由也已。”<br>子疾病，子路使门人为臣。病间，曰：“久矣哉，由之行诈也！无臣而为有臣，吾谁欺？欺天乎？且予与其死于臣之手也，无宁死于二三子之手乎！且予纵不得大葬，予死于道路乎？”<br>子贡曰：“有美玉于斯，韫椟而藏诸？求善贾而沽诸？”子曰：“沽之哉，沽之哉！我待贾者也。”<br>子欲居九夷。或曰：“陋，如之何？”子曰：“君子居之，何陋之有！”<br>子曰：“吾自卫反鲁，然后乐正，《雅》、《颂》各得其所。”<br>子曰：“出则事公卿，入则事父兄，丧事不敢不勉，不为酒困，何有于我哉？”<br>子在川上曰：“逝者如斯夫！不舍昼夜。”<br>子曰：“吾未见好德如好色者也。”<br>子曰：“譬如为山，未成一篑，止，吾止也；譬如平地，虽覆一篑，进，吾往也。”<br>子曰：“语之而不惰者，其回也与！”<br>子谓颜渊，曰：“惜乎！吾见其进也，未见其止也。”<br>子曰：“苗而不秀者有矣夫，秀而不实者有矣夫。”<br>子曰：“后生可畏，焉知来者之不如今也？四十、五十而无闻焉，斯亦不足畏也已。”<br>子曰：“法语之言，能无从乎？改之为贵。巽与之言，能无说乎？绎之为贵。说而不绎，从而不改，吾末如之何也已矣。”<br>子曰：“主忠信。毋友不如己者，过，则勿惮改。”<br>子曰：“三军可夺帅也，匹夫不可夺志也。”<br>子曰：“衣敝缊袍，与衣狐貉者立而不耻者，其由也与！‘不忮不求，何用不臧？’”子路终身诵之，子曰：“是道也，何足以臧？”<br>子曰：“岁寒，然后知松柏之后凋也。”<br>子曰：“知者不惑，仁者不忧，勇者不惧。”<br>子曰：“可与共学，未可与适道；可与适道，未可与立；可与立，未可与权。”<br>“唐棣之华，偏其反而。岂不尔思？室是远尔。”子曰：“未之思也，夫何远之有。”<br>乡党篇<br>孔子于乡党，恂恂如也，似不能言者；其在宗庙朝廷，便便言，唯谨尔。<br>朝，与下大夫言，侃侃如也；与上大夫言，訚訚如也。君在，踧踖如也，与与如也。<br>君召使摈，色勃如也，足躩如也。揖所与立，左右手，衣前后襜如也。趋进，翼如也。宾退，必复命曰：“宾不顾矣。”<br>入公门，鞠躬如也，如不容。立不中门，行不履阈。过位，色勃如也，足躩如也，其言似不足者。摄齐升堂，鞠躬如也，屏气似不息者。出，降一等，逞颜色，怡怡如也；没阶，趋进，翼如也；复其位，踧踖如也。<br>执圭，鞠躬如也，如不胜。上如揖，下如授。勃如战色，足蹜蹜如有循。享礼，有容色。私觌，愉愉如也。<br>君子不以绀緅饰，红紫不以为亵服。当暑,袗絺绤，必表而出之。缁衣羔裘，素衣麑裘，黄衣狐裘。亵裘长，短右袂。必有寝衣，长一身有半。狐貉之厚以居。去丧，无所不佩。非帷裳，必杀之。羔裘玄冠不以吊。吉月，必朝服而朝。<br>齐，必有明衣，布。齐必变食，居必迁坐。<br>食不厌精，脍不厌细。食饐而餲，鱼馁而肉败，不食；色恶，不食；臭恶，不食；失饪，不食；不时，不食；割不正，不食；不得其酱，不食。肉虽多，不使胜食气。唯酒无量，不及乱。沽酒市脯，不食。不撤姜食，不多食。<br>祭于公，不宿肉。祭肉不出三日，出三日不食之矣。<br>食不语，寝不言。<br>虽疏食菜羹，瓜祭，必齐如也。<br>席不正，不坐。<br>乡人饮酒，杖者出，斯出矣。<br>乡人傩，朝服而立于阼阶。<br>问人于他邦，再拜而送之。<br>康子馈药，拜而受之。曰：“丘未达，不敢尝。”<br>厩焚，子退朝，曰：“伤人乎？”不问马。<br>君赐食，必正席先尝之。君赐腥，必熟而荐之。君赐生，必畜之。侍食于君，君祭，先饭。<br>疾，君视之，东首，加朝服，拖绅。<br>君命召，不俟驾行矣。<br>入太庙，每事问。<br>朋友死，无所归，曰：“于我殡。”<br>朋友之馈，虽车马，非祭肉，不拜。<br>寝不尸，居不容。<br>见齐衰者，虽狎，必变。见冕者与瞽者，虽亵，必以貌。凶服者式之，式负版者。有盛馔，必变色而作。迅雷风烈，必变。<br>升车，必正立，执绥。车中不内顾，不疾言，不亲指。<br>色斯举矣，翔而后集。曰：“山梁雌雉，时哉时哉！”子路共之，三嗅而作。<br>先进篇<br>子曰：“先进于礼乐，野人也；后进于礼乐，君子也。如用之，则吾从先进。”<br>子曰：“从我于陈、蔡者，皆不及门也。”<br>德行：颜渊，闵子骞，冉伯牛，仲弓。言语：宰我，子贡。政事：冉有，季路。文学：子游，子夏。<br>子曰：“回也非助我者也，于吾言无所不说。”<br>子曰：“孝哉闵子骞！人不间于其父母昆弟之言。”<br>南容三复白圭，孔子以其兄之子妻之。<br>季康子问：“弟子孰为好学？”孔子对曰：“有颜回者好学，不幸短命死矣，今也则亡。”<br>颜渊死，颜路请子之车以为之椁。子曰：“才不才，亦各言其子也。鲤也死，有棺而无椁，吾不徒行以为之椁。以吾从大夫之后，不可徒行也。”<br>颜渊死，子曰：“噫！天丧予！天丧予！”<br>颜渊死，子哭之恸，从者曰：“子恸矣！”曰：“有恸乎？非夫人之为恸而谁为？”<br>颜渊死，门人欲厚葬之，子曰：“不可。”门人厚葬之，子曰：“回也视予犹父也，予不得视犹子也。非我也，夫二三子也！”<br>季路问事鬼神，子曰：“未能事人，焉能事鬼？”,曰：“敢问死。”曰：“未知生，焉知死？”<br>闵子侍侧，訚訚如也；子路，行行如也；冉有、子贡，侃侃如也。子乐。“若由也，不得其死然。”<br>鲁人为长府，闵子骞曰：“仍旧贯如之何？何必改作？”子曰：“夫人不言，言必有中。”<br>子曰：“由之瑟，奚为于丘之门？”门人不敬子路，子曰：“由也升堂矣，未入于室也。”<br>子贡问：“师与商也孰贤？”子曰：“师也过，商也不及。”曰：“然则师愈与？”子曰：“过犹不及。”<br>季氏富于周公，而求也为之聚敛而附益之。子曰：“非吾徒也，小子鸣鼓而攻之可也。”<br>柴也愚，参也鲁，师也辟，由也喭。<br>子曰：“回也其庶乎，屡空。赐不受命而货殖焉，亿则屡中。”<br>子张问善人之道，子曰：“不践迹，亦不入于室。”<br>子曰：“论笃是与，君子者乎，色庄者乎？”<br>子路问：“闻斯行诸？”子曰：“有父兄在，如之何其闻斯行之？”冉有问：“闻斯行诸？”子曰：“闻斯行之。”公西华曰：“由也问：“闻斯行诸？”子曰：‘有父兄在’；求也问：‘闻斯行诸’。子曰‘闻斯行之’。赤也惑，敢问。”子曰：“求也退，故进之；由也兼人，故退之。”<br>子畏于匡，颜渊后。子曰：“吾以女为死矣！”曰：“子在，回何敢死！”<br>季子然问：“仲由、冉求可谓大臣与？”子曰：“吾以子为异之问，曾由与求之问。所谓大臣者，以道事君，不可则止。今由与求也，可谓具臣矣。”曰：“然则从之者与？”子曰：“弑父与君，亦不从也。”<br>子路使子羔为费宰，子曰：“贼夫人之子。”子路曰：“有民人焉，有社稷焉，何必读书然后为学。”子曰：“是故恶夫佞者。”<br>子路、曾皙、冉有、公西华侍坐，子曰：“以吾一日长乎尔，毋吾以也。居则曰‘不吾知也’如或知尔，则何以哉？”子路率尔而对曰：“千乘之国，摄乎大国之间，加之以师旅，因之以饥馑，由也为之，比及三年，可使有勇，且知方也。”夫子哂之。“求，尔何如？”对曰：“方六七十，如五六十，求也为之，比及三年，可使足民。如其礼乐，以俟君子。”“赤！尔何如？”对曰：“非曰能之，愿学焉。宗庙之事，如会同，端章甫，愿为小相焉。”“点，尔何如？”鼓瑟希，铿尔，舍瑟而作，对曰：“异乎三子者之撰。”子曰：“何伤乎？亦各言其志也。”曰：“暮春者，春服既成，冠者五六人，童子六七人，浴乎沂，风乎舞雩，咏而归。”夫子喟然叹曰：“吾与点也！”三子者出，曾皙后。曾皙曰：“夫三子者之言何如？”子曰：“亦各言其志也已矣。”曰：“夫子何哂由也？”曰：“为国以礼，其言不让，是故哂之。”“唯求则非邦也与？”“安见方六七十、如五六十而非邦也者？”“唯赤则非邦也与？”“宗庙会同，非诸侯而何？赤也为之小，孰能为之大？”<br>颜渊篇<br>颜渊问仁，子曰：“克己复礼为仁。一日克己复礼，天下归仁焉。为仁由己，而由人乎哉？”颜渊曰：“请问其目？”子曰：“非礼勿视，非礼勿听，非礼勿言，非礼勿动。”颜渊曰：“回虽不敏，请事斯语矣。”<br>仲弓问仁，子曰：“出门如见大宾，使民如承大祭。己所不欲，勿施于人。在邦无怨，在家无怨。”仲弓曰：“雍虽不敏，请事斯语矣。”<br>司马牛问仁，子曰：“仁者，其言也讱。”曰：“其言也讱，斯谓之仁已乎？”子曰：“为之难，言之得无讱乎？”<br>司马牛问君子，子曰：“君子不忧不惧。”曰：“不忧不惧，斯谓之君子已乎？”子曰：“内省不疚，夫何忧何惧？”<br>司马牛忧曰：“人皆有兄弟，我独亡。”子夏曰：“商闻之矣：死生有命，富贵在天。君子敬而无失，与人恭而有礼，四海之内皆兄弟也。君子何患乎无兄弟也？”<br>子张问明，子曰：“浸润之谮，肤受之愬，不行焉，可谓明也已矣；浸润之谮、肤受之愬不行焉，可谓远也已矣。”<br>子贡问政，子曰：“足食，足兵，民信之矣。”子贡曰：“必不得已而去，于斯三者何先？”曰：“去兵。”子贡曰：“必不得已而去，于斯二者何先？”曰：“去食。自古皆有死，民无信不立。”<br>棘子成曰：“君子质而已矣，何以文为？”子贡曰：“惜乎，夫子之说君子也！驷不及舌。文犹质也，质犹文也。虎豹之鞟犹犬羊之鞟。”<br>哀公问于有若曰：“年饥，用不足，如之何？”有若对曰：“盍彻乎？”曰：“二，吾犹不足，如之何其彻也？”对曰：“百姓足，君孰与不足？百姓不足，君孰与足？”<br>子张问崇德、辨惑，子曰：“主忠信，徙义，崇德也。爱之欲其生，恶之欲其死；既欲其生又欲其死，是惑也。‘诚不以富，亦只以异。’”<br>齐景公问政于孔子，孔子对曰：“君君，臣臣，父父，子子。”公曰：“善哉！信如君不君、臣不臣、父不父、子不子，虽有粟，吾得而食诸？”<br>子曰：“片言可以折狱者，其由也与？”子路无宿诺。<br>子曰：“听讼，吾犹人也。必也使无讼乎。”<br>子张问政，子曰：“居之无倦，行之以忠。”<br>子曰：“博学于文，约之以礼，亦可以弗畔矣夫。”<br>子曰：“君子成人之美，不成人之恶；小人反是。”<br>季康子问政于孔子，孔子对曰：“政者，正也。子帅以正，孰敢不正？”<br>季康子患盗，问于孔子。孔子对曰：“苟子之不欲，虽赏之不窃。”<br>季康子问政于孔子曰：“如杀无道以就有道，何如？”孔子对曰：“子为政，焉用杀？子欲善而民善矣。君子之德风，小人之德草，草上之风必偃。”<br>子张问：“士何如斯可谓之达矣？”子曰：“何哉尔所谓达者？”子张对曰：“在邦必闻，在家必闻。”子曰：“是闻也，非达也。夫达也者，质直而好义，察言而观色，虑以下人。在邦必达，在家必达。夫闻也者，色取仁而行违，居之不疑。在邦必闻，在家必闻。”<br>樊迟从游于舞雩之下，曰：“敢问崇德、修慝、辨惑。”子曰：“善哉问！先事后得，非崇德与？攻其恶，无攻人之恶，非修慝与？一朝之忿，忘其身，以及其亲，非惑与？”<br>樊迟问仁，子曰：“爱人。”问知，子曰：“知人。”樊迟未达，子曰：“举直错诸枉，能使枉者直。”樊迟退，见子夏，曰：“乡也吾见于夫子而问知，子曰：‘举直错诸枉，能使枉者直’，何谓也？”子夏曰：“富哉言乎！舜有天下，选于众，举皋陶，不仁者远矣。汤有天下，选于众，举伊尹，不仁者远矣。”<br>子贡问友，子曰：“忠告而善道之，不可则止，毋自辱焉。”<br>曾子曰：“君子以文会友，以友辅仁。”<br>子路篇<br>子路问政，子曰：“先之，劳之。”请益，曰：“无倦。”<br>仲弓为季氏宰，问政，子曰：“先有司，赦小过，举贤才。”曰：“焉知贤才而举之？”曰：“举尔所知。尔所不知，人其舍诸？”<br>子路曰：“卫君待子而为政，子将奚先？”子曰：“必也正名乎！”子路曰：“有是哉，子之迂也！奚其正？”子曰：“野哉由也！君子于其所不知，盖阙如也。名不正，则言不顺；言不顺，则事不成；事不成，则礼乐不兴；礼乐不兴，则刑罚不中；刑罚不中，则民无所错手足。故君子名之必可言也，言之必可行也。君子于其言，无所苟而已矣。”<br>樊迟请学稼，子曰：“吾不如老农。”请学为圃，曰：“吾不如老圃。”樊迟出。子曰：’小人哉，樊须也！上好礼，则民莫敢不敬；上好义，则民莫敢不服；上好信，则民莫敢不用情。夫如是，则四方之民襁负其子而至矣，焉用稼？”<br>子曰：“诵《诗》三百，授之以政，不达；使于四方，不能专对；虽多，亦奚以为？”<br>子曰：“其身正，不令而行；其身不正，虽令不从。”<br>子曰：“鲁卫之政，兄弟也。”<br>子谓卫公子荆，“善居室。始有，曰：‘苟合矣。’少有，曰：‘苟完矣。’富有，曰：‘苟美矣。’”<br>子适卫，冉有仆，子曰：“庶矣哉！”冉有曰：“既庶矣，又何加焉？”曰：“富之。”曰：“既富矣，又何加焉？”曰：“教之。”<br>子曰：“苟有用我者，期月而已可也，三年有成。”</p>
-<blockquote>
-<p>子曰：“‘善人为邦百年，亦可以胜残去杀矣。’诚哉是言也！”</p>
-</blockquote>
-<p>胜残去杀，残有为害的人、剩余、残破之意，杀有战斗、衰败、程度深、削除之意。胜为经得住、克服、超过，去为舍弃。理解为，去除那些暴戾为害的人、去除杀戮和斗争。</p>
-<blockquote>
-<p>子曰：“如有王者，必世而后仁。”</p>
-</blockquote>
-<p>子曰：“苟正其身矣，于从政乎何有？不能正其身，如正人何？”<br>冉子退朝，子曰：“何晏也？”对曰：“有政。”子曰：“其事也。如有政，虽不吾以，吾其与闻之。”<br>定公问：“一言而可以兴邦，有诸？”孔子对曰：“言不可以若是。其几也。人之言曰：‘为君难，为臣不易。’如知为君之难也，不几乎一言而兴邦乎？”曰：“一言而丧邦，有诸？”孔子对曰：“言不可以若是其几也。人之言曰：‘予无乐乎为君，唯其言而莫予违也。’如其善而莫之违也，不亦善乎？如不善而莫之违也，不几乎一言而丧邦乎？”<br>叶公问政，子曰：“近者说，远者来。”<br>子夏为莒父宰，问政，子曰：“无欲速，无见小利。欲速则不达，见小利则大事不成。”<br>叶公语孔子曰：“吾党有直躬者，其父攘羊，而子证之。”孔子曰：“吾党之直者异于是。父为子隐，子为父隐，直在其中矣。”<br>樊迟问仁，子曰：“居处恭，执事敬，与人忠。虽之夷狄，不可弃也。”<br>子贡问曰：“何如斯可谓之士矣？”子曰：“行己有耻，使于四方不辱君命，可谓士矣。”曰：“敢问其次。”曰：“宗族称孝焉，乡党称弟焉。”曰：“敢问其次。”曰：“言必信，行必果，踁踁然小人哉！抑亦可以为次矣。”曰：“今之从政者何如？”子曰：“噫！斗筲之人，何足算也！”<br>子曰：“不得中行而与之，必也狂狷乎！狂者进取，狷者有所不为也。”<br>子曰：“南人有言曰：‘人而无恒，不可以作巫医。’善夫！”“不恒其德，或承之羞。”子曰：“不占而已矣。”<br>子曰：“君子和而不同，小人同而不和。”<br>子贡问曰：“乡人皆好之，何如？”子曰：“未可也。”“乡人皆恶之，何如？”子曰：“未可也。不如乡人之善者好之，其不善者恶之。”<br>子曰：“君子易事而难说也，说之不以道不说也，及其使人也器之；小人难事而易说也，说之虽不以道说也，及其使人也求备焉。”<br>子曰：“君子泰而不骄，小人骄而不泰。”<br>子曰：“刚、毅、木、讷近仁。”<br>子路问曰：“何如斯可谓之士矣？”子曰：“切切偲偲，怡怡如也，可谓士矣。朋友切切偲偲，兄弟怡怡。”<br>子曰：“善人教民七年，亦可以即戎矣。”<br>子曰：“以不教民战，是谓弃之。”<br>宪问篇<br>宪问耻，子曰：“邦有道，谷；邦无道，谷，耻也。”“克、伐、怨、欲不行焉，可以为仁矣？”子曰：“可以为难矣，仁则吾不知也。”<br>子曰：“士而怀居，不足以为士矣。”<br>子曰：“邦有道，危言危行；邦无道，危行言孙。”<br>子曰：“有德者必有言，有言者不必有德。仁者必有勇，勇者不必有仁。”<br>南宫适问于孔子曰：“羿善射，奡荡舟，俱不得其死然；禹、稷躬稼而有天下。”夫子不答。南宫适出，子曰：“君子哉若人！尚德哉若人！”<br>子曰：“君子而不仁者有矣夫，未有小人而仁者也。”<br>子曰：“爱之，能勿劳乎？忠焉，能勿诲乎？”<br>子曰：“为命，裨谌草创之，世叔讨论之，行人子羽修饰之，东里子产润色之。”<br>或问子产，子曰：“惠人也。”问子西，曰：“彼哉，彼哉！”问管仲，曰：“人也。夺伯氏骈邑三百，饭疏食，没齿无怨言。”<br>子曰：“贫而无怨难，富而无骄易。”<br>子曰：“孟公绰为赵、魏老则优，不可以为滕、薛大夫。”<br>子路问成人，子曰：“若臧武仲之知、公绰之不欲、卞庄子之勇、冉求之艺，文之以礼乐，亦可以为成人矣。”曰：“今之成人者何必然？见利思义，见危授命，久要不忘平生之言，亦可以为成人矣。”<br>子问公叔文子于公明贾曰：“信乎，夫子不言，不笑，不取乎？”公明贾对曰：“以告者过也。夫子时然后言，人不厌其言；乐然后笑，人不厌其笑；义然后取，人不厌其取。”子曰：“其然？岂其然乎？”<br>子曰：“臧武仲以防求为后于鲁，虽曰不要君，吾不信也。”<br>子曰：“晋文公谲而不正，齐桓公正而不谲。”<br>子路曰：“桓公杀公子纠，召忽死之，管仲不死，曰未仁乎？”子曰：“桓公九合诸侯不以兵车，管仲之力也。如其仁，如其仁！”<br>子贡曰：“管仲非仁者与？桓公杀公子纠，不能死，又相之。”子曰：“管仲相桓公霸诸侯，一匡天下，民到于今受其赐。微管仲，吾其被发左衽矣。岂若匹夫匹妇之为谅也，自经于沟渎而莫之知也。”<br>公叔文子之臣大夫僎与文子同升诸公，子闻之,曰：“可以为‘文’矣。”<br>子言卫灵公之无道也，康子曰：“夫如是，奚而不丧？”孔子曰：“仲叔圉治宾客，祝鮀治宗庙，王孙贾治军旅，夫如是，奚其丧？”<br>子曰：“其言之不怍，则为之也难。”<br>陈成子弑简公，孔子沐浴而朝，告于哀公曰：“陈恒弑其君，请讨之。”公曰：“告夫三子。”,孔子曰：“以吾从大夫之后，不敢不告也，君曰‘告夫三子’者！”之三子告，不可。孔子曰：“以吾从大夫之后，不敢不告也。”<br>子路问事君，子曰：“勿欺也，而犯之。”<br>子曰：“君子上达，小人下达。”<br>子曰：“古之学者为己，今之学者为人。”<br>蘧伯玉使人于孔子，孔子与之坐而问焉，曰：“夫子何为？”对曰：“夫子欲寡其过而未能也。”使者出，子曰：“使乎！使乎！”<br>子曰：“不在其位，不谋其政。”曾子曰：“君子思不出其位。”<br>子曰：“君子耻其言而过其行。”<br>子曰：“君子道者三，我无能焉：仁者不忧，知者不惑，勇者不惧。”子贡曰：“夫子自道也。”<br>子贡方人，子曰：“赐也贤乎哉？夫我则不暇。”<br>子曰：“不患人之不己知，患其不能也。”<br>子曰：“不逆诈，不亿不信，抑亦先觉者，是贤乎！”<br>微生亩谓孔子曰：“丘何为是栖栖者与？无乃为佞乎？”孔子曰：“非敢为佞也，疾固也。”<br>曰：“骥不称其力，称其德也。”<br>或曰：“以德报怨，何如？”子曰：“何以报德？以直报怨，以德报德。”<br>子曰：“莫我知也夫！”子贡曰：“何为其莫知子也？”子曰：“不怨天，不尤人，下学而上达。知我者其天乎！”<br>公伯寮愬子路于季孙。子服景伯以告，曰：“夫子固有惑志于公伯寮，吾力犹能肆诸市朝。”子曰：“道之将行也与，命也；道之将废也与，命也。公伯寮其如命何？”<br>子曰：“贤者辟世，其次辟地，其次辟色，其次辟言。”子曰：“作者七人矣。”<br>子路宿于石门，晨门曰：“奚自？”子路曰：“自孔氏。”曰：“是知其不可而为之者与？”<br>子击磬于卫，有荷蒉而过孔氏之门者，曰：“有心哉，击磬乎！”既而曰：“鄙哉，硁硁乎！莫己知也，斯己而已矣。深则厉，浅则揭。”子曰：“果哉！末之难矣。”<br>子张曰：“《书》云，‘高宗谅阴，三年不言。’何谓也？”子曰：“何必高宗，古之人皆然。君薨，百官总己以听于冢宰三年。”<br>子曰：“上好礼，则民易使也。”<br>子路问君子，子曰：“修己以敬。”曰：“如斯而已乎？”曰：“修己以安人。”曰：“如斯而已乎？”曰：“修己以安百姓。修己以安百姓，尧、舜其犹病诸！”<br>原壤夷俟，子曰：“幼而不孙弟，长而无述焉，老而不死，是为贼！”以杖叩其胫。<br>阙党童子将命，或问之曰：“益者与？”子曰：“吾见其居于位也，见其与先生并行也。非求益者也，欲速成者也。”<br>卫灵公篇<br>卫灵公问陈于孔子，孔子对曰：“俎豆之事，则尝闻之矣；军旅之事，未之学也。”明日遂行。<br>在陈绝粮，从者病莫能兴。子路愠见曰：“君子亦有穷乎？”子曰：“君子固穷，小人穷斯滥矣。”<br>子曰：“赐也，女以予为多学而识之者与？”对曰：“然，非与？”曰：“非也，予一以贯之。”<br>子曰：“由，知德者鲜矣。”<br>子曰：“无为而治者其舜也与！夫何为哉？恭己正南面而已矣。”<br>子张问行，子曰：“言忠信，行笃敬，虽蛮貊之邦，行矣。言不忠信，行不笃敬，虽州里，行乎哉？立则见其参于前也，在舆则见其倚于衡也，夫然后行。”子张书诸绅。<br>子曰：“直哉史鱼！邦有道如矢，邦无道如矢。君子哉蘧伯玉！邦有道则仕，邦无道则可卷而怀之。”<br>子曰：“可与言而不与之言，失人；不可与言而与之言，失言。知者不失人亦不失言。”<br>子曰：“志士仁人无求生以害仁，有杀身以成仁。”<br>子贡问为仁，子曰：“工欲善其事，必先利其器。居是邦也，事其大夫之贤者，友其士之仁者。”<br>颜渊问为邦，子曰：“行夏之时，乘殷之辂，服周之冕，乐则《韶》、《舞》；放郑声，远佞人。郑声淫，佞人殆。”<br>子曰：“人无远虑，必有近忧。”<br>子曰：“已矣乎！吾未见好德如好色者也。”<br>子曰：“臧文仲其窃位者与！知柳下惠之贤而不与立也。”<br>子曰：“躬自厚而薄责于人，则远怨矣。”<br>子曰：“不曰‘如之何、如之何’者，吾末如之何也已矣。”<br>子曰：“群居终日，言不及义，好行小慧，难矣哉！”<br>子曰：“君子义以为质，礼以行之，孙以出之，信以成之。君子哉！”<br>子曰：“君子病无能焉，不病人之不己知也。”<br>子曰：“君子疾没世而名不称焉。”<br>子曰：“君子求诸己，小人求诸人。”<br>子曰：“君子矜而不争，群而不党。”<br>子曰：“君子不以言举人，不以人废言。”<br>子贡问曰：“有一言而可以终身行之者乎？”子曰：“其恕乎！己所不欲，勿施于人。”<br>子曰：“吾之于人也，谁毁谁誉？如有所誉者，其有所试矣。斯民也，三代之所以直道而行也。”<br>子曰：“吾犹及史之阙文也，有马者借人乘之，今亡矣夫！”<br>子曰：“巧言乱德，小不忍，则乱大谋。”<br>子曰：“众恶之，必察焉；众好之，必察焉。”<br>子曰：“人能弘道，非道弘人。”<br>子曰：“过而不改，是谓过矣。”<br>子曰：“吾尝终日不食、终夜不寝以思，无益，不如学也。”<br>子曰：“君子谋道不谋食。耕也馁在其中矣，学也禄在其中矣。君子忧道不忧贫。”<br>子曰：“知及之，仁不能守之，虽得之，必失之。知及之，仁能守之，不庄以涖之，则民不敬。知及之，仁能守之，庄以涖之，动之不以礼，未善也。”<br>子曰：“君子不可小知而可大受也，小人不可大受而可小知也。”<br>子曰：“民之于仁也，甚于水火。水火，吾见蹈而死者矣，未见蹈仁而死者也。”<br>子曰：“当仁不让于师。”<br>子曰：“君子贞而不谅。”<br>子曰：“事君，敬其事而后其食。”<br>子曰：“有教无类。”<br>子曰：“道不同，不相为谋。”<br>子曰：“辞达而已矣。”<br>师冕见，及阶，子曰：“阶也。”及席，子曰：“席也。”皆坐，子告之曰：“某在斯，某在斯。”师冕出。子张问曰：“与师言之道与？”子曰：“然，固相师之道也。”<br>季氏篇<br>季氏将伐颛臾，冉有、季路见于孔子，曰：“季氏将有事于颛臾。”孔子曰：“求，无乃尔是过与？夫颛臾，昔者先王以为东蒙主，且在邦域之中矣，是社稷之臣也。何以伐为？”冉有曰：“夫子欲之，吾二臣者皆不欲也。”孔子曰：“求，周任有言曰：‘陈力就列，不能者止。’危而不持，颠而不扶，则将焉用彼相矣？且尔言过矣，虎兕出于柙，龟玉毁于椟中，是谁之过与？”冉有曰：“今夫颛臾固而近于费，今不取，后世必为子孙忧。”孔子曰：“求，君子疾夫舍曰欲之而必为之辞。丘也闻，有国有家者，不患寡而患不均，不患贫而患不安。盖均无贫，和无寡，安无倾。夫如是，故远人不服则修文德以来之，既来之，则安之。今由与求也相夫子，远人不服而不能来也，邦分崩离析而不能守也，而谋动干戈于邦内。吾恐季孙之忧不在颛臾，而在萧墙之内也。”<br>孔子曰：“天下有道，则礼乐征伐自天子出；天下无道，则礼乐征伐自诸侯出。自诸侯出，盖十世希不失矣；自大夫出，五世希不失矣；陪臣执国命，三世希不失矣。天下有道，则政不在大夫；天下有道，则庶人不议。”<br>孔子曰：“禄之去公室五世矣，政逮于大夫四世矣，故夫三桓之子孙微矣。”<br>孔子曰：“益者三友，损者三友。友直、友谅、友多闻，益矣；友便辟、友善柔、友便佞，损矣。”<br>孔子曰：“益者三乐，损者三乐。乐节礼乐、乐道人之善、乐多贤友，益矣；乐骄乐、乐佚游、乐宴乐，损矣。”<br>孔子曰：“侍于君子有三愆：言未及之而言谓之躁，言及之而不言谓之隐，未见颜色而言谓之瞽。”<br>孔子曰：“君子有三戒：少之时，血气未定，戒之在色；及其壮也，血气方刚，戒之在斗；及其老也，血气既衰，戒之在得。”<br>孔子曰：“君子有三畏：畏天命，畏大人，畏圣人之言。小人不知天命而不畏也，狎大人，侮圣人之言。”<br>孔子曰：“生而知之者上也，学而知之者次也；困而学之又其次也。困而不学，民斯为下矣。”<br>孔子曰：“君子有九思：视思明，听思聪，色思温，貌思恭，言思忠，事思敬，疑思问，忿思难，见得思义。”<br>孔子曰：“见善如不及，见不善如探汤；吾见其人矣。吾闻其语矣。隐居以求其志，行义以达其道；吾闻其语矣，未见其人也。”<br>齐景公有马千驷，死之日，民无德而称焉；伯夷、叔齐饿于首阳之下，民到于今称之。其斯之谓与？”<br>陈亢问于伯鱼曰：“子亦有异闻乎？”对曰：“未也。尝独立，鲤趋而过庭，曰：‘学《诗》乎？’对曰：‘未也。’‘不学《诗》，无以言。’鲤退而学《诗》。他日，又独立，鲤趋而过庭，曰：‘学《礼》乎？’对曰：‘未也。’‘不学《礼》，无以立。’鲤退而学《礼》。闻斯二者。”陈亢退而喜曰：“问一得三，闻《诗》，闻《礼》，又闻君子之远其子也。”<br>邦君之妻，君称之曰夫人，夫人自称曰小童；邦人称之曰君夫人，称诸异邦曰寡小君；异邦人称之亦曰君夫人。<br>阳货篇<br>阳货欲见孔子，孔子不见，归孔子豚。孔子时其亡也而往拜之，遇诸涂。谓孔子曰：“来，予与尔言。”曰：“怀其宝而迷其邦，可谓仁乎？”曰：“不可。”“好从事而亟失时，可谓知乎？”曰：“不可！”“日月逝矣，岁不我与！”孔子曰：“诺，吾将仕矣。”<br>子曰：“性相近也，习相远也。”<br>子曰：“唯上知与下愚不移。”<br>子之武城，闻弦歌之声。夫子莞尔而笑，曰：“割鸡焉用牛刀？”子游对曰：“昔者偃也闻诸夫子曰：‘君子学道则爱人，小人学道则易使也。’”子曰：“二三子，偃之言是也！前言戏之耳。”<br>公山弗扰以费畔，召，子欲往。子路不说，曰：“末之也已，何必公山氏之之也？”子曰：“夫召我者而岂徒哉？如有用我者，吾其为东周乎！”<br>子张问仁于孔子，孔子曰：“能行五者于天下为仁矣。”请问之，曰：“恭、宽、信、敏、惠。恭则不侮，宽则得众，信则人任焉，敏则有功，惠则足以使人。”<br>佛肸召，子欲往。子路曰：“昔者由也闻诸夫子曰。亲于其身为不善者，君子不入也。’佛肸以中牟畔，子之往也，如之何？＂子曰：“然。有是言也。不曰坚乎，磨而不磷？不曰白乎，涅而不缁。焉岂匏瓜也哉？焉能系而不食？”<br>子曰：“由也，女闻六言六蔽矣乎？”对曰：“未也。”“居！吾语女。好仁不好学，其蔽也愚；好知不好学，其蔽也荡；好信不好学，其蔽也贼；好直不好学，其蔽也绞；好勇不好学，其蔽也乱；好刚不好学，其蔽也狂。”<br>子曰：“小子何莫学夫诗！诗，可以兴，可以观，可以群，可以怨：迩之事父，远之事君．多识于鸟兽草木之名。”<br>子谓伯鱼曰：“女为《周南》、《召南》矣乎？人而不为《周南》、《召南》，其犹正墙面而立也与？”<br>子曰：“礼云礼云，玉帛云乎哉？乐云乐云，钟鼓云乎哉？”<br>子曰：“色厉而内荏，譬诸小人，其犹穿窬之盗也与？”<br>子曰：“乡愿，德之贼也。”<br>子曰：“道听而途说，德之弃也。”<br>子曰：“鄙夫可与事君也与哉？其未得之也，患得之；既得之，患失之。苟患失之，无所不至矣。”<br>子曰：“古者民有三疾，今也或是之亡也。古之狂也肆，今之狂也荡；古之矜也廉，今之矜也忿戾；古之愚也直，今之愚也诈而已矣。”<br>子曰：“巧言令色，鲜矣仁。”<br>子曰：“恶紫之夺朱也，恶郑声之乱雅乐也，恶利口之覆邦家者。”<br>子曰：“予欲无言。”子贡曰：“子如不言，则小子何述焉？”子曰：“天何言哉？四时行焉，百物生焉，天何言哉？”<br>孺悲欲见孔子，孔子辞以疾。将命者出户，取瑟而歌，使之闻之。<br>宰我问：“三年之丧，期已久矣！君子三年不为礼，礼必坏；三年不为乐，乐必崩。旧谷既没，新谷既升，钻燧改火，期可已矣。”子曰：“食夫稻，衣夫锦，于女安乎？”曰：“安！”“女安则为之！夫君子之居丧，食旨不甘，闻乐不乐，居处不安，故不为也。今女安，则为之！”宰我出，子曰：“予之不仁也！子生三年，然后免于父母之怀。夫三年之丧，天下之通丧也，予也有三年之爱于其父母乎！”<br>子曰：“饱食终日，无所用心，难矣哉！不有博弈者乎？为之犹贤乎已。”<br>子路曰：“君子尚勇乎？”子曰：“君子义以为上。君子有勇而无义为乱，小人有勇而无义为盗。”<br>子贡曰：“君子亦有恶乎？”子曰：“有恶。恶称人之恶者，恶居下流而讪上者，恶勇而无礼者，恶果敢而窒者。”曰：“赐也亦有恶乎？”“恶徼以为知者，恶不孙以为勇者，恶讦以为直者。”<br>子曰：“唯女子与小人为难养也，近之则不孙，远之则怨。”<br>子曰：“年四十而见恶焉，其终也已。”<br>微子篇<br>微子去之，箕子为之奴，比干谏而死。孔子曰：“殷有三仁焉。”<br>柳下惠为士师，三黜。人曰：“子未可以去乎？”曰：“直道而事人，焉往而不三黜？枉道而事人，何必去父母之邦？”<br>齐景公待孔子曰：“若季氏，则吾不能。”以季、孟之间待之，曰：“吾老矣，不能用也。”孔子行。<br>齐人归女乐，季桓子受之，三日不朝，孔子行。”<br>楚狂接舆歌而过孔子曰：“凤兮凤兮，何德之衰？往者不可谏，来者犹可追。已而已而，今之从政者殆而！”孔子下，欲与之言，趋而辟之，不得与之言。<br>长沮、桀溺耦而耕，孔子过之，使子路问津焉。长沮曰：“夫执舆者为谁？”子路曰：“为孔丘。”曰：“是鲁孔丘与？”曰：“是也。”曰：“是知津矣。”问于桀溺，桀溺曰：“子为谁？”曰：“为仲由。”曰：“是鲁孔丘之徒与？”对曰：“然。”曰：“滔滔者天下皆是也，而谁以易之？且而与其从辟人之士也，岂若从辟世之士哉？”耰而不辍。子路行以告，夫子怃然曰：“鸟兽不可与同群，吾非斯人之徒与而谁与？天下有道，丘不与易也。”<br>子路从而后，遇丈人，以杖荷蓧。子路问曰：“子见夫子乎？”丈人曰：“四体不勤，五谷不分，孰为夫子？”植其杖而芸，子路拱而立。止子路宿，杀鸡为黍而食之，见其二子焉。明日，子路行以告，子曰：“隐者也。”使子路反见之，至则行矣。子路曰：“不仕无义。长幼之节不可废也，君臣之义如之何其废之？欲洁其身而乱大伦。君子之仕也，行其义也，道之不行已知之矣。”<br>逸民：伯夷、叔齐、虞仲、夷逸、朱张、柳下惠、少连。子曰：“不降其志，不辱其身，伯夷、叔齐与！”谓：“柳下惠、少连降志辱身矣，言中伦，行中虑，其斯而已矣。”谓：“虞仲、夷逸隐居放言，身中清，废中权。我则异于是，无可无不可。”<br>太师挚适齐，亚饭干适楚，三饭缭适蔡，四饭缺适秦，鼓方叔入于河，播鼗武入于汉，少师阳、击磬襄入于海。<br>周公谓鲁公曰：“君子不施其亲，不使大臣怨乎不以，故旧无大故则不弃也，无求备于一人。”<br>周有八士：伯达、伯适、仲突、仲忽、叔夜、叔夏、季随、季騧。<br>子张篇<br>子张曰：“士见危致命，见得思义，祭思敬，丧思哀，其可已矣。”<br>子张曰：“执德不弘，信道不笃，焉能为有？焉能为亡？”<br>子夏之门人问交于子张，子张曰：“子夏云何？”对曰：“子夏曰：‘可者与之，其不可者拒之。’”子张曰：“异乎吾所闻。君子尊贤而容众，嘉善而矜不能。我之大贤与，于人何所不容？我之不贤与，人将拒我，如之何其拒人也？”<br>子夏曰：“虽小道必有可观者焉，致远恐泥，是以君子不为也。”<br>子夏曰：“日知其所亡，月无忘其所能，可谓好学也已矣。”<br>子夏曰：“博学而笃志，切问而近思，仁在其中矣。”<br>子夏曰：“百工居肆以成其事，君子学以致其道。”<br>子夏曰：“小人之过也必文。”<br>子夏曰：“君子有三变：望之俨然，即之也温，听其言也厉。”<br>子夏曰：“君子信而后劳其民，未信，则以为厉己也；信而后谏，未信，则以为谤己也。”<br>子夏曰：“大德不逾闲，小德出入可也。”<br>子游曰：“子夏之门人小子，当洒扫应对进退则可矣。抑末也，本之则无，如之何？”子夏闻之，曰：“噫，言游过矣！君子之道，孰先传焉？孰后倦焉？譬诸草木，区以别矣。君子之道焉可诬也？有始有卒者，其惟圣人乎！”<br>子夏曰：“仕而优则学，学而优则仕。”<br>子游曰：“丧致乎哀而止。”<br>子游曰：“吾友张也为难能也，然而未仁。”<br>曾子曰：“堂堂乎张也，难与并为仁矣。”<br>曾子曰：“吾闻诸夫子，人未有自致者也，必也亲丧乎！”<br>曾子曰：“吾闻诸夫子，孟庄子之孝也，其他可能也；其不改父之臣与父之政，是难能也。”<br>孟氏使阳肤为士师，问于曾子。曾子曰：“上失其道，民散久矣。如得其情，则哀矜而勿喜！”<br>子贡曰：“纣之不善，不如是之甚也。是以君子恶居下流，天下之恶皆归焉。”<br>子贡曰：“君子之过也，如日月之食焉。过也人皆见之，更也人皆仰之。”<br>卫公孙朝问于子贡曰：“仲尼焉学？”子贡曰：“文武之道未坠于地，在人。贤者识其大者，不贤者识其小者，莫不有文武之道焉，夫子焉不学？而亦何常师之有？”<br>叔孙武叔语大夫于朝曰：“子贡贤于仲尼。”子服景伯以告子贡，子贡曰：“譬之宫墙，赐之墙也及肩，窥见室家之好；夫子之墙数仞，不得其门而入，不见宗庙之美、百官之富。得其门者或寡矣，夫子之云不亦宜乎！”<br>叔孙武叔毁仲尼，子贡曰：“无以为也，仲尼不可毁也。他人之贤者，丘陵也，犹可逾也；仲尼，日月也，无得而逾焉。人虽欲自绝，其何伤于日月乎？多见其不知量也。”<br>陈子禽谓子贡曰：“子为恭也，仲尼岂贤于子乎？”子贡曰：“君子一言以为知，一言以为不知，言不可不慎也。夫子之不可及也，犹天之不可阶而升也。夫子之得邦家者，所谓立之斯立，道之斯行，绥之斯来，动之斯和。其生也荣，其死也哀，如之何其可及也？”<br>尧曰篇<br>尧曰：“咨！尔舜！天之历数在尔躬，允执其中。四海困穷，天禄永终。”舜亦以命禹。曰：“予小子履，敢用玄牡，敢昭告于皇皇后帝：有罪不敢赦，帝臣不蔽，简在帝心。朕躬有罪，无以万方；万方有罪，罪在朕躬。”周有大赉，善人是富。“虽有周亲，不如仁人。百姓有过，在予一人。”谨权量，审法度，修废官，四方之政行焉。兴灭国，继绝世，举逸民，天下之民归心焉。所重：民、食、丧、祭。宽则得众，信则民任焉，敏则有功，公则说。<br>子张问于孔子曰：“何如斯可以从政矣？”子曰：“尊五美，屏四恶，斯可以从政矣。”子张曰：“何谓五美？”子曰：“君子惠而不费，劳而不怨，欲而不贪，泰而不骄，威而不猛。”子张曰：“何谓惠而不费？”子曰：“因民之所利而利之，斯不亦惠而不费乎？择可劳而劳之，又谁怨？欲仁而得仁，又焉贪？君子无众寡，无小大，无敢慢，斯不亦泰而不骄乎？君子正其衣冠，尊其瞻视，俨然人望而畏之，斯不亦威而不猛乎？”子张曰：“何谓四恶？”子曰：“不教而杀谓之虐；不戒视成谓之暴；慢令致期谓之贼；犹之与人也，出纳之吝谓之有司。”<br>孔子曰：“不知命，无以为君子也；不知礼，无以立也；不知言，无以知人也。”</p>
-]]></content>
-      <categories>
-        <category>读后感</category>
-      </categories>
-      <tags>
-        <tag>读后感</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>投资逻辑</title>
     <url>/2021/06/10/%E6%8A%95%E8%B5%84%E9%80%BB%E8%BE%91/</url>
     <content><![CDATA[<br>
@@ -8270,6 +8168,108 @@
       </categories>
       <tags>
         <tag>金融经济</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>读论语</title>
+    <url>/2021/05/25/%E8%AF%BB%E8%AE%BA%E8%AF%AD/</url>
+    <content><![CDATA[<br>
+
+<br>
+
+
+
+<h4 id="自己的理解"><a href="#自己的理解" class="headerlink" title="自己的理解"></a>自己的理解</h4><span id="more"></span>
+
+<p>投资的用处相对大些。</p>
+<p>有关于人性的智慧。</p>
+<blockquote>
+<p>子曰：“学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？</p>
+</blockquote>
+<p>之指代道，圣人之道。时有按时、当时、时常、时运、时机等解。而字，你、你的、须臾、像、并列、假设、词缀与语气等解。这里当取并列之意。</p>
+<p>《说文系传统论》写道，“悦，犹说也，拭也，解脱也。若人心有郁结能解释之也”。</p>
+<p>学之、时习之，即闻道、见道，并且，按时付之于行动、时常付之于行动，成习惯。如同天下遇知己。都是解脱郁结的事情。正如，“天行健，君子以自强不息”，“君子敏于行”。</p>
+<p>人，有人民、别人、人才之解。这里当指所有人。知，有了解、识别、交情、感觉、主持、智慧、有学识等解。而，如同第一句，取并列之意，而不取转折。愠为，内心燥热，即心不平静、情绪郁结或起伏。</p>
+<p>即人们，不了解天地之道、不知道圣人之道，且内心无所执、没什么郁结，也是个君子世界。</p>
+<p>整句话是说，要么学而时习，要么不知不愠，都可以让世界更朝着君子世界发展。不知不愠也是君子境界。君子不缺朋友，四海皆有友朋。</p>
+<blockquote>
+<p>有子曰:“其为人也孝弟而好犯上者，鲜矣；不好犯上而好作乱者，未之有也。君子务本，本立而道生。孝弟也者，其为仁之本与!”</p>
+</blockquote>
+<blockquote>
+<p>子曰:“巧言令色，鲜矣仁！”</p>
+</blockquote>
+<p>讷于言的训诫。巧、令都为擅长之意。重视“纸上谈兵”(说话)，“涂脂抹粉”(粉饰)，只有空壳，这样的人，大概率不是君子。</p>
+<blockquote>
+<p>曾子曰“吾日三省吾身:为人谋而不忠乎?与朋友交而不信乎?传不习乎?”</p>
+</blockquote>
+<p>具体所复盘的内容。因人而异，因时而异。</p>
+<p>彼时重视忠信与习道。当下，几乎是没有的。背信弃义而谋得利益，并且狐朋狗友夜夜笙歌，也是大把人在。但终究无法有厚度。所谓富而不仁，所见大多如此。看人心之所向。所向财富，利益，则复盘的，就都和谋得的手段相关。</p>
+<p>当下的世界，并非君子世界。也无法和而不同。当下德草，随“时”风而偃，不随君子德风。不尚德的世界，就是齐。还没到鲁。因为现在有法律，维护私人财产，维护物质，而无约束德行。</p>
+<p>子曰:“道千乘之国,敬事而信，节用而爱人，使民以时。”</p>
+<p>子曰：“弟子入则孝，出则弟，谨而信，泛爱众，而亲仁。行有余力，则以学文。”</p>
+<p>子夏曰：“贤贤易色；事父母，能竭其力；事君，能致其身；与朋友交，言而有信。虽曰未学，吾必谓之学矣。”</p>
+<p>子曰：“君子不重则不威，学则不固。主忠信，无友不如己者，过则勿惮改。”<br>曾子曰：“慎终追远，民德归厚矣。”<br>子禽问于子贡曰：“夫子至于是邦也，必闻其政，求之与，抑与之与？”子贡曰：“夫子温、良、恭、俭、让以得之。夫子之求之也，其诸异乎人之求之与？”</p>
+<blockquote>
+<p>子曰：“父在，观其志。父没，观其行；三年无改于父之道，可谓孝矣。”</p>
+</blockquote>
+<p>不讲孝。是情。对人有情，则在乎她的志趣，在乎她的行事，并尽量应和。</p>
+<p>有子曰：“礼之用，和为贵。先王之道，斯为美，小大由之。有所不行，知和而和，不以礼节之，亦不可行也。”<br>有子曰：“信近于义，言可复也。恭近于礼，远耻辱也。因不失其亲，亦可宗也。”</p>
+<blockquote>
+<p>子曰：“君子食无求饱，居无求安，敏于事而慎于言，就有道而正焉。可谓好学也已。”</p>
+</blockquote>
+<p>君子，即无郁结、不执之人。有食有居即可，不求更好。而对于言行，却有要求，”精神洁癖“。要求自己更加敏捷、谨慎，对照着道，”拨乱反正“。当下也一样，好学的人，工作狂，必然对外在的种种不予重视。</p>
+<p>所思所念，皆在于道。或者在于知识、科学、客观世界、真理。而也因此不会对旁人有所侵犯，也不会纠结于得到别人的利益。</p>
+<p>但是资本主义就是得到别人的利益。副产物是竞争带来的技术进步。</p>
+<blockquote>
+<p>子贡曰：“贫而无谄，富而无骄，何如？”子曰：“可也。未若贫而乐，富而好礼者也。”子贡曰：“《诗》云：‘如切如磋，如琢如磨’，其斯之谓与？”子曰：“赐也，始可与言《诗》已矣，告诸往而知来者。”</p>
+</blockquote>
+<p>不被”困“，不被贫富所控。不如即使窘困而乐在其中，即使富足而能有所节制。能够出离自己的当下，而保持君子之道。固守、时习。</p>
+<p>切磋琢磨，一个典故就是贾岛的推敲。若能琢磨，则必不会谄骄。而越加琢磨，反而会寻得其乐。告往知来，即为联系。赐能够看到琢磨为”不困“的本质。</p>
+<blockquote>
+<p>子曰：“为政以德，譬如北辰，居其所而众星共之。”</p>
+</blockquote>
+<p>这个德不是虚幻的。不同位置，不同处境的人，有不同的德的标准。甚至每个人都不同。关键不在于德是什么。</p>
+<p>当然有最基本的。即贫富的”不困“。贫富，不止物质上。任何有对比和差距的方面，都要”不困“。在于固守与琢磨，才能真的不受困。</p>
+<blockquote>
+<p>子曰：“《诗》三百，一言以蔽之，曰：‘思无邪’。”</p>
+</blockquote>
+<p>当下都是邪。现实都是邪。要求无邪，几乎是天堂。天堂一定是淳朴挚真的。当下能无邪么。</p>
+<p>对弱势的人，真的要让利的话，也是可笑。</p>
+<p>子曰：“道之以政，齐之以刑，民免而无耻。道之以德，齐之以礼，有耻且格。”</p>
+<p>子曰：“吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。”</p>
+<p>孟懿子问孝，子曰：“无违。”樊迟御，子告之曰：“孟孙问孝于我，我对曰‘无违’。”樊迟曰：“何谓也？”子曰：“生，事之以礼；死，葬之以礼，祭之以礼。”</p>
+<p>孟武伯问孝。子曰：“父母唯其疾之忧。”</p>
+<p>子游问孝，子曰：“今之孝者，是谓能养。至于犬马，皆能有养。不敬，何以别乎？”</p>
+<p>子夏问孝。子曰：“色难。有事，弟子服其劳；有酒食，先生馔，曾是以为孝乎？”</p>
+<p>子曰：“吾与回言终日，不违，如愚。退而省其私，亦足以发，回也不愚。”<br>子曰：“视其所以，观其所由，察其所安，人焉廋哉？人焉廋哉？”</p>
+<blockquote>
+<p>子曰：“温故而知新，可以为师矣。”</p>
+</blockquote>
+<p>为人师的，不温故不行，不知新不行。上级也一样。</p>
+<p>当然老板，又是另一路径。</p>
+<p>子曰：“君子不器。”<br>子贡问君子。子曰：“先行其言而后从之。”<br>子曰：“君子周而不比，小人比而不周。”<br>子曰：“学而不思则罔，思而不学则殆。”<br>子曰：“攻乎异端，斯害也已！”<br>子曰：“由，诲汝，知之乎！知之为知之，不知为不知，是知也。”<br>子张学干禄。子曰：“多闻阙疑，慎言其余，则寡尤；多见阙殆，慎行其余，则寡悔。言寡尤，行寡悔，禄在其中矣。”<br>哀公问曰：“何为则民服？”孔子对曰：“举直错诸枉，则民服；举枉错诸直，则民不服。”<br>季康子问：“使民敬、忠以劝，如之何？”子曰：“临之以庄，则敬；孝慈，则忠；举善而教不能，则劝。”<br>或谓孔子曰：“子奚不为政？”子曰：“《书》云：‘孝乎惟孝，友于兄弟，施于有政。’是亦为政，奚其为为政？”<br>子曰：“人而无信，不知其可也。大车无輗，小车无軏，其何以行之哉？”<br>子张问：“十世可知也？”子曰：“殷因于夏礼，所损益，可知也；周因于殷礼，所损益，可知也。其或继周者，虽百世，可知也。”<br>子曰：“非其鬼而祭之，谄也；见义不为，无勇也。”<br>八佾篇<br>孔子谓季氏:“八佾舞于庭，是可忍也，孰不可忍也?”<br>三家者以《雍》彻,子曰：‘相维辟公，天子穆穆’，奚取于三家之堂？”<br>子曰：“人而不仁，如礼何？人而不仁，如乐何？”<br>林放问礼之本,子曰：“大哉问！礼，与其奢也，宁俭；丧，与其易也，宁戚。”<br>子曰：“夷狄之有君，不如诸夏之亡也。”<br>季氏旅于泰山。子谓冉有曰：“女弗能救与？”对曰：“不能。”子曰：“呜呼！曾谓泰山不如林放乎？”<br>子曰：“君子无所争，必也射乎！揖让而升，下而饮。其争也君子。”<br>子夏问曰：“‘巧笑倩兮，美目盼兮，素以为绚兮’何谓也？”子曰：“绘事后素。”曰：“礼后乎？”子曰：“起予者商也，始可与言《诗》已矣。”<br>子曰：“夏礼，吾能言之，杞不足征也；殷礼吾能言之，宋不足征也。文献不足故也，足则吾能征之矣。”<br>子曰：“禘自既灌而往者，吾不欲观之矣。”<br>或问禘之说。子曰：“不知也。知其说者之于天下也，其如示诸斯乎！”指其掌。<br>祭如在，祭神如神在。子曰：“吾不与祭，如不祭。”<br>王孙贾问曰：“‘与其媚于奥，宁媚于灶’，何谓也？”子曰：“不然，获罪于天，无所祷也。”<br>子曰：“周监于二代，郁郁乎文哉！吾从周。”<br>子入太庙，每事问。或曰：“孰谓鄹人之子知礼乎？入太庙，每事问。”子闻之，曰：“是礼也。”<br>子曰：“射不主皮，为力不同科，古之道也。”<br>子贡欲去告朔之饩羊，子曰：“赐也！尔爱其羊，我爱其礼。”<br>子曰：“事君尽礼，人以为谄也。”<br>定公问：“君使臣，臣事君，如之何？”孔子对曰：“君使臣以礼，臣事君以忠。”<br>子曰：“《关雎》，乐而不淫，哀而不伤。”<br>哀公问社于宰我。宰我对曰：“夏后氏以松，殷人以柏，周人以栗，曰：使民战栗。”子闻之，曰：“成事不说，遂事不谏，既往不咎。”<br>子曰：“管仲之器小哉！”或曰：“管仲俭乎？”曰：“管氏有三归，官事不摄，焉得俭？”“然则管仲知礼乎？”曰：“邦君树塞门，管氏亦树塞门；邦君为两君之好，有反坫。管氏亦有反坫，管氏而知礼，孰不知礼？”<br>子语鲁大师乐，曰：“乐其可知也。始作，翕如也；从之，纯如也，皦如也，绎如也，以成。”<br>仪封人请见，曰：“君子之至于斯也，吾未尝不得见也。”从者见之。出曰：“二三子何患于丧乎？天下之无道也久矣，天将以夫子为木铎。”<br>子谓《韶》：“尽美矣，又尽善也。”谓《武》：“尽美矣，未尽善也。”<br>子曰：“居上不宽，为礼不敬，临丧不哀，吾何以观之哉！”<br>里仁篇<br>子曰：“里仁为美。择不处仁，焉得知？”<br>子曰：“不仁者不可以久处约，不可以长处乐。仁者安仁，知者利仁。”<br>子曰：“唯仁者能好人，能恶人。”<br>子曰：“苟志於仁矣，无恶也。”<br>子曰：“富与贵，是人之所欲也；不以其道得之，不处也。贫与贱，是人之所恶也；不以其道得之，不去也。君子去仁，恶乎成名？君子无终食之间违仁，造次必于是，颠沛必于是。”<br>子曰：“我未见好仁者，恶不仁者。好仁者，无以尚之；恶不仁者，其为仁矣，不使不仁者加乎其身。有能一日用其力于仁矣乎？我未见力不足者。盖有之矣，我未见也。”<br>子曰：“人之过也，各于其党。观过，斯知仁矣。”</p>
+<blockquote>
+<p>子曰：“朝闻道，夕死可矣。”</p>
+</blockquote>
+<p>闻道，并固守，时习之。</p>
+<p>子曰：“士志于道，而耻恶衣恶食者，未足与议也。”<br>子曰：“君子之于天下也，无适也，无莫也，义之与比。”<br>子曰：“君子怀德，小人怀土；君子怀刑，小人怀惠。”<br>子曰：“放于利而行，多怨。”<br>子曰：“能以礼让为国乎？何有？不能以礼让为国，如礼何？”<br>子曰：“不患无位，患所以立。不患莫己知，求为可知也。”<br>子曰：“参乎！吾道一以贯之。”曾子曰：“唯。”子出，门人问曰：“何谓也？”曾子曰：“夫子之道，忠恕而已矣。”<br>子曰：“君子喻于义，小人喻于利。”<br>子曰：“见贤思齐焉，见不贤而内自省也。”<br>子曰：“事父母几谏，见志不从，又敬不违，劳而不怨。”<br>子曰：“父母在，不远游，游必有方。”<br>子曰：“三年无改于父之道，可谓孝矣。<br>子曰：“父母之年，不可不知也。一则以喜，一则以惧。<br>子曰．“古者言之不出，耻躬之不逮也。<br>子曰：“以约失之者鲜矣。</p>
+<p>子曰：“德不孤，必有邻。”<br>子游曰：“事君数，斯辱矣；朋友数，斯疏矣。<br>公冶长篇<br>子谓公冶长：“可妻也，虽在缧绁之中，非其罪也！”以其子妻之。<br>子谓南容：“邦有道不废；邦无道免于刑戮。”以其兄之子妻之。<br>子谓子贱：“君子哉若人！鲁无君子者，斯焉取斯？”<br>子贡问曰：“赐也何如？”子曰：“女，器也。”曰：“何器也？”曰：“瑚琏也。”<br>或曰：“雍也仁而不佞。”子曰：“焉用佞？御人以口给，屡憎于人。不知其仁，焉用佞？”<br>子使漆雕开仕，对曰：“吾斯之未能信。”子说。<br>子曰：“道不行，乘桴浮于海，从我者其由与？”子路闻之喜，子曰：“由也好勇过我，无所取材。”<br>孟武伯问：“子路仁乎？”子曰：“不知也。”又问，子曰：“由也，千乘之国，可使治其赋也，不知其仁也。”“求也何如？”子曰：“求也，千室之邑、百乘之家，可使为之宰也，不知其仁也。”“赤也何如？”子曰：“赤也，束带立于朝，可使与宾客言也，不知其仁也。”<br>子谓子贡曰：“女与回也孰愈？”对曰：“赐也何敢望回？回也闻一以知十，赐也闻一以知二。”子曰：“弗如也，吾与女弗如也！”<br>宰予昼寝，子曰：“朽木不可雕也，粪土之墙不可杇也，于予与何诛？”子曰：“始吾于人也，听其言而信其行；今吾于人也，听其言而观其行。于予与改是。”<br>子曰：“吾未见刚者。”或对曰：“申枨。”子曰：“枨也欲，焉得刚。”<br>子贡曰：“我不欲人之加诸我也，吾亦欲无加诸人。”子曰：“赐也，非尔所及也。”<br>子贡曰：“夫子之文章，可得而闻也；夫子之言性与天道，不可得而闻也。”<br>子路有闻，未之能行，唯恐有闻。<br>子贡问曰：“孔文子何以谓之‘文’也？”子曰：“敏而好学，不耻下问，是以谓之‘文’也。”<br>子谓子产：“有君子之道四焉：其行己也恭，其事上也敬，其养民也惠，其使民也义。”<br>子曰：“晏平仲善与人交，久而敬之。”<br>子曰：“臧文仲居蔡，山节藻棁，何如其知也？”<br>子张问曰：“令尹子文三仕为令尹，无喜色，三已之无愠色，旧令尹之政必以告新令尹，何如？”子曰：“忠矣。”曰：“仁矣乎？”曰：“未知，焉得仁？”“崔子弑齐君，陈文子有马十乘，弃而违之。至于他邦，则曰：‘犹吾大夫崔子也。’违之。之一邦，则又曰：‘犹吾大夫崔子也。’违之，何如？”子曰：“清矣。”曰：“仁矣乎？”曰：“未知，焉得仁？”<br>季文子三思而后行，子闻之曰：“再斯可矣。”<br>子曰：“宁武子，邦有道，则知；邦无道，则愚。其知可及也，其愚不可及也。”<br>子在陈，曰：“归与！归与！吾党之小子狂简，斐然成章，不知所以裁之。”<br>子曰：“伯夷、叔齐不念旧恶，怨是用希。”<br>子曰：“孰谓微生高直？或乞醯焉，乞诸其邻而与之。”<br>子曰：“巧言、令色、足恭，左丘明耻之，丘亦耻之。匿怨而友其人，左丘明耻之，丘亦耻之。”<br>颜渊、季路侍，子曰：“盍各言尔志？”子路曰：“愿车马、衣轻裘与朋友共，敝之而无憾。”颜渊曰：“愿无伐善，无施劳。”子路曰：“愿闻子之志。”子曰：“老者安之，朋友信之，少者怀之。”<br>子曰：“已矣乎！吾未见能见其过而内自讼者也。”<br>子曰：“十室之邑，必有忠信如丘者焉，不如丘之好学也。”<br>雍也篇<br>子曰：“雍也可使南面。”<br>仲弓问子桑伯子，子曰：“可也简。”仲弓曰：“居敬而行简，以临其民，不亦可乎？居简而行简，无乃大简乎？”子曰：“雍之言然。”<br>哀公问：“弟子孰为好学？”孔子对曰：“有颜回者好学，不迁怒，不贰过，不幸短命死矣，今也则亡，未闻好学者也。”<br>子华使于齐，冉子为其母请粟，子曰：“与之釜。”请益，曰：“与之庾。”冉子与之粟五秉。子曰：“赤之适齐也，乘肥马，衣轻裘。吾闻之也，君子周急不继富。”<br>原思为之宰，与之粟九百，辞。子曰：“毋以与尔邻里乡党乎！”<br>子谓仲弓曰：“犁牛之子骍且角，虽欲勿用，山川其舍诸？”<br>子曰：“回也，其心三月不违仁，其余则日月至焉而已矣。”<br>季康子问：“仲由可使从政也与？”子曰：“由也果，于从政乎何有？”曰：“赐也可使从政也与？”曰：“赐也达，于从政乎何有？”曰：“求也可使从政也与？”曰：“求也艺，于从政乎何有？”</p>
+<p>季氏使闵子骞为费宰，闵子骞曰：“善为我辞焉。如有复我者，则吾必在汶上矣。”</p>
+<p>伯牛有疾，子问之，自牖执其手，曰：“亡之，命矣夫！斯人也而有斯疾也！斯人也而有斯疾也！”<br>子曰：“贤哉回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。贤哉，回也！”<br>冉求曰：“非不说子之道，力不足也。”子曰：“力不足者，中道而废，今女画。”<br>子谓子夏曰：“女为君子儒，毋为小人儒。”<br>子游为武城宰，子曰：“女得人焉尔乎？”曰：“有澹台灭明者，行不由径，非公事，未尝至于偃之室也。”<br>子曰：“孟之反不伐，奔而殿，将入门，策其马曰：‘非敢后也，马不进也。’”<br>子曰：“不有祝鮀之佞，而有宋朝之美，难乎免于今之世矣。”<br>子曰：“谁能出不由户？何莫由斯道也？”<br>子曰：“质胜文则野，文胜质则史。文质彬彬，然后君子。”<br>子曰：“人之生也直，罔之生也幸而免。”<br>子曰：“知之者不如好之者；好之者不如乐之者。”<br>子曰：“中人以上，可以语上也；中人以下，不可以语上也。”<br>樊迟问知，子曰：“务民之义，敬鬼神而远之，可谓知矣。”问仁，曰：“仁者先难而后获，可谓仁矣。”<br>子曰：“知者乐水，仁者乐山。知者动，仁者静。知者乐，仁者寿。”<br>子曰：“齐一变至于鲁，鲁一变至于道。”<br>子曰：“觚不觚，觚哉！觚哉！”<br>宰我问曰：“仁者，虽告之曰：‘井有仁焉。’其从之也？”子曰：“何为其然也？君子可逝也，不可陷也；可欺也，不可罔也。”<br>子曰：“君子博学于文，约之以礼，亦可以弗畔矣夫。”<br>子见南子，子路不说，夫子矢之曰：“予所否者，天厌之！天厌之！”<br>子曰：“中庸之为德也，其至矣乎！民鲜久矣。”<br>子贡曰：“如有博施于民而能济众，何如？可谓仁乎？”子曰：“何事于仁，必也圣乎！尧、舜其犹病诸！夫仁者，己欲立而立人，己欲达而达人。能近取譬，可谓仁之方也已。”<br>述而篇<br>子曰：“述而不作，信而好古，窃比于我老彭。”<br>子曰：“默而识之，学而不厌，诲人不倦，何有于我哉？”<br>子曰：“德之不修，学之不讲，闻义不能徙，不善不能改，是吾忧也。”<br>子之燕居，申申如也，夭夭如也。<br>子曰：“甚矣，吾衰也！久矣，吾不复梦见周公。”<br>子曰：“志于道，据于德，依于仁，游于艺。”<br>子曰：“自行束脩以上，吾未尝无诲焉。”<br>子曰：“不愤不启，不悱不发，举一隅不以三隅反，则不复也。”<br>子食于有丧者之侧，未尝饱也。<br>子于是日哭，则不歌。<br>子谓颜渊曰：“用之则行，舍之则藏，惟我与尔有是夫！”子路曰：“子行三军，则谁与？”子曰：“暴虎冯河，死而无悔者，吾不与也。必也临事而惧，好谋而成者也。”<br>子曰：“富而可求也，虽执鞭之士，吾亦为之。如不可求，从吾所好。”<br>子之所慎：齐，战，疾。<br>子在齐闻《韶》，三月不知肉味，曰：“不图为乐之至于斯也。”<br>冉有曰：“夫子为卫君乎？”子贡曰：“诺，吾将问之。”入，曰：“伯夷、叔齐何人也？”曰：“古之贤人也。”曰：“怨乎？”曰：“求仁而得仁，又何怨？”出，曰：“夫子不为也。”<br>子曰：“饭疏食饮水，曲肱而枕之，乐亦在其中矣。不义而富且贵，于我如浮云。”<br>子曰：“加我数年，五十以学《易》，可以无大过矣。”<br>子所雅言，《诗》、《书》、执礼，皆雅言也。<br>叶公问孔子于子路，子路不对。子曰：“女奚不曰：其为人也，发愤忘食，乐以忘忧，不知老之将至云尔。”<br>子曰：“我非生而知之者，好古，敏以求之者也。”<br>子不语：怪、力、乱、神。<br>子曰：“三人行，必有我师焉。择其善者而从之，其不善者而改之。”<br>子曰：“天生德于予，桓魋其如予何？”<br>子曰：“二三子以我为隐乎？吾无隐乎尔！吾无行而不与二三子者，是丘也。”<br>子以四教：文，行，忠，信。<br>子曰：“圣人，吾不得而见之矣；得见君子者，斯可矣。”子曰：“善人，吾不得而见之矣，得见有恒者斯可矣。亡而为有，虚而为盈，约而为泰，难乎有恒乎。”<br>子钓而不纲，弋不射宿。<br>子曰：“盖有不知而作之者，我无是也。多闻，择其善者而从之；多见而识之，知之次也。”<br>互乡难与言，童子见，门人惑。子曰：“与其进也，不与其退也，唯何甚？人洁己以进，与其洁也，不保其往也。”<br>子曰：“仁远乎哉？我欲仁，斯仁至矣。”<br>陈司败问：“昭公知礼乎？”孔子曰：“知礼。”孔子退，揖巫马期而进之，曰：“吾闻君子不党，君子亦党乎？君取于吴，为同姓，谓之吴孟子。君而知礼，孰不知礼？”巫马期以告，子曰：“丘也幸，苟有过，人必知之。”<br>子与人歌而善，必使反之，而后和之。<br>子曰：“文，莫吾犹人也。躬行君子，则吾未之有得。”<br>子曰：“若圣与仁，则吾岂敢？抑为之不厌，诲人不倦，则可谓云尔已矣。”公西华曰：“正唯弟子不能学也。”<br>子疾病，子路请祷。子曰：“有诸？”子路对曰：“有之。《诔》曰：‘祷尔于上下神祇。’”子曰：“丘之祷久矣。”<br>子曰：“奢则不孙，俭则固。与其不孙也，宁固。”<br>子曰：“君子坦荡荡，小人长戚戚。”<br>子温而厉，威而不猛，恭而安。<br>泰伯篇<br>子曰：“泰伯，其可谓至德也已矣。三以天下让，民无得而称焉。”<br>子曰：“恭而无礼则劳；慎而无礼则葸；勇而无礼则乱；直而无礼则绞。君子笃于亲，则民兴于仁；故旧不遗，则民不偷。”<br>曾子有疾，召门弟子曰：“启予足，启予手。《诗》云：‘战战兢兢，如临深渊，如履薄冰。’而今而后，吾知免夫，小子！”<br>曾子有疾，孟敬子问之。曾子言曰：“鸟之将死，其鸣也哀；人之将死，其言也善。君子所贵乎道者三：动容貌，斯远暴慢矣；正颜色，斯近信矣；出辞气，斯远鄙倍矣。笾豆之事，则有司存。”<br>曾子曰：“以能问于不能；以多问于寡；有若无，实若虚，犯而不校。昔者吾友尝从事于斯矣。”<br>曾子曰：“可以托六尺之孤，可以寄百里之命，临大节而不可夺也。君子人与？君子人也。”<br>曾子曰：“士不可以不弘毅，任重而道远。仁以为己任，不亦重乎？死而后已，不亦远乎？”<br>子曰：“兴于《诗》，立于礼，成于乐。”<br>子曰：“民可使由之，不可使知之。”<br>子曰：“好勇疾贫，乱也。人而不仁，疾之已甚，乱也。”<br>子曰：“如有周公之才之美，使骄且吝，其余不足观也已。”<br>子曰：“三年学，不至于谷，不易得也。”<br>子曰：“笃信好学，守死善道。危邦不入，乱邦不居。天下有道则见，无道则隐。邦有道，贫且贱焉，耻也；邦无道，富且贵焉，耻也。”<br>子曰：“不在其位，不谋其政。”<br>子曰：“师挚之始，《关雎》之乱，洋洋乎盈耳哉！”<br>子曰：“狂而不直，侗而不愿，悾悾而不信，吾不知之矣。”<br>子曰：“学如不及，犹恐失之。”<br>子曰：“巍巍乎！舜、禹之有天下也而不与焉。”<br>子曰：“大哉尧之为君也！巍巍乎，唯天为大，唯尧则之。荡荡乎，民无能名焉。巍巍乎其有成功也，焕乎其有文章！”<br>舜有臣五人而天下治。武王曰：“予有乱臣十人。”孔子曰：“才难，不其然乎？唐虞之际，于斯为盛；有妇人焉，九人而已。三分天下有其二，以服事殷。周之德，其可谓至德也已矣。”<br>子曰：“禹，吾无间然矣。菲饮食，而致孝乎鬼神；恶衣服，而致美乎黻冕；卑宫室，而尽力乎沟洫。禹，吾无间然矣！”<br>子罕篇<br>子罕言利与命与仁。<br>达巷党人曰：“大哉孔子！博学而无所成名。”子闻之，谓门弟子曰：“吾何执？执御乎，执射乎？吾执御矣。”<br>子曰：“麻冕，礼也；今也纯，俭，吾从众。拜下，礼也；今拜乎上，泰也；虽违众，吾从下。”<br>子绝四：毋意、毋必、毋固、毋我。<br>子畏于匡，曰：“文王既没，文不在兹乎？天之将丧斯文也，后死者不得与于斯文也；天之未丧斯文也，匡人其如予何？”<br>太宰问于子贡曰：“夫子圣者与，何其多能也？”子贡曰：“固天纵之将圣，又多能也。”子闻之，曰：“太宰知我乎？吾少也贱，故多能鄙事。君子多乎哉？不多也。”<br>牢曰：“子云：‘吾不试，故艺。’”<br>子曰：“吾有知乎哉？无知也。有鄙夫问于我，空空如也。我叩其两端而竭焉。”<br>子曰：“凤鸟不至，河不出图，吾已矣夫！”<br>子见齐衰者、冕衣裳者与瞽者，见之，虽少，必作，过之必趋。<br>颜渊喟然叹曰：“仰之弥高，钻之弥坚。瞻之在前，忽焉在后。夫子循循然善诱人，博我以文，约我以礼，欲罢不能。既竭吾才，如有所立卓尔，虽欲从之，末由也已。”<br>子疾病，子路使门人为臣。病间，曰：“久矣哉，由之行诈也！无臣而为有臣，吾谁欺？欺天乎？且予与其死于臣之手也，无宁死于二三子之手乎！且予纵不得大葬，予死于道路乎？”<br>子贡曰：“有美玉于斯，韫椟而藏诸？求善贾而沽诸？”子曰：“沽之哉，沽之哉！我待贾者也。”<br>子欲居九夷。或曰：“陋，如之何？”子曰：“君子居之，何陋之有！”<br>子曰：“吾自卫反鲁，然后乐正，《雅》、《颂》各得其所。”<br>子曰：“出则事公卿，入则事父兄，丧事不敢不勉，不为酒困，何有于我哉？”<br>子在川上曰：“逝者如斯夫！不舍昼夜。”<br>子曰：“吾未见好德如好色者也。”<br>子曰：“譬如为山，未成一篑，止，吾止也；譬如平地，虽覆一篑，进，吾往也。”<br>子曰：“语之而不惰者，其回也与！”<br>子谓颜渊，曰：“惜乎！吾见其进也，未见其止也。”<br>子曰：“苗而不秀者有矣夫，秀而不实者有矣夫。”<br>子曰：“后生可畏，焉知来者之不如今也？四十、五十而无闻焉，斯亦不足畏也已。”<br>子曰：“法语之言，能无从乎？改之为贵。巽与之言，能无说乎？绎之为贵。说而不绎，从而不改，吾末如之何也已矣。”<br>子曰：“主忠信。毋友不如己者，过，则勿惮改。”<br>子曰：“三军可夺帅也，匹夫不可夺志也。”<br>子曰：“衣敝缊袍，与衣狐貉者立而不耻者，其由也与！‘不忮不求，何用不臧？’”子路终身诵之，子曰：“是道也，何足以臧？”<br>子曰：“岁寒，然后知松柏之后凋也。”<br>子曰：“知者不惑，仁者不忧，勇者不惧。”<br>子曰：“可与共学，未可与适道；可与适道，未可与立；可与立，未可与权。”<br>“唐棣之华，偏其反而。岂不尔思？室是远尔。”子曰：“未之思也，夫何远之有。”<br>乡党篇<br>孔子于乡党，恂恂如也，似不能言者；其在宗庙朝廷，便便言，唯谨尔。<br>朝，与下大夫言，侃侃如也；与上大夫言，訚訚如也。君在，踧踖如也，与与如也。<br>君召使摈，色勃如也，足躩如也。揖所与立，左右手，衣前后襜如也。趋进，翼如也。宾退，必复命曰：“宾不顾矣。”<br>入公门，鞠躬如也，如不容。立不中门，行不履阈。过位，色勃如也，足躩如也，其言似不足者。摄齐升堂，鞠躬如也，屏气似不息者。出，降一等，逞颜色，怡怡如也；没阶，趋进，翼如也；复其位，踧踖如也。<br>执圭，鞠躬如也，如不胜。上如揖，下如授。勃如战色，足蹜蹜如有循。享礼，有容色。私觌，愉愉如也。<br>君子不以绀緅饰，红紫不以为亵服。当暑,袗絺绤，必表而出之。缁衣羔裘，素衣麑裘，黄衣狐裘。亵裘长，短右袂。必有寝衣，长一身有半。狐貉之厚以居。去丧，无所不佩。非帷裳，必杀之。羔裘玄冠不以吊。吉月，必朝服而朝。<br>齐，必有明衣，布。齐必变食，居必迁坐。<br>食不厌精，脍不厌细。食饐而餲，鱼馁而肉败，不食；色恶，不食；臭恶，不食；失饪，不食；不时，不食；割不正，不食；不得其酱，不食。肉虽多，不使胜食气。唯酒无量，不及乱。沽酒市脯，不食。不撤姜食，不多食。<br>祭于公，不宿肉。祭肉不出三日，出三日不食之矣。<br>食不语，寝不言。<br>虽疏食菜羹，瓜祭，必齐如也。<br>席不正，不坐。<br>乡人饮酒，杖者出，斯出矣。<br>乡人傩，朝服而立于阼阶。<br>问人于他邦，再拜而送之。<br>康子馈药，拜而受之。曰：“丘未达，不敢尝。”<br>厩焚，子退朝，曰：“伤人乎？”不问马。<br>君赐食，必正席先尝之。君赐腥，必熟而荐之。君赐生，必畜之。侍食于君，君祭，先饭。<br>疾，君视之，东首，加朝服，拖绅。<br>君命召，不俟驾行矣。<br>入太庙，每事问。<br>朋友死，无所归，曰：“于我殡。”<br>朋友之馈，虽车马，非祭肉，不拜。<br>寝不尸，居不容。<br>见齐衰者，虽狎，必变。见冕者与瞽者，虽亵，必以貌。凶服者式之，式负版者。有盛馔，必变色而作。迅雷风烈，必变。<br>升车，必正立，执绥。车中不内顾，不疾言，不亲指。<br>色斯举矣，翔而后集。曰：“山梁雌雉，时哉时哉！”子路共之，三嗅而作。<br>先进篇<br>子曰：“先进于礼乐，野人也；后进于礼乐，君子也。如用之，则吾从先进。”<br>子曰：“从我于陈、蔡者，皆不及门也。”<br>德行：颜渊，闵子骞，冉伯牛，仲弓。言语：宰我，子贡。政事：冉有，季路。文学：子游，子夏。<br>子曰：“回也非助我者也，于吾言无所不说。”<br>子曰：“孝哉闵子骞！人不间于其父母昆弟之言。”<br>南容三复白圭，孔子以其兄之子妻之。<br>季康子问：“弟子孰为好学？”孔子对曰：“有颜回者好学，不幸短命死矣，今也则亡。”<br>颜渊死，颜路请子之车以为之椁。子曰：“才不才，亦各言其子也。鲤也死，有棺而无椁，吾不徒行以为之椁。以吾从大夫之后，不可徒行也。”<br>颜渊死，子曰：“噫！天丧予！天丧予！”<br>颜渊死，子哭之恸，从者曰：“子恸矣！”曰：“有恸乎？非夫人之为恸而谁为？”<br>颜渊死，门人欲厚葬之，子曰：“不可。”门人厚葬之，子曰：“回也视予犹父也，予不得视犹子也。非我也，夫二三子也！”<br>季路问事鬼神，子曰：“未能事人，焉能事鬼？”,曰：“敢问死。”曰：“未知生，焉知死？”<br>闵子侍侧，訚訚如也；子路，行行如也；冉有、子贡，侃侃如也。子乐。“若由也，不得其死然。”<br>鲁人为长府，闵子骞曰：“仍旧贯如之何？何必改作？”子曰：“夫人不言，言必有中。”<br>子曰：“由之瑟，奚为于丘之门？”门人不敬子路，子曰：“由也升堂矣，未入于室也。”<br>子贡问：“师与商也孰贤？”子曰：“师也过，商也不及。”曰：“然则师愈与？”子曰：“过犹不及。”<br>季氏富于周公，而求也为之聚敛而附益之。子曰：“非吾徒也，小子鸣鼓而攻之可也。”<br>柴也愚，参也鲁，师也辟，由也喭。<br>子曰：“回也其庶乎，屡空。赐不受命而货殖焉，亿则屡中。”<br>子张问善人之道，子曰：“不践迹，亦不入于室。”<br>子曰：“论笃是与，君子者乎，色庄者乎？”<br>子路问：“闻斯行诸？”子曰：“有父兄在，如之何其闻斯行之？”冉有问：“闻斯行诸？”子曰：“闻斯行之。”公西华曰：“由也问：“闻斯行诸？”子曰：‘有父兄在’；求也问：‘闻斯行诸’。子曰‘闻斯行之’。赤也惑，敢问。”子曰：“求也退，故进之；由也兼人，故退之。”<br>子畏于匡，颜渊后。子曰：“吾以女为死矣！”曰：“子在，回何敢死！”<br>季子然问：“仲由、冉求可谓大臣与？”子曰：“吾以子为异之问，曾由与求之问。所谓大臣者，以道事君，不可则止。今由与求也，可谓具臣矣。”曰：“然则从之者与？”子曰：“弑父与君，亦不从也。”<br>子路使子羔为费宰，子曰：“贼夫人之子。”子路曰：“有民人焉，有社稷焉，何必读书然后为学。”子曰：“是故恶夫佞者。”<br>子路、曾皙、冉有、公西华侍坐，子曰：“以吾一日长乎尔，毋吾以也。居则曰‘不吾知也’如或知尔，则何以哉？”子路率尔而对曰：“千乘之国，摄乎大国之间，加之以师旅，因之以饥馑，由也为之，比及三年，可使有勇，且知方也。”夫子哂之。“求，尔何如？”对曰：“方六七十，如五六十，求也为之，比及三年，可使足民。如其礼乐，以俟君子。”“赤！尔何如？”对曰：“非曰能之，愿学焉。宗庙之事，如会同，端章甫，愿为小相焉。”“点，尔何如？”鼓瑟希，铿尔，舍瑟而作，对曰：“异乎三子者之撰。”子曰：“何伤乎？亦各言其志也。”曰：“暮春者，春服既成，冠者五六人，童子六七人，浴乎沂，风乎舞雩，咏而归。”夫子喟然叹曰：“吾与点也！”三子者出，曾皙后。曾皙曰：“夫三子者之言何如？”子曰：“亦各言其志也已矣。”曰：“夫子何哂由也？”曰：“为国以礼，其言不让，是故哂之。”“唯求则非邦也与？”“安见方六七十、如五六十而非邦也者？”“唯赤则非邦也与？”“宗庙会同，非诸侯而何？赤也为之小，孰能为之大？”<br>颜渊篇<br>颜渊问仁，子曰：“克己复礼为仁。一日克己复礼，天下归仁焉。为仁由己，而由人乎哉？”颜渊曰：“请问其目？”子曰：“非礼勿视，非礼勿听，非礼勿言，非礼勿动。”颜渊曰：“回虽不敏，请事斯语矣。”<br>仲弓问仁，子曰：“出门如见大宾，使民如承大祭。己所不欲，勿施于人。在邦无怨，在家无怨。”仲弓曰：“雍虽不敏，请事斯语矣。”<br>司马牛问仁，子曰：“仁者，其言也讱。”曰：“其言也讱，斯谓之仁已乎？”子曰：“为之难，言之得无讱乎？”<br>司马牛问君子，子曰：“君子不忧不惧。”曰：“不忧不惧，斯谓之君子已乎？”子曰：“内省不疚，夫何忧何惧？”<br>司马牛忧曰：“人皆有兄弟，我独亡。”子夏曰：“商闻之矣：死生有命，富贵在天。君子敬而无失，与人恭而有礼，四海之内皆兄弟也。君子何患乎无兄弟也？”<br>子张问明，子曰：“浸润之谮，肤受之愬，不行焉，可谓明也已矣；浸润之谮、肤受之愬不行焉，可谓远也已矣。”<br>子贡问政，子曰：“足食，足兵，民信之矣。”子贡曰：“必不得已而去，于斯三者何先？”曰：“去兵。”子贡曰：“必不得已而去，于斯二者何先？”曰：“去食。自古皆有死，民无信不立。”<br>棘子成曰：“君子质而已矣，何以文为？”子贡曰：“惜乎，夫子之说君子也！驷不及舌。文犹质也，质犹文也。虎豹之鞟犹犬羊之鞟。”<br>哀公问于有若曰：“年饥，用不足，如之何？”有若对曰：“盍彻乎？”曰：“二，吾犹不足，如之何其彻也？”对曰：“百姓足，君孰与不足？百姓不足，君孰与足？”<br>子张问崇德、辨惑，子曰：“主忠信，徙义，崇德也。爱之欲其生，恶之欲其死；既欲其生又欲其死，是惑也。‘诚不以富，亦只以异。’”<br>齐景公问政于孔子，孔子对曰：“君君，臣臣，父父，子子。”公曰：“善哉！信如君不君、臣不臣、父不父、子不子，虽有粟，吾得而食诸？”<br>子曰：“片言可以折狱者，其由也与？”子路无宿诺。<br>子曰：“听讼，吾犹人也。必也使无讼乎。”<br>子张问政，子曰：“居之无倦，行之以忠。”<br>子曰：“博学于文，约之以礼，亦可以弗畔矣夫。”<br>子曰：“君子成人之美，不成人之恶；小人反是。”<br>季康子问政于孔子，孔子对曰：“政者，正也。子帅以正，孰敢不正？”<br>季康子患盗，问于孔子。孔子对曰：“苟子之不欲，虽赏之不窃。”<br>季康子问政于孔子曰：“如杀无道以就有道，何如？”孔子对曰：“子为政，焉用杀？子欲善而民善矣。君子之德风，小人之德草，草上之风必偃。”<br>子张问：“士何如斯可谓之达矣？”子曰：“何哉尔所谓达者？”子张对曰：“在邦必闻，在家必闻。”子曰：“是闻也，非达也。夫达也者，质直而好义，察言而观色，虑以下人。在邦必达，在家必达。夫闻也者，色取仁而行违，居之不疑。在邦必闻，在家必闻。”<br>樊迟从游于舞雩之下，曰：“敢问崇德、修慝、辨惑。”子曰：“善哉问！先事后得，非崇德与？攻其恶，无攻人之恶，非修慝与？一朝之忿，忘其身，以及其亲，非惑与？”<br>樊迟问仁，子曰：“爱人。”问知，子曰：“知人。”樊迟未达，子曰：“举直错诸枉，能使枉者直。”樊迟退，见子夏，曰：“乡也吾见于夫子而问知，子曰：‘举直错诸枉，能使枉者直’，何谓也？”子夏曰：“富哉言乎！舜有天下，选于众，举皋陶，不仁者远矣。汤有天下，选于众，举伊尹，不仁者远矣。”<br>子贡问友，子曰：“忠告而善道之，不可则止，毋自辱焉。”<br>曾子曰：“君子以文会友，以友辅仁。”<br>子路篇<br>子路问政，子曰：“先之，劳之。”请益，曰：“无倦。”<br>仲弓为季氏宰，问政，子曰：“先有司，赦小过，举贤才。”曰：“焉知贤才而举之？”曰：“举尔所知。尔所不知，人其舍诸？”<br>子路曰：“卫君待子而为政，子将奚先？”子曰：“必也正名乎！”子路曰：“有是哉，子之迂也！奚其正？”子曰：“野哉由也！君子于其所不知，盖阙如也。名不正，则言不顺；言不顺，则事不成；事不成，则礼乐不兴；礼乐不兴，则刑罚不中；刑罚不中，则民无所错手足。故君子名之必可言也，言之必可行也。君子于其言，无所苟而已矣。”<br>樊迟请学稼，子曰：“吾不如老农。”请学为圃，曰：“吾不如老圃。”樊迟出。子曰：’小人哉，樊须也！上好礼，则民莫敢不敬；上好义，则民莫敢不服；上好信，则民莫敢不用情。夫如是，则四方之民襁负其子而至矣，焉用稼？”<br>子曰：“诵《诗》三百，授之以政，不达；使于四方，不能专对；虽多，亦奚以为？”<br>子曰：“其身正，不令而行；其身不正，虽令不从。”<br>子曰：“鲁卫之政，兄弟也。”<br>子谓卫公子荆，“善居室。始有，曰：‘苟合矣。’少有，曰：‘苟完矣。’富有，曰：‘苟美矣。’”<br>子适卫，冉有仆，子曰：“庶矣哉！”冉有曰：“既庶矣，又何加焉？”曰：“富之。”曰：“既富矣，又何加焉？”曰：“教之。”<br>子曰：“苟有用我者，期月而已可也，三年有成。”</p>
+<blockquote>
+<p>子曰：“‘善人为邦百年，亦可以胜残去杀矣。’诚哉是言也！”</p>
+</blockquote>
+<p>胜残去杀，残有为害的人、剩余、残破之意，杀有战斗、衰败、程度深、削除之意。胜为经得住、克服、超过，去为舍弃。理解为，去除那些暴戾为害的人、去除杀戮和斗争。</p>
+<blockquote>
+<p>子曰：“如有王者，必世而后仁。”</p>
+</blockquote>
+<p>子曰：“苟正其身矣，于从政乎何有？不能正其身，如正人何？”<br>冉子退朝，子曰：“何晏也？”对曰：“有政。”子曰：“其事也。如有政，虽不吾以，吾其与闻之。”<br>定公问：“一言而可以兴邦，有诸？”孔子对曰：“言不可以若是。其几也。人之言曰：‘为君难，为臣不易。’如知为君之难也，不几乎一言而兴邦乎？”曰：“一言而丧邦，有诸？”孔子对曰：“言不可以若是其几也。人之言曰：‘予无乐乎为君，唯其言而莫予违也。’如其善而莫之违也，不亦善乎？如不善而莫之违也，不几乎一言而丧邦乎？”<br>叶公问政，子曰：“近者说，远者来。”<br>子夏为莒父宰，问政，子曰：“无欲速，无见小利。欲速则不达，见小利则大事不成。”<br>叶公语孔子曰：“吾党有直躬者，其父攘羊，而子证之。”孔子曰：“吾党之直者异于是。父为子隐，子为父隐，直在其中矣。”<br>樊迟问仁，子曰：“居处恭，执事敬，与人忠。虽之夷狄，不可弃也。”<br>子贡问曰：“何如斯可谓之士矣？”子曰：“行己有耻，使于四方不辱君命，可谓士矣。”曰：“敢问其次。”曰：“宗族称孝焉，乡党称弟焉。”曰：“敢问其次。”曰：“言必信，行必果，踁踁然小人哉！抑亦可以为次矣。”曰：“今之从政者何如？”子曰：“噫！斗筲之人，何足算也！”<br>子曰：“不得中行而与之，必也狂狷乎！狂者进取，狷者有所不为也。”<br>子曰：“南人有言曰：‘人而无恒，不可以作巫医。’善夫！”“不恒其德，或承之羞。”子曰：“不占而已矣。”<br>子曰：“君子和而不同，小人同而不和。”<br>子贡问曰：“乡人皆好之，何如？”子曰：“未可也。”“乡人皆恶之，何如？”子曰：“未可也。不如乡人之善者好之，其不善者恶之。”<br>子曰：“君子易事而难说也，说之不以道不说也，及其使人也器之；小人难事而易说也，说之虽不以道说也，及其使人也求备焉。”<br>子曰：“君子泰而不骄，小人骄而不泰。”<br>子曰：“刚、毅、木、讷近仁。”<br>子路问曰：“何如斯可谓之士矣？”子曰：“切切偲偲，怡怡如也，可谓士矣。朋友切切偲偲，兄弟怡怡。”<br>子曰：“善人教民七年，亦可以即戎矣。”<br>子曰：“以不教民战，是谓弃之。”<br>宪问篇<br>宪问耻，子曰：“邦有道，谷；邦无道，谷，耻也。”“克、伐、怨、欲不行焉，可以为仁矣？”子曰：“可以为难矣，仁则吾不知也。”<br>子曰：“士而怀居，不足以为士矣。”<br>子曰：“邦有道，危言危行；邦无道，危行言孙。”<br>子曰：“有德者必有言，有言者不必有德。仁者必有勇，勇者不必有仁。”<br>南宫适问于孔子曰：“羿善射，奡荡舟，俱不得其死然；禹、稷躬稼而有天下。”夫子不答。南宫适出，子曰：“君子哉若人！尚德哉若人！”<br>子曰：“君子而不仁者有矣夫，未有小人而仁者也。”<br>子曰：“爱之，能勿劳乎？忠焉，能勿诲乎？”<br>子曰：“为命，裨谌草创之，世叔讨论之，行人子羽修饰之，东里子产润色之。”<br>或问子产，子曰：“惠人也。”问子西，曰：“彼哉，彼哉！”问管仲，曰：“人也。夺伯氏骈邑三百，饭疏食，没齿无怨言。”<br>子曰：“贫而无怨难，富而无骄易。”<br>子曰：“孟公绰为赵、魏老则优，不可以为滕、薛大夫。”<br>子路问成人，子曰：“若臧武仲之知、公绰之不欲、卞庄子之勇、冉求之艺，文之以礼乐，亦可以为成人矣。”曰：“今之成人者何必然？见利思义，见危授命，久要不忘平生之言，亦可以为成人矣。”<br>子问公叔文子于公明贾曰：“信乎，夫子不言，不笑，不取乎？”公明贾对曰：“以告者过也。夫子时然后言，人不厌其言；乐然后笑，人不厌其笑；义然后取，人不厌其取。”子曰：“其然？岂其然乎？”<br>子曰：“臧武仲以防求为后于鲁，虽曰不要君，吾不信也。”<br>子曰：“晋文公谲而不正，齐桓公正而不谲。”<br>子路曰：“桓公杀公子纠，召忽死之，管仲不死，曰未仁乎？”子曰：“桓公九合诸侯不以兵车，管仲之力也。如其仁，如其仁！”<br>子贡曰：“管仲非仁者与？桓公杀公子纠，不能死，又相之。”子曰：“管仲相桓公霸诸侯，一匡天下，民到于今受其赐。微管仲，吾其被发左衽矣。岂若匹夫匹妇之为谅也，自经于沟渎而莫之知也。”<br>公叔文子之臣大夫僎与文子同升诸公，子闻之,曰：“可以为‘文’矣。”<br>子言卫灵公之无道也，康子曰：“夫如是，奚而不丧？”孔子曰：“仲叔圉治宾客，祝鮀治宗庙，王孙贾治军旅，夫如是，奚其丧？”<br>子曰：“其言之不怍，则为之也难。”<br>陈成子弑简公，孔子沐浴而朝，告于哀公曰：“陈恒弑其君，请讨之。”公曰：“告夫三子。”,孔子曰：“以吾从大夫之后，不敢不告也，君曰‘告夫三子’者！”之三子告，不可。孔子曰：“以吾从大夫之后，不敢不告也。”<br>子路问事君，子曰：“勿欺也，而犯之。”<br>子曰：“君子上达，小人下达。”<br>子曰：“古之学者为己，今之学者为人。”<br>蘧伯玉使人于孔子，孔子与之坐而问焉，曰：“夫子何为？”对曰：“夫子欲寡其过而未能也。”使者出，子曰：“使乎！使乎！”<br>子曰：“不在其位，不谋其政。”曾子曰：“君子思不出其位。”<br>子曰：“君子耻其言而过其行。”<br>子曰：“君子道者三，我无能焉：仁者不忧，知者不惑，勇者不惧。”子贡曰：“夫子自道也。”<br>子贡方人，子曰：“赐也贤乎哉？夫我则不暇。”<br>子曰：“不患人之不己知，患其不能也。”<br>子曰：“不逆诈，不亿不信，抑亦先觉者，是贤乎！”<br>微生亩谓孔子曰：“丘何为是栖栖者与？无乃为佞乎？”孔子曰：“非敢为佞也，疾固也。”<br>曰：“骥不称其力，称其德也。”<br>或曰：“以德报怨，何如？”子曰：“何以报德？以直报怨，以德报德。”<br>子曰：“莫我知也夫！”子贡曰：“何为其莫知子也？”子曰：“不怨天，不尤人，下学而上达。知我者其天乎！”<br>公伯寮愬子路于季孙。子服景伯以告，曰：“夫子固有惑志于公伯寮，吾力犹能肆诸市朝。”子曰：“道之将行也与，命也；道之将废也与，命也。公伯寮其如命何？”<br>子曰：“贤者辟世，其次辟地，其次辟色，其次辟言。”子曰：“作者七人矣。”<br>子路宿于石门，晨门曰：“奚自？”子路曰：“自孔氏。”曰：“是知其不可而为之者与？”<br>子击磬于卫，有荷蒉而过孔氏之门者，曰：“有心哉，击磬乎！”既而曰：“鄙哉，硁硁乎！莫己知也，斯己而已矣。深则厉，浅则揭。”子曰：“果哉！末之难矣。”<br>子张曰：“《书》云，‘高宗谅阴，三年不言。’何谓也？”子曰：“何必高宗，古之人皆然。君薨，百官总己以听于冢宰三年。”<br>子曰：“上好礼，则民易使也。”<br>子路问君子，子曰：“修己以敬。”曰：“如斯而已乎？”曰：“修己以安人。”曰：“如斯而已乎？”曰：“修己以安百姓。修己以安百姓，尧、舜其犹病诸！”<br>原壤夷俟，子曰：“幼而不孙弟，长而无述焉，老而不死，是为贼！”以杖叩其胫。<br>阙党童子将命，或问之曰：“益者与？”子曰：“吾见其居于位也，见其与先生并行也。非求益者也，欲速成者也。”<br>卫灵公篇<br>卫灵公问陈于孔子，孔子对曰：“俎豆之事，则尝闻之矣；军旅之事，未之学也。”明日遂行。<br>在陈绝粮，从者病莫能兴。子路愠见曰：“君子亦有穷乎？”子曰：“君子固穷，小人穷斯滥矣。”<br>子曰：“赐也，女以予为多学而识之者与？”对曰：“然，非与？”曰：“非也，予一以贯之。”<br>子曰：“由，知德者鲜矣。”<br>子曰：“无为而治者其舜也与！夫何为哉？恭己正南面而已矣。”<br>子张问行，子曰：“言忠信，行笃敬，虽蛮貊之邦，行矣。言不忠信，行不笃敬，虽州里，行乎哉？立则见其参于前也，在舆则见其倚于衡也，夫然后行。”子张书诸绅。<br>子曰：“直哉史鱼！邦有道如矢，邦无道如矢。君子哉蘧伯玉！邦有道则仕，邦无道则可卷而怀之。”<br>子曰：“可与言而不与之言，失人；不可与言而与之言，失言。知者不失人亦不失言。”<br>子曰：“志士仁人无求生以害仁，有杀身以成仁。”<br>子贡问为仁，子曰：“工欲善其事，必先利其器。居是邦也，事其大夫之贤者，友其士之仁者。”<br>颜渊问为邦，子曰：“行夏之时，乘殷之辂，服周之冕，乐则《韶》、《舞》；放郑声，远佞人。郑声淫，佞人殆。”<br>子曰：“人无远虑，必有近忧。”<br>子曰：“已矣乎！吾未见好德如好色者也。”<br>子曰：“臧文仲其窃位者与！知柳下惠之贤而不与立也。”<br>子曰：“躬自厚而薄责于人，则远怨矣。”<br>子曰：“不曰‘如之何、如之何’者，吾末如之何也已矣。”<br>子曰：“群居终日，言不及义，好行小慧，难矣哉！”<br>子曰：“君子义以为质，礼以行之，孙以出之，信以成之。君子哉！”<br>子曰：“君子病无能焉，不病人之不己知也。”<br>子曰：“君子疾没世而名不称焉。”<br>子曰：“君子求诸己，小人求诸人。”<br>子曰：“君子矜而不争，群而不党。”<br>子曰：“君子不以言举人，不以人废言。”<br>子贡问曰：“有一言而可以终身行之者乎？”子曰：“其恕乎！己所不欲，勿施于人。”<br>子曰：“吾之于人也，谁毁谁誉？如有所誉者，其有所试矣。斯民也，三代之所以直道而行也。”<br>子曰：“吾犹及史之阙文也，有马者借人乘之，今亡矣夫！”<br>子曰：“巧言乱德，小不忍，则乱大谋。”<br>子曰：“众恶之，必察焉；众好之，必察焉。”<br>子曰：“人能弘道，非道弘人。”<br>子曰：“过而不改，是谓过矣。”<br>子曰：“吾尝终日不食、终夜不寝以思，无益，不如学也。”<br>子曰：“君子谋道不谋食。耕也馁在其中矣，学也禄在其中矣。君子忧道不忧贫。”<br>子曰：“知及之，仁不能守之，虽得之，必失之。知及之，仁能守之，不庄以涖之，则民不敬。知及之，仁能守之，庄以涖之，动之不以礼，未善也。”<br>子曰：“君子不可小知而可大受也，小人不可大受而可小知也。”<br>子曰：“民之于仁也，甚于水火。水火，吾见蹈而死者矣，未见蹈仁而死者也。”<br>子曰：“当仁不让于师。”<br>子曰：“君子贞而不谅。”<br>子曰：“事君，敬其事而后其食。”<br>子曰：“有教无类。”<br>子曰：“道不同，不相为谋。”<br>子曰：“辞达而已矣。”<br>师冕见，及阶，子曰：“阶也。”及席，子曰：“席也。”皆坐，子告之曰：“某在斯，某在斯。”师冕出。子张问曰：“与师言之道与？”子曰：“然，固相师之道也。”<br>季氏篇<br>季氏将伐颛臾，冉有、季路见于孔子，曰：“季氏将有事于颛臾。”孔子曰：“求，无乃尔是过与？夫颛臾，昔者先王以为东蒙主，且在邦域之中矣，是社稷之臣也。何以伐为？”冉有曰：“夫子欲之，吾二臣者皆不欲也。”孔子曰：“求，周任有言曰：‘陈力就列，不能者止。’危而不持，颠而不扶，则将焉用彼相矣？且尔言过矣，虎兕出于柙，龟玉毁于椟中，是谁之过与？”冉有曰：“今夫颛臾固而近于费，今不取，后世必为子孙忧。”孔子曰：“求，君子疾夫舍曰欲之而必为之辞。丘也闻，有国有家者，不患寡而患不均，不患贫而患不安。盖均无贫，和无寡，安无倾。夫如是，故远人不服则修文德以来之，既来之，则安之。今由与求也相夫子，远人不服而不能来也，邦分崩离析而不能守也，而谋动干戈于邦内。吾恐季孙之忧不在颛臾，而在萧墙之内也。”<br>孔子曰：“天下有道，则礼乐征伐自天子出；天下无道，则礼乐征伐自诸侯出。自诸侯出，盖十世希不失矣；自大夫出，五世希不失矣；陪臣执国命，三世希不失矣。天下有道，则政不在大夫；天下有道，则庶人不议。”<br>孔子曰：“禄之去公室五世矣，政逮于大夫四世矣，故夫三桓之子孙微矣。”<br>孔子曰：“益者三友，损者三友。友直、友谅、友多闻，益矣；友便辟、友善柔、友便佞，损矣。”<br>孔子曰：“益者三乐，损者三乐。乐节礼乐、乐道人之善、乐多贤友，益矣；乐骄乐、乐佚游、乐宴乐，损矣。”<br>孔子曰：“侍于君子有三愆：言未及之而言谓之躁，言及之而不言谓之隐，未见颜色而言谓之瞽。”<br>孔子曰：“君子有三戒：少之时，血气未定，戒之在色；及其壮也，血气方刚，戒之在斗；及其老也，血气既衰，戒之在得。”<br>孔子曰：“君子有三畏：畏天命，畏大人，畏圣人之言。小人不知天命而不畏也，狎大人，侮圣人之言。”<br>孔子曰：“生而知之者上也，学而知之者次也；困而学之又其次也。困而不学，民斯为下矣。”<br>孔子曰：“君子有九思：视思明，听思聪，色思温，貌思恭，言思忠，事思敬，疑思问，忿思难，见得思义。”<br>孔子曰：“见善如不及，见不善如探汤；吾见其人矣。吾闻其语矣。隐居以求其志，行义以达其道；吾闻其语矣，未见其人也。”<br>齐景公有马千驷，死之日，民无德而称焉；伯夷、叔齐饿于首阳之下，民到于今称之。其斯之谓与？”<br>陈亢问于伯鱼曰：“子亦有异闻乎？”对曰：“未也。尝独立，鲤趋而过庭，曰：‘学《诗》乎？’对曰：‘未也。’‘不学《诗》，无以言。’鲤退而学《诗》。他日，又独立，鲤趋而过庭，曰：‘学《礼》乎？’对曰：‘未也。’‘不学《礼》，无以立。’鲤退而学《礼》。闻斯二者。”陈亢退而喜曰：“问一得三，闻《诗》，闻《礼》，又闻君子之远其子也。”<br>邦君之妻，君称之曰夫人，夫人自称曰小童；邦人称之曰君夫人，称诸异邦曰寡小君；异邦人称之亦曰君夫人。<br>阳货篇<br>阳货欲见孔子，孔子不见，归孔子豚。孔子时其亡也而往拜之，遇诸涂。谓孔子曰：“来，予与尔言。”曰：“怀其宝而迷其邦，可谓仁乎？”曰：“不可。”“好从事而亟失时，可谓知乎？”曰：“不可！”“日月逝矣，岁不我与！”孔子曰：“诺，吾将仕矣。”<br>子曰：“性相近也，习相远也。”<br>子曰：“唯上知与下愚不移。”<br>子之武城，闻弦歌之声。夫子莞尔而笑，曰：“割鸡焉用牛刀？”子游对曰：“昔者偃也闻诸夫子曰：‘君子学道则爱人，小人学道则易使也。’”子曰：“二三子，偃之言是也！前言戏之耳。”<br>公山弗扰以费畔，召，子欲往。子路不说，曰：“末之也已，何必公山氏之之也？”子曰：“夫召我者而岂徒哉？如有用我者，吾其为东周乎！”<br>子张问仁于孔子，孔子曰：“能行五者于天下为仁矣。”请问之，曰：“恭、宽、信、敏、惠。恭则不侮，宽则得众，信则人任焉，敏则有功，惠则足以使人。”<br>佛肸召，子欲往。子路曰：“昔者由也闻诸夫子曰。亲于其身为不善者，君子不入也。’佛肸以中牟畔，子之往也，如之何？＂子曰：“然。有是言也。不曰坚乎，磨而不磷？不曰白乎，涅而不缁。焉岂匏瓜也哉？焉能系而不食？”<br>子曰：“由也，女闻六言六蔽矣乎？”对曰：“未也。”“居！吾语女。好仁不好学，其蔽也愚；好知不好学，其蔽也荡；好信不好学，其蔽也贼；好直不好学，其蔽也绞；好勇不好学，其蔽也乱；好刚不好学，其蔽也狂。”<br>子曰：“小子何莫学夫诗！诗，可以兴，可以观，可以群，可以怨：迩之事父，远之事君．多识于鸟兽草木之名。”<br>子谓伯鱼曰：“女为《周南》、《召南》矣乎？人而不为《周南》、《召南》，其犹正墙面而立也与？”<br>子曰：“礼云礼云，玉帛云乎哉？乐云乐云，钟鼓云乎哉？”<br>子曰：“色厉而内荏，譬诸小人，其犹穿窬之盗也与？”<br>子曰：“乡愿，德之贼也。”<br>子曰：“道听而途说，德之弃也。”<br>子曰：“鄙夫可与事君也与哉？其未得之也，患得之；既得之，患失之。苟患失之，无所不至矣。”<br>子曰：“古者民有三疾，今也或是之亡也。古之狂也肆，今之狂也荡；古之矜也廉，今之矜也忿戾；古之愚也直，今之愚也诈而已矣。”<br>子曰：“巧言令色，鲜矣仁。”<br>子曰：“恶紫之夺朱也，恶郑声之乱雅乐也，恶利口之覆邦家者。”<br>子曰：“予欲无言。”子贡曰：“子如不言，则小子何述焉？”子曰：“天何言哉？四时行焉，百物生焉，天何言哉？”<br>孺悲欲见孔子，孔子辞以疾。将命者出户，取瑟而歌，使之闻之。<br>宰我问：“三年之丧，期已久矣！君子三年不为礼，礼必坏；三年不为乐，乐必崩。旧谷既没，新谷既升，钻燧改火，期可已矣。”子曰：“食夫稻，衣夫锦，于女安乎？”曰：“安！”“女安则为之！夫君子之居丧，食旨不甘，闻乐不乐，居处不安，故不为也。今女安，则为之！”宰我出，子曰：“予之不仁也！子生三年，然后免于父母之怀。夫三年之丧，天下之通丧也，予也有三年之爱于其父母乎！”<br>子曰：“饱食终日，无所用心，难矣哉！不有博弈者乎？为之犹贤乎已。”<br>子路曰：“君子尚勇乎？”子曰：“君子义以为上。君子有勇而无义为乱，小人有勇而无义为盗。”<br>子贡曰：“君子亦有恶乎？”子曰：“有恶。恶称人之恶者，恶居下流而讪上者，恶勇而无礼者，恶果敢而窒者。”曰：“赐也亦有恶乎？”“恶徼以为知者，恶不孙以为勇者，恶讦以为直者。”<br>子曰：“唯女子与小人为难养也，近之则不孙，远之则怨。”<br>子曰：“年四十而见恶焉，其终也已。”<br>微子篇<br>微子去之，箕子为之奴，比干谏而死。孔子曰：“殷有三仁焉。”<br>柳下惠为士师，三黜。人曰：“子未可以去乎？”曰：“直道而事人，焉往而不三黜？枉道而事人，何必去父母之邦？”<br>齐景公待孔子曰：“若季氏，则吾不能。”以季、孟之间待之，曰：“吾老矣，不能用也。”孔子行。<br>齐人归女乐，季桓子受之，三日不朝，孔子行。”<br>楚狂接舆歌而过孔子曰：“凤兮凤兮，何德之衰？往者不可谏，来者犹可追。已而已而，今之从政者殆而！”孔子下，欲与之言，趋而辟之，不得与之言。<br>长沮、桀溺耦而耕，孔子过之，使子路问津焉。长沮曰：“夫执舆者为谁？”子路曰：“为孔丘。”曰：“是鲁孔丘与？”曰：“是也。”曰：“是知津矣。”问于桀溺，桀溺曰：“子为谁？”曰：“为仲由。”曰：“是鲁孔丘之徒与？”对曰：“然。”曰：“滔滔者天下皆是也，而谁以易之？且而与其从辟人之士也，岂若从辟世之士哉？”耰而不辍。子路行以告，夫子怃然曰：“鸟兽不可与同群，吾非斯人之徒与而谁与？天下有道，丘不与易也。”<br>子路从而后，遇丈人，以杖荷蓧。子路问曰：“子见夫子乎？”丈人曰：“四体不勤，五谷不分，孰为夫子？”植其杖而芸，子路拱而立。止子路宿，杀鸡为黍而食之，见其二子焉。明日，子路行以告，子曰：“隐者也。”使子路反见之，至则行矣。子路曰：“不仕无义。长幼之节不可废也，君臣之义如之何其废之？欲洁其身而乱大伦。君子之仕也，行其义也，道之不行已知之矣。”<br>逸民：伯夷、叔齐、虞仲、夷逸、朱张、柳下惠、少连。子曰：“不降其志，不辱其身，伯夷、叔齐与！”谓：“柳下惠、少连降志辱身矣，言中伦，行中虑，其斯而已矣。”谓：“虞仲、夷逸隐居放言，身中清，废中权。我则异于是，无可无不可。”<br>太师挚适齐，亚饭干适楚，三饭缭适蔡，四饭缺适秦，鼓方叔入于河，播鼗武入于汉，少师阳、击磬襄入于海。<br>周公谓鲁公曰：“君子不施其亲，不使大臣怨乎不以，故旧无大故则不弃也，无求备于一人。”<br>周有八士：伯达、伯适、仲突、仲忽、叔夜、叔夏、季随、季騧。<br>子张篇<br>子张曰：“士见危致命，见得思义，祭思敬，丧思哀，其可已矣。”<br>子张曰：“执德不弘，信道不笃，焉能为有？焉能为亡？”<br>子夏之门人问交于子张，子张曰：“子夏云何？”对曰：“子夏曰：‘可者与之，其不可者拒之。’”子张曰：“异乎吾所闻。君子尊贤而容众，嘉善而矜不能。我之大贤与，于人何所不容？我之不贤与，人将拒我，如之何其拒人也？”<br>子夏曰：“虽小道必有可观者焉，致远恐泥，是以君子不为也。”<br>子夏曰：“日知其所亡，月无忘其所能，可谓好学也已矣。”<br>子夏曰：“博学而笃志，切问而近思，仁在其中矣。”<br>子夏曰：“百工居肆以成其事，君子学以致其道。”<br>子夏曰：“小人之过也必文。”<br>子夏曰：“君子有三变：望之俨然，即之也温，听其言也厉。”<br>子夏曰：“君子信而后劳其民，未信，则以为厉己也；信而后谏，未信，则以为谤己也。”<br>子夏曰：“大德不逾闲，小德出入可也。”<br>子游曰：“子夏之门人小子，当洒扫应对进退则可矣。抑末也，本之则无，如之何？”子夏闻之，曰：“噫，言游过矣！君子之道，孰先传焉？孰后倦焉？譬诸草木，区以别矣。君子之道焉可诬也？有始有卒者，其惟圣人乎！”<br>子夏曰：“仕而优则学，学而优则仕。”<br>子游曰：“丧致乎哀而止。”<br>子游曰：“吾友张也为难能也，然而未仁。”<br>曾子曰：“堂堂乎张也，难与并为仁矣。”<br>曾子曰：“吾闻诸夫子，人未有自致者也，必也亲丧乎！”<br>曾子曰：“吾闻诸夫子，孟庄子之孝也，其他可能也；其不改父之臣与父之政，是难能也。”<br>孟氏使阳肤为士师，问于曾子。曾子曰：“上失其道，民散久矣。如得其情，则哀矜而勿喜！”<br>子贡曰：“纣之不善，不如是之甚也。是以君子恶居下流，天下之恶皆归焉。”<br>子贡曰：“君子之过也，如日月之食焉。过也人皆见之，更也人皆仰之。”<br>卫公孙朝问于子贡曰：“仲尼焉学？”子贡曰：“文武之道未坠于地，在人。贤者识其大者，不贤者识其小者，莫不有文武之道焉，夫子焉不学？而亦何常师之有？”<br>叔孙武叔语大夫于朝曰：“子贡贤于仲尼。”子服景伯以告子贡，子贡曰：“譬之宫墙，赐之墙也及肩，窥见室家之好；夫子之墙数仞，不得其门而入，不见宗庙之美、百官之富。得其门者或寡矣，夫子之云不亦宜乎！”<br>叔孙武叔毁仲尼，子贡曰：“无以为也，仲尼不可毁也。他人之贤者，丘陵也，犹可逾也；仲尼，日月也，无得而逾焉。人虽欲自绝，其何伤于日月乎？多见其不知量也。”<br>陈子禽谓子贡曰：“子为恭也，仲尼岂贤于子乎？”子贡曰：“君子一言以为知，一言以为不知，言不可不慎也。夫子之不可及也，犹天之不可阶而升也。夫子之得邦家者，所谓立之斯立，道之斯行，绥之斯来，动之斯和。其生也荣，其死也哀，如之何其可及也？”<br>尧曰篇<br>尧曰：“咨！尔舜！天之历数在尔躬，允执其中。四海困穷，天禄永终。”舜亦以命禹。曰：“予小子履，敢用玄牡，敢昭告于皇皇后帝：有罪不敢赦，帝臣不蔽，简在帝心。朕躬有罪，无以万方；万方有罪，罪在朕躬。”周有大赉，善人是富。“虽有周亲，不如仁人。百姓有过，在予一人。”谨权量，审法度，修废官，四方之政行焉。兴灭国，继绝世，举逸民，天下之民归心焉。所重：民、食、丧、祭。宽则得众，信则民任焉，敏则有功，公则说。<br>子张问于孔子曰：“何如斯可以从政矣？”子曰：“尊五美，屏四恶，斯可以从政矣。”子张曰：“何谓五美？”子曰：“君子惠而不费，劳而不怨，欲而不贪，泰而不骄，威而不猛。”子张曰：“何谓惠而不费？”子曰：“因民之所利而利之，斯不亦惠而不费乎？择可劳而劳之，又谁怨？欲仁而得仁，又焉贪？君子无众寡，无小大，无敢慢，斯不亦泰而不骄乎？君子正其衣冠，尊其瞻视，俨然人望而畏之，斯不亦威而不猛乎？”子张曰：“何谓四恶？”子曰：“不教而杀谓之虐；不戒视成谓之暴；慢令致期谓之贼；犹之与人也，出纳之吝谓之有司。”<br>孔子曰：“不知命，无以为君子也；不知礼，无以立也；不知言，无以知人也。”</p>
+]]></content>
+      <categories>
+        <category>读后感</category>
+      </categories>
+      <tags>
+        <tag>读后感</tag>
       </tags>
   </entry>
 </search>
