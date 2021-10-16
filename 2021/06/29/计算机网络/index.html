@@ -23,7 +23,7 @@
 <meta property="og:image" content="https://satyrswang.github.io/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%BD%91%E5%85%B3%E5%8D%8F%E8%AE%AE.png">
 <meta property="og:image" content="https://satyrswang.github.io/2021/06/29/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%BD%91%E5%85%B3%E5%8D%8F%E8%AE%AE2.png">
 <meta property="article:published_time" content="2021-06-29T04:48:34.000Z">
-<meta property="article:modified_time" content="2021-07-20T09:38:14.080Z">
+<meta property="article:modified_time" content="2021-10-09T12:58:38.572Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="计算机">
 <meta name="twitter:card" content="summary">
@@ -94,7 +94,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">197.5k</span>
+    总字数 <span class="post-count">157.4k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -269,7 +269,7 @@
 <li><p>流量控制，收不下就不去确认。包括，停止等待协议、滑动窗口。</p>
 <p>传输层的流量控制是公告窗口。</p>
 </li>
-<li><p>GBN：累积确认(捎带)；接收方只按序接收、否则丢弃，并确认帧催更；发送发确认序列号最大的、按序号达到的；超时重传；发送窗口2^n-1，接收窗口1(n为帧序号长度)；</p>
+<li><p>GBN：累积确认(捎带)；接收方只按序接收、否则丢弃，并确认帧催更；发送方确认序列号最大的、按序号达到的；超时重传；发送窗口2^n-1，接收窗口1(n为帧序号长度)；</p>
 </li>
 <li><p>SR：选择重传协议。只重传出错的；接收方有缓存的窗口；对数据逐一确认，收到一个确认一个；最大接收和最大发送窗口大小：2^(n-1)</p>
 </li>
@@ -293,7 +293,7 @@
 </li>
 <li><p>适配器–网卡，每个网卡有mac地址，全球唯一，48位 – 前24位代表厂家 ieee确定 6个16进制数表示，在网卡的rom上有</p>
 </li>
-<li><p>以太网的MAC帧：前同步码7B + 帧定界符1B + <strong>以太网MAC帧 （源地址6B + 目的地址6B + 类型2B + 数据 + FCS4B）–这个是mac层</strong> = 物理层  数据46B-1500B</p>
+<li><p>以太网的MAC帧：前同步码7B + 帧定界符1B + **以太网MAC帧 （ 目的地址6B源地址6B + 类型2B + 数据 + FCS4B）–这个是物理层  数据46B-1500B</p>
 </li>
 <li><p>高速以太网：大于100M就是高速。全双工时候，用的是交换机，隔离了冲突域，无冲突。光纤上1g or  10g。</p>
 </li>
@@ -715,11 +715,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">c++</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">c++</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
