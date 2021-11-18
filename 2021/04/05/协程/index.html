@@ -8,15 +8,15 @@
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
   <title>协程 | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="协程、多核与cpu">
+  <meta name="description" content="Here&#39;s something encrypted, password is required to continue reading.">
 <meta property="og:type" content="article">
 <meta property="og:title" content="协程">
 <meta property="og:url" content="https://satyrswang.github.io/2021/04/05/%E5%8D%8F%E7%A8%8B/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="协程、多核与cpu">
+<meta property="og:description" content="Here&#39;s something encrypted, password is required to continue reading.">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-04-05T11:57:34.000Z">
-<meta property="article:modified_time" content="2021-04-08T03:06:11.150Z">
+<meta property="article:modified_time" content="2021-11-18T02:43:04.720Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="并发">
 <meta name="twitter:card" content="summary">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">157.4k</span>
+    总字数 <span class="post-count">156.1k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,61 +186,22 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：534字 | 预计阅读时长：1分钟
+    字数：6字 | 预计阅读时长：1分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>协程、多核与cpu</p>
-<span id="more"></span>
-
-<ul>
-<li>协程<ul>
-<li>从隔离、通信、调度、切换开销角度分析</li>
-<li>进程<ul>
-<li>资源完全隔离、进程挂了不影响其他进程，通信需要Inter-Process Communication，有七中状态，os进行调度</li>
-</ul>
-</li>
-<li>线程<ul>
-<li>每个进程可以有多个线程，共享进程资源、共享全局变量，但会引起多线程并发问题，需要锁机制，通信需要wait signal</li>
-<li>切换<ul>
-<li>进程切换与线程切换的一个最主要区别就在于进程切换涉及到虚拟地址空间的切换而线程切换则不会。线程共享虚拟地址空间。</li>
-<li>和进程一样涉及到内核状态、硬件上下文的切换</li>
-</ul>
-</li>
-<li>线程池里一个线程挂了<ul>
-<li>当执行方式是execute时,可以看到堆栈异常的输出。</li>
-<li>当执行方式是submit时,堆栈异常没有输出。但是调用Future.get()方法时，可以捕获到异常。</li>
-<li>不会影响线程池里面其他线程的正常执行。</li>
-<li>线程池会把这个线程移除掉，并创建一个新的线程放到线程池中。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>协程<ul>
-<li>协程是属于线程的。协程程序是在线程里面跑的，因此协程又称微线程和纤程等.协没有线程的上下文切换消耗</li>
-<li>不涉及内核，完全在用户态进行，不用锁</li>
-<li>如python中的yield</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li><p>多核的数据传递、总线</p>
-<ul>
-<li>不管别的CPU私有Cache是否缓存相同的数据，都需要发出一次广播事件。这在一定程度上加重了总线负载，也增加了读写延迟。<br>针对该问题，提出了一种状态机机制降低带宽压力。这就是MESI protocol（协议）。</li>
-<li>cache line具有4中状态，分别是Modified、Exclusive、Shared和Invalid。<br>当cache line状态是Modified或者Exclusive状态时，修改其数据不需要发送消息给其他CPU</li>
-<li>多核Cache一致性由硬件保证，对软件来说是透明</li>
-<li>MOESI Protocol。多一种Owned状态。多出来的状态也是为了更好的优化性能。</li>
-</ul>
-</li>
-<li><p>多cpu和单cpu多核</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/20998226">cpu</a></li>
-</ul>
-</li>
-</ul>
-
+        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
+  <script id="hbeData" type="hbeData" data-hmacdigest="e8083526783c62436afeada5ddf82121de5b5b60336fb01b0b65044e514da0c9">b743ddfe29df7c9a5ee2d30cbbb033b1abb3be41774089dc5557907de7e435951f1f2ba7270ef2c1fd7945296b36c5583a213ffcc7198bced8ae7d410486aa353df5bffa30ec8ee3b19a9f90055c6ea488692d84358554f0610204b32bbd3ac41897f64006b25349df16c5c40d93b7b3ed85fb8d1d476146d8430a8a0ee1352a010ddf4956124835a7eacc54a46a816209fe54639f734ae58dea51fa309381658d7934afb656d7502a731f218043682b21ccb8917fd17862bb7b71b309c95346ca9411085adef458ade6944d9ea873c13934e86d9340edec88a85f4d5bd98f3458e3cd99665672682bda4b789d2cc1ec399290e56cc9415588a262443311ee7b9b9c7cfa1c71b3a6a151a29cbd670446002c1234ea66fb268158df0d34c4f84c29b470415382f95b70f3b904cc00874aae0069828e2f1b4f55da168adf0d86bab473f949ded506ad01dafdcf05609f6c25ea85a23df3892e1be9d0bfccb4f06e2f799139ab4ccf7dab24e4bd1db32e4b3663cd948afc7f9f25f43e9e38c7f0930d6e70c09c71707e6f44ea5d0a166c256951e4bb1e649490e9433a21f4a610e32457f99a9f2c439a4683de596d3d8a2aa5b70e1865b28f8c96b88bb08e695b5f46c348678bcbbea22801a7e5e4892e58087b85609dcd7447b3472cacefb8a3e1f36011a3834fd74804dd6c2eedf785f610b1de880b0490dc3e16ffc6c1e4137bba207e9cce12560fd1f3b0ab2b98a17556be5b6ca3179e8eda366742a8a9e9f0374e121edfcf1323b2e5c983150b7ba63f2207fca03590bdd42bb1dc7e221ca0d1a3b65ebcc4d29e41df2deec2f92ca5fc1dc4f862c82a5e05f05a6ca233454f53ee3887585a556ab2739b3db793ca790a827617a3da64ce374efc1ff091cc3dac32f6db677b39f5510f53a0d9ce9d6d1f7c43059ac77144b0c410307993e15a52796358ea8be448d8a4478af218ac0f96834426f8a0afdb0239cb7ba53c5d915db57f2a6d04374456416dc743a420913755bdeb4b71c42b744a7025e8779ee3d81274c90efcb6eba9d1f67567be5559a9b4078fc197d99bad826657ba23b029f87d40808d945a25b5b9d0d60ef701076e73822f30cfcaf406a8dfa1c17c7f3568e6ab20e35cfb35da790d15fb83ee4ba02d2533d5867ad99d230063459a88738368424609bba5a86cacc0f3379e51bfd88662c57dbd45d66e9eff182227ad05ce6625be670e8fdcf8c8eb478f9332c237cb47a8e1d9bcd70dc1b58b79ba455ffee2d8a4b8af35ac4e792fa93a7384182c04694f504b1f0f577b31d3f134e388fa5429978c425831d406118750276485b2ba819bd6b53352ff0d0e0b883579c124376f005940809e52aa3d34e1dbd852d487831108f7549e38a2b4a37d475b5be64d306c50b7d8a55e1f8396df7f3793c2041f41aa5bcc7ddfa8f0841bab8546ec6266d847fae05ca8e39406d897fbd97a2a4b9672f9626bf7d8b74489271a7631e54c862ca3fae70c565b168e7021612222b9723ba4a80702fa48147cac3b33e31bd7bd09050dbc23fd37e3f941bfd4e1f2df49b3101d1dc1bc603e2a422399c332372536eb66eb5c86ddc3f5c6bc93d1c25ac4f0c225cd798dba424f73a134f1bdb68dfa7a9a14cc726590a8aac17ce501beea1aedcc1e260300c88c4c634e32749f54d753be51e4d17e6bb8ed509de5aa07d18e85c42833cda962759d928a20974001fdb8f2bc644ff8731f3ae586fc14772c936d1c3215d1138fec36b064c2e1848e5ce83aaa1c6890c2547184a9e8c78c8b1ef92bdaa8d53051808f4fb26165564c25bee3b1572076e8d0517d34291e620e0bc7112dc2044076c54610debd46c6fc9595d556a2349809a093a93ac7f6c3bb6320da5f1d045512d3365c8132cbbc45c93c47f25677f1daacb9db482675350fed1bbb5cb71947a81514755c20144504d5c576282b91b12a4492fcca69c2494507e846532a7555aabc3c58da910877ca534144e9222cc443e28f6f4e11b8193806004a583972934e0aadfafea8232e84a6de91955d07da7ef8f30fb72f689c89d0dac4b09f49f037f5ff780345560eff1f1270ac7ce59e5c6fde6c4279575f81abfe226956d11ba4954a8f0d5152de3815a904bbac7768f4cce8083fc8f584fed6112145bac20a3133292c04887ccd5cf4bd287f17f6ae4f96e094f41816bf7108fd6c8880791d287819740ab9274724a661cfcd14b4c9e332c933e9f38c7b1b13dd439bcc46e2f5ec8bb531160107998a2877af22705b189e4e7b5d48f08686bb3876a3fcec861515000713c20c0c4857aeee6f1ef0ae099c6248edeadf0192d43efbf09b598c498719a9a9470b9c5db0c8ba97c6c553798d76da346a91320e90b033b4db890d73187667522894411f11a780969ced7767d8822a6184992fff715d80e99b9da1e1b84b4c384ad6583c23491e2409b71580e75770dcd8499906b24d0645bd80550eed6ec1547eee66e292c27f1c2b99e7e150a26f2aa1d9d36c7b52ec4c056a5e1655f4f44de213482d87eb610607072e427484586e43e8f9176b1f556122fe3254b2f37f0d9cc261879ffb50bfe3df385cf4e43a2a5ad4bd9c5e48d43c0c2fbd8c988e1658e9eaa2a851df63e8bde6388dffe7ee66f522c1c2cf11f879f2c30f5ea07c9beef18f30824f51c375146bdd4c9bbd24ffe62564c178e9330975a47422b800bf70e9ef62b8417b7fe2aefbeef67664d6b90665133bdd74e9b4ac295d4e902854edbe030b1f23bbc6f927865b45e53e73bf0ce4a0b2c0534c41254f74e55d23169423b9ee1b73b83e90f461e46a872c7d8459cb3b80f65138f46639569a8cc2e3cdf669d4b1fadf7262196e05bc23d268069ada34998fd6bb03f0d0777a73c1d12585d82b540d74ee98cd45ca054dd0b6b95a530fb1b1522eb9fdb877a6bec2468543f9dcac030bcfbf534be76d7867c2909550bf191fddda55c2e94b5292b0a3cfac0be41e58d10fc9e1ad42d65023813d2c551ddaffc23a049f7bf13387fab1278b51a7a4ceed7fca82dd8826f71aa957e95b1e0fef7b63cc0613740fb6554bda4a0db74ac53887d5eacb5b11f6eb922cb90a352eb3c8e700bb7016dfbf9f4e95ddab5f6706c9ef780b76544de366ff8b357e7eb39db77eab6cd9a28e400e89afea18783998aabc2e7679e16e8283810a7e7d88e03bb8a3f53a7af229d42bbc65a23c3260de3ba75704ecd87fba0038070e0d95affcbcdfbe5cce890a594a5f4ea37135a571b9a4c421e23e04afe621c4e27d093d9453a4a37fbca29f4b81fbeede7968bf1b3baf84c678f9f94083cbc6f4473e719b743484e3d4ae6879997b8a</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">Hey, password is required here.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script data-pjax src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">
       
 
        <!-- 添加版权声明 -->
