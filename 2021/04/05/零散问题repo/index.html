@@ -16,7 +16,7 @@
 <meta property="og:description" content="无中心、碎片知识点">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-04-05T11:27:02.000Z">
-<meta property="article:modified_time" content="2021-10-06T07:36:37.871Z">
+<meta property="article:modified_time" content="2022-01-10T07:52:38.461Z">
 <meta property="article:author" content="yuqing wang">
 <meta property="article:tag" content="零散知识点">
 <meta name="twitter:card" content="summary">
@@ -86,7 +86,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">156.2k</span>
+    总字数 <span class="post-count">160k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -186,7 +186,7 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：2.3k字 | 预计阅读时长：8分钟
+    字数：3.4k字 | 预计阅读时长：12分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
@@ -194,8 +194,36 @@
 <p><strong>无中心、碎片知识点</strong></p>
 <span id="more"></span>
 
-
 <ul>
+<li><p>如何选择监督还是reinforcement？<br>半监督：无label 的数据对学习也有帮助。<br>transfer learning：和任务无关的数据也有帮助。<br>无监督：无任何label。看了大量数据后自己创造一些数据(有output得到input)。<br>structured learning（未知领域）：输出结构性的output。如一段信号输出一个完整的句子长文本。<br>reinforcement learning：和监督学习的区别，监督有label，reinforcement只有一个分数作为反馈-learning from critics。<br>根据不同的情景选择监督半监督或是reinforcement，再根据task选择method。</p>
+</li>
+<li><p>梯度是指：微分组成的向量。</p>
+</li>
+<li><p>linear regression无局部最优。因此得到的就是全局最优</p>
+</li>
+<li><p>计算参数对loss function的微分，为-则增加参数w，为正则减小参数；3step size：取决于为微分值以及一个已定常数项(learning rate)</p>
+</li>
+<li><p>梯度下降的问题：在非线性时需要考虑。linear regression不用担心，因为loss function是convex的-无局部最优。</p>
+</li>
+<li><p>为什么正则化能够解决overfitting</p>
+<ul>
+<li>复杂的model在training data上已定越来越低的error，但在testing data上可能并不导致更低的error–叫做overfitting。</li>
+<li>原来的loss只考虑了error，现在加入∑α*参数平方(这里的参数不考虑bias，bias和平滑程度无关，只是平移)。意味着，参数绝对值越小越好。</li>
+<li>因为参数值接近0，则function是更平滑的，即输入值变化很小时，目标值变化也小–对输入值不敏感，尤其当testing data有noise时。</li>
+<li>而当α越大，training的error越大，因为加大对regularization的考虑，但是testing上error反而没有更大。因为平滑的function对testing data的noise不敏感。但也不希望太平滑，因为太平滑一条直线，error还是会增加。需要调整α。</li>
+</ul>
+</li>
+<li><p>error来自bias和variance。</p>
+<ul>
+<li>复杂的model（function set更大），不同的data得到的 function的variance大，散布开。简单的model比较不会受data影响，所以散布紧。</li>
+<li>function的期望离f*(真实)越近，bias越小。但是并不知道f<em>，所以对f</em>进行假设。越复杂的model，虽然variance很大，但是平均起来，会发现更加接近f*。</li>
+<li>简单的model的set小，space小，可能不包含真正的f<em>，而复杂的model可能包含f</em>,那么平均起来，复杂model的bias就更小。</li>
+</ul>
+</li>
+<li><p>error大多来自variance，则为overfitting；来自bias很大，则为underfitting。如果model无法fit training data则为underfitting，即large bias，则需要redesign model，加入更多的features、或者增加model复杂度；</p>
+</li>
+<li><p>如果training很好，testing很差则overfitting，则增加每次的data(generate 假的training data，制造更多data)、或者regularization(调整α更平滑来减少variance，但有可能增加bias)。</p>
+</li>
 <li><p>get post</p>
 <ul>
 <li>GET请求是通过URL直接请求数据，而POST请求是放在请求头中</li>
@@ -208,12 +236,27 @@
 <li>总销售额，总交易额</li>
 </ul>
 </li>
-</ul>
+<li><p>Adagrad：不同参数不同learning rate– 常数/过去所有微分平方和的开方– 为什么？：一个参数，步长应与一次微分成正比；参数量多的时候应与一次微分/二次微分成正比。我们使用一次微分平方和的开方近似二次微分，这样的做没有增加计算二次微分的计算量。</p>
+</li>
+<li><p>因为没有足够的data所以才需要学习。当有一切图片时不需要dl。</p>
+</li>
+<li></li>
+<li><p>数据不平衡时，将原来的问题切分成小问题。<br>如果长发男1、长发女9、短发男9、短发女9中，长发男数据量小，那么分类可以先做一个分类器一分男女，根据分类器一已知男女，分类器二分长短发则正负样本数量为10：18要好很多，分类器二的结果为最后的结果，而非直接找分为四类的分类器。</p>
+</li>
+<li><p>感受野<br>如果两个3<em>3和一个5</em>5对原始输入后卷积都得到了1<em>1的输出<br>那么哪个filter好呢？<br>从计算量和参数个数来看，选择多层卷积，而每个卷积为3</em>3的更好。</p>
+</li>
+<li><p>feature scaling：将feature的scale化同，即减去均值除以标准差。使得对loss的影响相同，更有效地调learning rate进行梯度下降。</p>
+</li>
+<li><p>梯度下降的理论-限制？</p>
 <ul>
-<li>感受野<br>如果两个3<em>3和一个5</em>5对原始输入后卷积都得到了1<em>1的输出<br>那么哪个filter好呢？<br>从计算量和参数个数来看，选择多层卷积，而每个卷积为3</em>3的更好。</li>
+<li>给一个参数值作为初始值，该点领域中可使用泰勒级数表示loss function，这个loss function对参数求偏导，为了最小化loss，选择参数为 初始值-常数*偏导。即在领域中，泰勒级数成立时，梯度下降成立。</li>
+<li>当learning rate很大，则不在初始值领域中，泰勒级数不成立，则可能梯度下降无法使loss逐步变小反增。</li>
+<li>泰勒也可以考虑到二次微分-牛顿，但是dp中计算量太大不现实。</li>
+<li>Saddle point 或者local minimal 或者 plateau处停止-微分值很小，但是离最小很远处停下来。</li>
 </ul>
-<ul>
-<li>为什么NLP和Speech的很多问题也可以用CNN解出来？为什么AlphaGo里也用了CNN？这几个不相关的问题的相似性在哪里？</li>
+</li>
+<li><p>为什么NLP和Speech的很多问题也可以用CNN解出来？为什么AlphaGo里也用了CNN？这几个不相关的问题的相似性在哪里？</p>
+</li>
 </ul>
 <p>CNN抓住此共性的手段主要有四个：局部连接／权值共享／池化操作／多层次结构。<br>如果每一个点的处理使用相同的Filter，则为全卷积，如果使用不同的Filter，则为Local-Conv。</p>
 <p>人脸在不同的区域存在不同的特征（眼睛／鼻子／嘴的分布位置相对固定），当不存在全局的局部特征分布时，Local-Conv更适合特征的提取。</p>
@@ -618,11 +661,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">es</a>
+                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -638,10 +681,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">英文积累</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -651,6 +690,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">英文积累</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -683,10 +726,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">方法论</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">破站</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -723,6 +762,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">零散知识点</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">破站</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">ky</a>
               </li>
             
             <div class="clearfix"></div>

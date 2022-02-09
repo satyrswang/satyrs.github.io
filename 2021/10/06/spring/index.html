@@ -8,17 +8,19 @@
   <link rel="dns-prefetch" href="https://satyrswang.github.io">
   <title>spring | satyrswang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="bean生命周期1、需要初始化">
+  <meta name="description" content="Spring框架的目标是通过启用基于POJO的编程模型，使Java EE开发更易于使用并促进良好的编程实践。 bean生命周期1、需要初始化">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spring">
 <meta property="og:url" content="https://satyrswang.github.io/2021/10/06/spring/index.html">
 <meta property="og:site_name" content="satyrswang">
-<meta property="og:description" content="bean生命周期1、需要初始化">
+<meta property="og:description" content="Spring框架的目标是通过启用基于POJO的编程模型，使Java EE开发更易于使用并促进良好的编程实践。 bean生命周期1、需要初始化">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://satyrswang.github.io/2021/10/06/spring/spring.png">
 <meta property="article:published_time" content="2021-10-06T07:50:02.000Z">
-<meta property="article:modified_time" content="2021-10-06T07:50:34.920Z">
+<meta property="article:modified_time" content="2022-01-24T10:09:03.959Z">
 <meta property="article:author" content="yuqing wang">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://satyrswang.github.io/2021/10/06/spring/spring.png">
   
     <link rel="alternative" href="/atom.xml" title="satyrswang" type="application/atom+xml">
   
@@ -85,7 +87,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">156.2k</span>
+    总字数 <span class="post-count">160k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -185,13 +187,47 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：219字 | 预计阅读时长：1分钟
+    字数：1.5k字 | 预计阅读时长：5分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="bean生命周期"><a href="#bean生命周期" class="headerlink" title="bean生命周期"></a>bean生命周期</h2><p>1、需要初始化<span id="more"></span>bean时，factory调用createBean进行实例化。<br>2、获取BeanDefinition对象中的信息进行实例化。并且这一步仅仅是简单的实例化，并未进行依赖注入。<br>3、实例化对象被包装在BeanWrapper对象中，接着Spring根据BeanDefinition中的信息进行依赖注入。<br>4、 注入Aware接口紧接着，Spring会检测该对象是否实现了xxxAware接口，并将相关的xxxAware实例注入给bean。<br>5、BeanPostProcessor当经过上述几个步骤后，bean对象已经被正确构造，但如果你想要对象被使用前再进行一些自定义的处理，就可以通过BeanPostProcessor接口实现。<br>6、InitializingBean与init-method<br>7、DisposableBean和destroy-method和init-method一样，通过给destroy-method指定函数，就可以在bean销毁前执行指定的逻辑。</p>
-<p>keyword： factory createbean beandefinition wrapper aware postprocessor initializing destory</p>
-<h2 id><a href="#" class="headerlink" title></a></h2>
+        <br>
+<br>
+
+<p>Spring框架的目标是通过启用基于POJO的编程模型，使Java EE开发更易于使用并促进良好的编程实践。</p>
+<h2 id="bean生命周期"><a href="#bean生命周期" class="headerlink" title="bean生命周期"></a>bean生命周期</h2><p>1、需要初始化<span id="more"></span>bean时，factory调用createBean进行实例化。<br>2、获取BeanDefinition对象中的信息进行实例化。并且这一步仅仅是简单的实例化，并未进行依赖注入。<br>3、实例化对象被包装在BeanWrapper对象中，接着Spring根据BeanDefinition中的信息进行依赖注入。<br>4、 注入Aware接口紧接着，Spring会检测该对象是否实现了xxxAware接口，并将相关的xxxAware实例注入给bean。<br>5、BeanPostProcessor当经过上述几个步骤后，bean对象已经被正确构造，但如果你想要对象被使用前再进行一些自定义的处理，就可以通过BeanPostProcessor接口实现。<br>6、InitializingBean与init-method<br>7、DisposableBean和destroy-method和init-method一样，通过给destroy-method指定函数，就可以在bean销毁前执行指定的逻辑。</p>
+<p>keyword： factory createbean beandefinition wrapper aware postprocessor initializing destory<br><br><br><br></p>
+<h2 id="注解"><a href="#注解" class="headerlink" title="注解"></a>注解</h2><p>1、@Controller：使用它标记的类就是一个Spring MVC Controller对象，即：一个控制器类。Spring使用扫描机制查找应用程序中所有基于注解的控制器类，分发处理器会扫描使用了该注解的方法，并检测该方法是否使用了@RequestMapping注解。Controller接口的实现类只能处理一个单一的请求动作，而@Controller注解注解的控制器可以同时支持处理多个请求动作，使程序开发变的更加灵活。<br>2、@RequestMapping：使用@RequestMapping注解的方法才是真正处理请求的处理器<br>3、@autowire：可以修饰在构造器、普通方法、成员变量、构造器or非静态方法入参上修饰【@Resource能用在：类、成员变量和方法上】。默认按byType自动装配【@Resource默认byName自动装配】。@Autowired只包含一个参数：required，表示是否开启自动准入，默认是true。<br>4、@Qualifier：意思是合格者，一般跟Autowired配合使用，需要指定一个bean的名称，通过bean名称就能找到需要装配的bean。<br>5、@Primary：当我们使用自动配置的方式装配Bean时，如果这个Bean有多个候选者，假如其中一个候选者具有@Primary注解修饰，该候选者会被选中，作为自动配置的值。<br>6、在类上面忘了加@Controller、@Service、@Component、@Repository等注解，spring就无法完成自动装配的功能<br>7、springmvc的启动是在DisptachServlet里面做的，而它是在listener和filter之后执行。如果我们想在listener和filter里面@Autowired某个bean，肯定是不行的，因为filter初始化的时候，此时bean还没有初始化，无法自动装配。如果工作当中真的需要这样做，我们该如何解决这个问题呢？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public class UserFilter  implements Filter &#123;</span><br><span class="line"></span><br><span class="line">    private IUser user;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void init(FilterConfig filterConfig) throws ServletException &#123;</span><br><span class="line">        ApplicationContext applicationContext &#x3D; WebApplicationContextUtils.getWebApplicationContext(filterConfig.getServletContext());</span><br><span class="line">        this.user &#x3D; ((IUser)(applicationContext.getBean(&quot;user1&quot;)));</span><br><span class="line">        user.say();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>答案是使用WebApplicationContextUtils.getWebApplicationContext获取当前的ApplicationContext，再通过它获取到bean实例。</p>
+<p>8、@Autowired功能虽说非常强大，但是也有些不足之处。比如：比如它跟spring强耦合了，如果换成了JFinal等其他框架，功能就会失效。@Resource是JSR-250提供的，它是Java标准，绝大部分框架都支持。</p>
+<br>
+<br>
+
+<h2 id="Spring加载流程以及三级缓存"><a href="#Spring加载流程以及三级缓存" class="headerlink" title="Spring加载流程以及三级缓存"></a>Spring加载流程以及三级缓存</h2><br>
+<br>
+
+<h2 id="AOP的实现原理"><a href="#AOP的实现原理" class="headerlink" title="AOP的实现原理"></a>AOP的实现原理</h2><p>1、就是将那些与业务无关，却被业务模块所共同调用的逻辑封装起来，便于减少系统的重复代码，降低模块间的耦合度，并有利于未来的可操作性和可维护性。AOP的核心思想就是“将应用程序中的商业逻辑同对其提供支持的通用服务进行分离。”<br>2、两种方式生成代理对象：JDKProxy和Cglib具体使用哪种方式生成由AopProxyFactory根据AdvisedSupport对象的配置来决定。默认的策略是如果目标类是接口，则使用JDK动态代理技术，否则使用Cglib来生成代理。</p>
+<br>
+<br>
+
+<h2 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h2><p>1、管理事务<br>2、配置事务</p>
+<br>
+<br>
+
+<h2 id="mvc"><a href="#mvc" class="headerlink" title="mvc"></a>mvc</h2><p>01、用户发送出请求到前端控制器DispatcherServlet。<br>02、DispatcherServlet收到请求调用HandlerMapping（处理器映射器）。<br>03、HandlerMapping找到具体的处理器(可查找xml配置或注解配置)，生成处理器对象及处理器拦截器(如果有)，再一起返回给DispatcherServlet。<br>04、DispatcherServlet调用HandlerAdapter（处理器适配器）。<br>05、HandlerAdapter经过适配调用具体的处理器（Handler/Controller）。<br>06、Controller执行完成返回ModelAndView对象。<br>07、HandlerAdapter将Controller执行结果ModelAndView返回给DispatcherServlet。<br>08、DispatcherServlet将ModelAndView传给ViewReslover（视图解析器）。<br>09、ViewReslover解析后返回具体View（视图）。<br>10、DispatcherServlet根据View进行渲染视图（即将模型数据填充至视图中）。<br>11、DispatcherServlet响应用户。</p>
+<p><img src="/2021/10/06/spring/spring.png" alt="mvc"></p>
+<br>
+<br>
+1、controller方法中为什么不能定义局部变量？
+因为controller是默认单例模式，高并发下全局变量会出现线程安全问题
+解决：1scope="prototype"每次都创建新的controller 2jdk提供了java.lang.ThreadLocal 3将全局变量都编程局部变量，通过方法参数来传递 
+<br>
+2、SpringMVC中的拦截器和Servlet中的filter有什么区别？
+都能过滤请求。Interceptor在实现上基于Java的反射机制，属于面向切面编程（AOP）的一种运用。一个拦截器实例在一个controller生命周期之内可以多次调用，按照配置的先后顺序进行拦截。但是缺点是只能对controller请求进行拦截，对其他的一些比如直接访问静态资源的请求则没办法进行拦截处理。Filter依赖于servlet容器。在实现上基于函数回调，可以对几乎所有请求进行过滤[主要是针对URL地址做一个编码的事情、过滤掉没用的参数、安全校验（比较泛的，比如登录不登录之类）]，但是缺点是一个过滤器实例只能在容器初始化时调用一次。
+<br>
+3、Spring非单例注入的原理
+<br>
       
 
        <!-- 添加版权声明 -->
@@ -519,11 +555,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">es</a>
+                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">流处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">es</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -539,10 +575,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">英文积累</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">linux</a>
               </li>
              
@@ -552,6 +584,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">cheetsheet</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">英文积累</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -584,10 +620,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">方法论</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">破站</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -624,6 +656,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">零散知识点</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">破站</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">ky</a>
               </li>
             
             <div class="clearfix"></div>
