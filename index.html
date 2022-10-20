@@ -81,7 +81,7 @@
             
 		</nav>
 		<nav>
-    总字数 <span class="post-count">162.7k</span>
+    总字数 <span class="post-count">161.7k</span>
 </nav>
 		<nav class="header-nav">
 			<div class="social">
@@ -193,12 +193,10 @@
 
 <h4 id="论文相关"><a href="#论文相关" class="headerlink" title="论文相关"></a>论文相关</h4><br>
 
-<p>1 为什么要“微”调[就是transfer learning的一种算法]，固定一些底层[for loop]，限制搜索空间[本质是正则化]，每段层的lr不同，差异大则多训练一些层，减少预训练的权重或者加head来学你的task<br>2 统计的问题以及为什么要模型<br>3 TIMM tfhub - 拿别人的模型<br>4 微调加速了收敛 - 靠近中心，损失较为平滑，并且精度变高[最坏精度不变]<br>5 BERT-encoder GPT-decoder[单向] T5-encoder&amp;decoder all based on transformer。根据你的任务不同选择不同的预训练。比如qa|summarize等一般T5，生成用GPT，情感分类|预测|是否语义等同等用bert<br>6 TODO:BERT 变种 ALBERT ELECTRA RoBERTa<br>7 BERT 结构图<br>8 TODO:BERT应用 - case代码 [命名实体识别、问题答案]<br>9 bert也体现了模型越大效果越好。GPT3千亿。bert作为特征输入，效果没有在上面finetune更好。合适的prompt对于模型的效果至关重要。<br>10 TODO:auto-gluon会自动加入微调？<br>11 resnet是比较常用的cv预训练<br>12 抖 - 数值稳定性问题<br>13 TODO:位置编码。偶数计算sin，奇数计算cos。为什么transformer是上面这样固定算的，而bert自己去学习？<br>14 TODO:ELMO 双向<br>15 TODO:bpe<br>16 TODO:rnn显示地学到序列信息，为什么attention比rnn在序列上更好？- 归纳偏置<br>17 自注意力，没有可学习参数，但是[Transformer多头用]liner后有了</p>
-<blockquote>
-<p>头<em>64 = 512，则8个头。H=512。字典表是30k</em>H。则多头里的参数有H<em>H</em>3+H<em>H。前面是KQV的映射，后面是output的映射。然后是MLP:两层fc，一层的input是H，输出是4</em>H，也是第二层的输入，输入是H。用到的参数是4H<em>H</em>2=H<em>H</em>8。所以一共参数是30k<em>H+512</em>512<em>12</em>block数。当H=786 L=12是110M，1.1亿。<br>18 mask：pretrain有mask而finetune无，怎么弥合gap =&gt; bert是80%mask，10%random，10%不变。<br>19 bert和transformer的区别 ：编解码架构里，编码器看不到解码器的信息。而bert是句子pair进去，两个句子都能看到对方<br>20 TODO:bert微调结果不稳定问题：1epoch大些 2微调用完整版的Adam<br>21 TODO:prompt<br>22 instance discriminate  - memory bank。将每个输入图片当成一个类，找到一个特征，能在这个空间里将每个类尽量分开。对比学习<br>23 TODO:pair-wise loss 、 nce loss\ infoNCE及变体<br>24 TODO:proximal 正则 让memorybank的数据 - 动量式更新<br>25 simCLR前身 之 invariant spreading ：相似的特征和物体保持不变性；正负样本都来自一个minibatch - 效果不很好：因为负样本不够<br>26 simCLR：强大数据增广&amp;mlp-project<br>27 cpc：contrastive predictive coding[预测的代理任务来做对比学习]：每一步最后输出context representation[如果足够好应该可以来预测] -&gt; 用这个预测未来时刻的特征输出。对比学习体现在：正样本是未来输入，得到了未来输出[这些相对于预测出来的输出为正样本]。负样本是任意输入得到的输出[为你预测出来的输出的负样本] [自回归]<br>28 cmc：contrastive multiview coding。一个物体的多个视角都可以作为正样本。每个视角都是有噪声且不完整的。但是最重要的信息[互信息]是在所有视角里共享的。=&gt;如何抓住所有视角的关键特征。<br>29 cmc的对比学习[多视角的对比学习-多模态的可行性]：4个view  - 原始图像、物体分割、离观察者距离、surface normal？。这四个互为正样本 =&gt;演化到 对应图片的文本描述进行多模态学习 =&gt;蒸馏 让teacher和studnt模型输出尽可能相似，并做成正样本对<br>30 clicp：vit处理图片 &amp; bert处理文本 =&gt; ma clip:一个transformer处理多模态数据<br>31 TODO:teacher和student模型<br>32 19-20:MoCo Momentum Contrast :类似于instance discriminate。对于memory bank和loss约束做了优化改进。但是改的动量编码器在后面不断被复用，证明了无监督学习可以比有监督更好。<br>33 TODO:残差网络<br>34 TODO:MoCov1 看下吧 <a target="_blank" rel="noopener" href="https://github.com/mli/paper-reading/">https://github.com/mli/paper-reading/</a><br>35 simCLR 只是在 var spread上加了数据增强和mlp层，用了更大的batchsize和更多的epoch。提升了10个点 - 无理论解释。<br>36 TODO:数据增强- cutout / gaussian noise / gaussion blur / sobel filter / color / crop / rotate /avg<br>37 simCLRV2： 无监督学习应用于半监督 - 少部分标签finetune后在无标签数据上自学习/蒸馏。改变3个点：模型更大/fc<br>层更多-2层[projection head]/增加了MoCo的动量编码器<br>38 TODO:noisy student<br>39 TODO:动量编码器 。为什么minibatch很大[4096]，负样本足够多，那动量编码器加入到simCLR提升就不那么大了<br>40 SaAV swapped prediction：对比学习+聚类，一个view得到的特征来预测另一个view的特征。主要是通过聚类，将输出特征和聚类中心，生成q1 q2 ，而q1 q2是输出特征&amp;聚类中心的点乘结果，应该可以互相预测的。聚类中心是有语义的，比随机采样作为负样本要好。<br>41 TODO:deep cluster 、 deep cluster2<br>42 multi crop 降低数据计算。取更小的crop但是增加正样本数量<br>43 TODO:cpcv2 infoMin【互信息不要最大化而是不多不少，否则泛化不好并且浪费，按照这个思路去优化了数据增强】<br>44 BYOL：完全不用任何负样本。匹配的问题换成预测的问题，希望query mlp的输出和key的编码器输出尽可能一致。直接是两个向量的mseloss ==&gt;projection &amp;prediction里的 batchnorm遗漏了导致坍塌 ==&gt;因为batchnorm相当于和batch的平均进行隐式地对比学习 =&gt;但是后面的paper进一步反证了并不是进行隐式对比学习。当simCLR没有batchnorm时即使有负样本也不行 == &gt; batchnorm其实是更好地稳定学习，如果初始化会很好即使没有batchnorm也不会坍塌<br>45 负样本是为了避免学习坍塌 =&gt;只有正样本，很容易造成模型学到一个特征，然后任何输入都用同一个特征，并且输出1，这样loss=0，并且遇到负样本loss会是无穷大，导致坍塌。<br>46 simSiam：stop gradient =&gt; EM算法 TODO:可以看下<br>47 GAN:判别器用leakyrelu ; D G的公式理解 ; MINST的GAN代码demo ;为什么先更新D再更新G ； D为什么不能直接更新到很完美 ； 早期的时候很容易导致log内的值直接为0(整体log的max)，怎么做一些数值上的优化改进 ； 证明公式推导<br>48 DCGan ；conditionalGan ;  infoGan ； SSGan ; pix2pix Gan ; cycle Gan ; star Gan </p>
-</blockquote>
-<p>49 swim transformer</p>
-
+<p>1 为什么要“微”调[就是transfer learning的一种算法]，固定一些底层[for loop]，限制搜索空间[本质是正则化]，每段层的lr不同，差异大则多训练一些层，减少预训练的权重或者加head来学你的task<br>2 统计的问题以及为什么要模型</p>
+        
+          <a class="article-more-a" href="/2022/10/13/dl-%E8%AE%BA%E6%96%87/#more">more >></a>
+        
       
 
        <!-- 添加版权声明 -->
@@ -283,32 +281,14 @@
       </header>
     
     <div align="center" class="post-count">
-    字数：975字 | 预计阅读时长：3分钟
+    字数：6字 | 预计阅读时长：1分钟
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <br>
-<br>
-
-<h2 id="2022-06-24"><a href="#2022-06-24" class="headerlink" title="2022-06-24"></a>2022-06-24</h2><br>
-
-<p>1、回应的时候，想一想目的。想一想整个状态。不要竭力为自己辩解。先停顿一下。“嗯…” 。然后先表达出差异，然后原因分析。不急于为自己的理解辩解。先多表述对对方的思考。如果你的思考是全的，那么还好。<br>“如果以业务指标拆分task，这个我的确失误了。我是以工作迭代来划分了。我修正迁移下。”</p>
-<p>2、对人对事是不一样的。对事情，比如工作上会议上，表达上，都需要尽力客观，思考周全，真的去分析这个问题。而在和人沟通上，尽量耐心谦恭。一方面需要表现自己的洞见能力，一方面要有给人善意的姿态。</p>
-<p>当然善意不意味着包容和退让。而是一种真正地理解。理解对方的处境，困难，并思考帮助。</p>
-<p>情绪是消耗的。思考是建设的。</p>
-<p>3、沟通中，我还是会急于回应。因为我自己讨厌延迟回应。<br>更好的方式一定不是急，而哪怕我慢一些，我心里是清楚的这个慢不是说不尊重。而是需要缓冲。包括和同事一起，没必要太热情。<br>热情让人失望。毕竟工作不是对人的热情做出来的。切实地解决困难，无论是人还是事情。<br>与人相处也是原则性。你要清楚自己的边界。不清楚的时候给自己一点时间。</p>
-<p>不是为了交好。而是为了更好合作。</p>
-<p>4、我看着托洛茨基对斯大林的指控。他要是高手，为什么不防着斯大林，没法的话不就必然成就斯大林的阴谋吗。但是一个本性善良的人，怎么做到，做到就不是他了。善良或者凭着习惯或者凭着感觉去防范。还是不及你从原则上逻辑地去推导。</p>
-<p>斯大林不论手段如何，他的行事是值得钦佩的。虽然没有原则，可是他为了目的的刚毅坚忍，和默默一边叼着烟斗去思考的态度是严肃的。这样的严肃和刚毅，让他能够解决问题，不择手段地达到他的目的。</p>
-<p>一个国家也许在这样的领导下是坏事。但是也未必。这个好坏上的度量，比较难。</p>
-<p>5、直观。不管是汇报、工作总结还是其他阅读总结、思路方法论、观念等等之类，数据能够直观，抽象地变为直观，才是方向。这也是追求简单的含义。复杂的唯一好处就是细致入微地理解。但不是目的。</p>
-<p>6、不要太多微信上找别人，因为很多时候不是合适的人，不会得到你想要的结果。先记下来。有必要再找。先询问别人的需求。而不是表达自己的帮助。</p>
-<p>7、要有足够直观的诱惑和替代品，才能够让坏的变成好的有足够大的吸引力。<br>比如你希望早睡早起、少吃甜食&amp;晚上不吃夜宵、适当锻炼、不要情绪化。</p>
-<p>8、其实上面的是不是就是情绪管理。<br>给自己留时间思考，响应的时候不要太急切热切，思考目的和方向、合理性，思考形式上直观。<br>如果心里怀着目的，问题和方向，都是朝着解决上。</p>
-<p>如果我是在意别人的感受或者自己的形象上 - 他是否感觉被冷落、我是否太尖锐、我可能出错、我说的对不对，可能给人的感觉就是在意和不足够严肃。这样想太多，还有脑子放在问题上吗。</p>
-<p>其实就是两点。</p>
-<p>9、</p>
-
+        Here's something encrypted, password is required to continue reading.
+        
+          <a class="article-more-a" href="/2022/06/24/2022-06/#more">more >></a>
+        
       
 
        <!-- 添加版权声明 -->
@@ -323,7 +303,29 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">随笔</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/随笔//" class="article-tag-list-link color3">随笔</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
 
       
         <p class="article-more-link">
